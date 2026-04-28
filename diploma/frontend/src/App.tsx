@@ -1,136 +1,94 @@
-import { useState, useEffect } from 'react';
-import { Button, Input, Table, Space, message, Modal, Form } from 'antd';
-import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { ConfigProvider, theme, App as AntApp } from "antd";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Dashboard from "./pages/Dashboard";
+// import "./App.css";
 
-interface User {
-  id: number;
-  name: string;
-  email: string;
-}
-
-function App() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [form] = Form.useForm();
+const App: React.FC = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    fetchUsers();
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      setIsAuthenticated(true);
+      setUser(JSON.parse(userData));
+    }
   }, []);
 
-  const fetchUsers = async () => {
-    try {
-      const response = await axios.get('/api/users');
-      setUsers(response.data);
-    } catch (error) {
-      message.error('Ошибка загрузки пользователей');
-    }
+  const handleLogin = (userData: any) => {
+    localStorage.setItem("user", JSON.stringify(userData));
+    setIsAuthenticated(true);
+    setUser(userData);
   };
 
-  const handleCreateUser = async (values: any) => {
-    try {
-      await axios.post('/api/users', { ...values, password: '123456' });
-      message.success('Пользователь создан');
-      setIsModalOpen(false);
-      form.resetFields();
-      fetchUsers();
-    } catch (error) {
-      message.error('Ошибка создания');
-    }
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    setIsAuthenticated(false);
+    setUser(null);
   };
-
-  const handleDeleteUser = async (id: number) => {
-    try {
-      await axios.delete(`/api/users/${id}`);
-      message.success('Пользователь удалён');
-      fetchUsers();
-    } catch (error) {
-      message.error('Ошибка удаления');
-    }
-  };
-
-  const columns = [
-    { title: 'ID', dataIndex: 'id', key: 'id', width: 80 },
-    { title: 'Имя', dataIndex: 'name', key: 'name' },
-    { title: 'Email', dataIndex: 'email', key: 'email' },
-    {
-      title: 'Действия',
-      key: 'actions',
-      render: (_: any, record: User) => (
-        <Space>
-          <Button
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() => handleDeleteUser(record.id)}
-          >
-            Удалить
-          </Button>
-        </Space>
-      ),
-    },
-  ];
 
   return (
-    <div style={{ padding: 24 }}>
-      <div
-        style={{
-          marginBottom: 16,
-          display: 'flex',
-          justifyContent: 'space-between',
-        }}
-      >
-        <h1>Управление пользователями</h1>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => setIsModalOpen(true)}
-        >
-          Добавить пользователя
-        </Button>
-      </div>
-
-      <Table
-        dataSource={users}
-        columns={columns}
-        rowKey="id"
-        pagination={{ pageSize: 10 }}
-      />
-
-      <Modal
-        title="Новый пользователь"
-        open={isModalOpen}
-        onCancel={() => setIsModalOpen(false)}
-        footer={null}
-      >
-        <Form form={form} onFinish={handleCreateUser} layout="vertical">
-          <Form.Item
-            name="name"
-            label="Имя"
-            rules={[{ required: true, message: 'Введите имя' }]}
-          >
-            <Input placeholder="Иван Иванов" />
-          </Form.Item>
-          <Form.Item
-            name="email"
-            label="Email"
-            rules={[
-              { required: true, type: 'email', message: 'Введите email' },
-            ]}
-          >
-            <Input placeholder="ivan@example.com" />
-          </Form.Item>
-          <Form.Item>
-            <Space>
-              <Button type="primary" htmlType="submit">
-                Создать
-              </Button>
-              <Button onClick={() => setIsModalOpen(false)}>Отмена</Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
-    </div>
+    <ConfigProvider
+      theme={{
+        algorithm: theme.defaultAlgorithm,
+        token: {
+          colorPrimary: "#52c41a",
+          colorSuccess: "#52c41a",
+          colorWarning: "#faad14",
+          colorError: "#ff4d4f",
+          borderRadius: 8,
+        },
+      }}
+    >
+      <AntApp>
+        <Router>
+          <div className="app">
+            <Routes>
+              <Route
+                path="/login"
+                element={
+                  !isAuthenticated ? (
+                    <Login onLogin={handleLogin} />
+                  ) : (
+                    <Navigate to="/dashboard" />
+                  )
+                }
+              />
+              <Route
+                path="/register"
+                element={
+                  !isAuthenticated ? (
+                    <Register onRegister={handleLogin} />
+                  ) : (
+                    <Navigate to="/dashboard" />
+                  )
+                }
+              />
+              <Route
+                path="/dashboard/*"
+                element={
+                  isAuthenticated ? (
+                    <Dashboard user={user} onLogout={handleLogout} />
+                  ) : (
+                    <Navigate to="/login" />
+                  )
+                }
+              />
+              <Route path="/" element={<Navigate to="/dashboard" />} />
+            </Routes>
+          </div>
+        </Router>
+      </AntApp>
+    </ConfigProvider>
   );
-}
+};
 
 export default App;

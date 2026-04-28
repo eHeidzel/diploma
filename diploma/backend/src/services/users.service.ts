@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '@entities/user.entity';
+import { User, UserRole } from '@entities/user.entity';
 
 @Injectable()
 export class UsersService {
@@ -34,5 +34,11 @@ export class UsersService {
 
   async remove(id: number): Promise<void> {
     await this.usersRepository.delete(id);
+  }
+
+  async getTeachers(): Promise<User[]> {
+    return await this.usersRepository.find({
+      where: { role: UserRole.TEACHER },
+    });
   }
 }

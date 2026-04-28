@@ -7,7 +7,7 @@ import {
   Put,
   Delete,
 } from '@nestjs/common';
-import { UsersService } from '@services/app/users.service';
+import { UsersService } from '@services/users.service';
 import { User } from '@entities/user.entity';
 
 @Controller('users')
@@ -22,6 +22,11 @@ export class UsersController {
   @Get()
   findAll(): Promise<User[]> {
     return this.usersService.findAll();
+  }
+
+  @Get('teachers')
+  getTeachers(): Promise<User[]> {
+    return this.usersService.getTeachers();
   }
 
   @Get(':id')
