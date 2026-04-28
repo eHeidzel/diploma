@@ -5,7 +5,6 @@ import { ValidationPipe } from '@nestjs/common';
 import * as mysql from 'mysql2/promise';
 
 async function bootstrap() {
-  // Создаем базу данных если не существует
   const connection = await mysql.createConnection({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',

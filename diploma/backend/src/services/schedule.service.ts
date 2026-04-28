@@ -55,7 +55,6 @@ export class ScheduleService {
   }
 
   async getStudentSchedule(studentId: number): Promise<Schedule[]> {
-    // Get schedule for subjects student is enrolled in
     return await this.scheduleRepository
       .createQueryBuilder('schedule')
       .innerJoin('schedule.subject', 'subject')

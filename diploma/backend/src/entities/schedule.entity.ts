@@ -28,13 +28,13 @@ export class Schedule {
   teacherId!: number;
 
   @Column()
-  dayOfWeek!: number; // 0-6 (Sunday-Saturday)
+  dayOfWeek!: number;
 
   @Column({ length: 5 })
-  startTime!: string; // HH:mm
+  startTime!: string;
 
   @Column({ length: 5 })
-  endTime!: string; // HH:mm
+  endTime!: string;
 
   @Column({ length: 100, nullable: true })
   room!: string;

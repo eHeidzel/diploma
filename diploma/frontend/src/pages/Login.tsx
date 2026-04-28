@@ -1,10 +1,6 @@
 import React, { useState } from "react";
 import { Form, Input, Button, Card, message, Typography } from "antd";
-import {
-  UserOutlined,
-  LockOutlined,
-  // GraduationCapOutlined,
-} from "@ant-design/icons";
+import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../services/api";
 
@@ -54,7 +50,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         bodyStyle={{ padding: 40 }}
       >
         <div style={{ textAlign: "center", marginBottom: 32 }}>
-          {/* <GraduationCapOutlined style={{ fontSize: 48, color: "#52c41a" }} /> */}
           <Title
             level={2}
             style={{ marginTop: 16, marginBottom: 8, color: "#1a1a1a" }}

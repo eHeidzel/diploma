@@ -97,7 +97,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
               level={4}
               style={{ marginTop: 8, marginBottom: 0, color: "#52c41a" }}
             >
-              EduSchool
+              CodeZone
             </Title>
           )}
         </div>
@@ -159,7 +159,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
   );
 };
 
-// Исправленный компонент DashboardHome - теперь принимает user
 const DashboardHome: React.FC<{ user: any }> = ({ user }) => (
   <div>
     <Title level={3}>Добро пожаловать, {user?.name}!</Title>

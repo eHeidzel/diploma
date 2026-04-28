@@ -52,7 +52,6 @@ export class SubjectsService {
   }
 
   async getTeacherSubjects(teacherId: number): Promise<Subject[]> {
-    // For teacher, return subjects they teach via schedule
     const schedules = await this.subjectsRepository
       .createQueryBuilder('subject')
       .innerJoin('subject.schedules', 'schedule')
