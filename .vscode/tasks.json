@@ -5,7 +5,7 @@
       "label": "wakeUp",
       "type": "npm",
       "script": "start:debug",
-      "path": "diploma/"
+      "path": "diploma/backend"
     }
   ]
 }
