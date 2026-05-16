@@ -15,6 +15,7 @@ import {
 import { PlusOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import api from "../services/api";
+import { useTranslation } from "react-i18next";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -36,13 +37,13 @@ interface SubjectsProps {
 }
 
 const daysOfWeek = [
-  "Воскресенье",
-  "Понедельник",
-  "Вторник",
-  "Среда",
-  "Четверг",
-  "Пятница",
-  "Суббота",
+  "sunday",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
 ];
 
 const ScheduleView: React.FC<SubjectsProps> = ({ user }) => {
@@ -53,6 +54,7 @@ const ScheduleView: React.FC<SubjectsProps> = ({ user }) => {
   const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
+  const { t } = useTranslation();
 
   useEffect(() => {
     fetchSchedule();
@@ -65,7 +67,7 @@ const ScheduleView: React.FC<SubjectsProps> = ({ user }) => {
       const response = await api.get("/schedule");
       setSchedule(response.data);
     } catch (error) {
-      message.error("Ошибка загрузки расписания");
+      message.error(t("schedule.loadingError"));
     }
   };
 
@@ -74,7 +76,7 @@ const ScheduleView: React.FC<SubjectsProps> = ({ user }) => {
       const response = await api.get("/subjects");
       setSubjects(response.data);
     } catch (error) {
-      message.error("Ошибка загрузки предметов");
+      message.error(t("schedule.subjectsError"));
     }
   };
 
@@ -101,17 +103,17 @@ const ScheduleView: React.FC<SubjectsProps> = ({ user }) => {
 
       if (editingSchedule) {
         await api.put(`/schedule/${editingSchedule.id}`, scheduleData);
-        message.success("Занятие обновлено");
+        message.success(t("schedule.updateSuccess"));
       } else {
         await api.post("/schedule", scheduleData);
-        message.success("Занятие добавлено");
+        message.success(t("schedule.createSuccess"));
       }
       setIsModalOpen(false);
       form.resetFields();
       setEditingSchedule(null);
       fetchSchedule();
     } catch (error) {
-      message.error("Ошибка сохранения");
+      message.error(t("schedule.saveError"));
     } finally {
       setLoading(false);
     }
@@ -120,27 +122,28 @@ const ScheduleView: React.FC<SubjectsProps> = ({ user }) => {
   const handleDeleteSchedule = async (id: number) => {
     try {
       await api.delete(`/schedule/${id}`);
-      message.success("Занятие удалено");
+      message.success(t("schedule.deleteSuccess"));
       fetchSchedule();
     } catch (error) {
-      message.error("Ошибка удаления");
+      message.error(t("schedule.deleteError"));
     }
   };
 
   const columns = [
     {
-      title: "День",
+      title: t("schedule.dayColumn"),
       key: "day",
-      render: (_: any, record: Schedule) => daysOfWeek[record.dayOfWeek],
+      render: (_: any, record: Schedule) =>
+        t(`schedule.daysOfWeek.${daysOfWeek[record.dayOfWeek]}`),
     },
     {
-      title: "Время",
+      title: t("schedule.timeColumn"),
       key: "time",
       render: (_: any, record: Schedule) =>
         `${record.startTime} - ${record.endTime}`,
     },
     {
-      title: "Предмет",
+      title: t("schedule.subjectColumn"),
       key: "subject",
       render: (_: any, record: Schedule) => (
         <Tag color={record.subject?.color || "#52c41a"}>
@@ -149,18 +152,18 @@ const ScheduleView: React.FC<SubjectsProps> = ({ user }) => {
       ),
     },
     {
-      title: "Преподаватель",
+      title: t("schedule.teacherColumn"),
       key: "teacher",
       render: (_: any, record: Schedule) => record.teacher?.name,
     },
-    { title: "Аудитория", dataIndex: "room", key: "room" },
+    { title: t("schedule.roomColumn"), dataIndex: "room", key: "room" },
   ];
 
   const isTeacher = user?.role === "teacher";
 
   if (isTeacher) {
     columns.push({
-      title: "Действия",
+      title: t("schedule.actionsColumn"),
       key: "actions",
       render: (_: any, record: Schedule) => (
         <Space>
@@ -203,7 +206,7 @@ const ScheduleView: React.FC<SubjectsProps> = ({ user }) => {
           marginBottom: 24,
         }}
       >
-        <Title level={3}>Расписание занятий</Title>
+        <Title level={3}>{t("schedule.title")}</Title>
         {isTeacher && (
           <Button
             type="primary"
@@ -215,7 +218,7 @@ const ScheduleView: React.FC<SubjectsProps> = ({ user }) => {
             }}
             style={{ backgroundColor: "#52c41a" }}
           >
-            Добавить занятие
+            {t("schedule.addButton")}
           </Button>
         )}
       </div>
@@ -228,7 +231,9 @@ const ScheduleView: React.FC<SubjectsProps> = ({ user }) => {
       />
 
       <Modal
-        title={editingSchedule ? "Редактировать занятие" : "Добавить занятие"}
+        title={
+          editingSchedule ? t("schedule.editTitle") : t("schedule.createTitle")
+        }
         open={isModalOpen}
         onCancel={() => {
           setIsModalOpen(false);
@@ -241,10 +246,10 @@ const ScheduleView: React.FC<SubjectsProps> = ({ user }) => {
         <Form form={form} onFinish={handleCreateSchedule} layout="vertical">
           <Form.Item
             name="subjectId"
-            label="Предмет"
-            rules={[{ required: true, message: "Выберите предмет" }]}
+            label={t("schedule.subjectLabel")}
+            rules={[{ required: true, message: t("schedule.subjectRequired") }]}
           >
-            <Select placeholder="Выберите предмет">
+            <Select placeholder={t("schedule.subjectLabel")}>
               {subjects.map((subject) => (
                 <Option key={subject.id} value={subject.id}>
                   {subject.name}
@@ -254,10 +259,10 @@ const ScheduleView: React.FC<SubjectsProps> = ({ user }) => {
           </Form.Item>
           <Form.Item
             name="teacherId"
-            label="Преподаватель"
-            rules={[{ required: true, message: "Выберите преподавателя" }]}
+            label={t("schedule.teacherLabel")}
+            rules={[{ required: true, message: t("schedule.teacherRequired") }]}
           >
-            <Select placeholder="Выберите преподавателя">
+            <Select placeholder={t("schedule.teacherLabel")}>
               {teachers.map((teacher) => (
                 <Option key={teacher.id} value={teacher.id}>
                   {teacher.name}
@@ -267,26 +272,26 @@ const ScheduleView: React.FC<SubjectsProps> = ({ user }) => {
           </Form.Item>
           <Form.Item
             name="dayOfWeek"
-            label="День недели"
-            rules={[{ required: true, message: "Выберите день" }]}
+            label={t("schedule.dayLabel")}
+            rules={[{ required: true, message: t("schedule.dayRequired") }]}
           >
-            <Select placeholder="Выберите день">
+            <Select placeholder={t("schedule.dayLabel")}>
               {daysOfWeek.map((day, index) => (
                 <Option key={index} value={index}>
-                  {day}
+                  {t(`schedule.daysOfWeek.${day}`)}
                 </Option>
               ))}
             </Select>
           </Form.Item>
           <Form.Item
             name="timeRange"
-            label="Время"
-            rules={[{ required: true, message: "Выберите время" }]}
+            label={t("schedule.timeLabel")}
+            rules={[{ required: true, message: t("schedule.timeRequired") }]}
           >
             <TimePicker.RangePicker format="HH:mm" minuteStep={15} />
           </Form.Item>
-          <Form.Item name="room" label="Аудитория">
-            <Input placeholder="Например: 101" />
+          <Form.Item name="room" label={t("schedule.roomLabel")}>
+            <Input placeholder={t("schedule.roomPlaceholder")} />
           </Form.Item>
           <Form.Item>
             <Space>
@@ -296,9 +301,13 @@ const ScheduleView: React.FC<SubjectsProps> = ({ user }) => {
                 loading={loading}
                 style={{ backgroundColor: "#52c41a" }}
               >
-                {editingSchedule ? "Сохранить" : "Добавить"}
+                {editingSchedule
+                  ? t("schedule.saveButton")
+                  : t("schedule.createButton")}
               </Button>
-              <Button onClick={() => setIsModalOpen(false)}>Отмена</Button>
+              <Button onClick={() => setIsModalOpen(false)}>
+                {t("schedule.cancelButton")}
+              </Button>
             </Space>
           </Form.Item>
         </Form>

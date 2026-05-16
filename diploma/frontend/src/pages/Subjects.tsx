@@ -18,6 +18,7 @@ import {
   EditOutlined,
 } from "@ant-design/icons";
 import api from "../services/api";
+import { useTranslation } from "react-i18next";
 
 const { Title } = Typography;
 
@@ -38,6 +39,8 @@ const Subjects: React.FC<SubjectsProps> = ({ user }) => {
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
+  const { t } = useTranslation();
+
   const colors = [
     "#52c41a",
     "#1890ff",
@@ -56,7 +59,7 @@ const Subjects: React.FC<SubjectsProps> = ({ user }) => {
       const response = await api.get("/subjects");
       setSubjects(response.data);
     } catch (error) {
-      message.error("Ошибка загрузки предметов");
+      message.error(t("subjects.loadingError"));
     }
   };
 
@@ -65,17 +68,17 @@ const Subjects: React.FC<SubjectsProps> = ({ user }) => {
     try {
       if (editingSubject) {
         await api.put(`/subjects/${editingSubject.id}`, values);
-        message.success("Предмет обновлён");
+        message.success(t("subjects.updateSuccess"));
       } else {
         await api.post("/subjects", values);
-        message.success("Предмет создан");
+        message.success(t("subjects.createSuccess"));
       }
       setIsModalOpen(false);
       form.resetFields();
       setEditingSubject(null);
       fetchSubjects();
     } catch (error) {
-      message.error("Ошибка сохранения");
+      message.error(t("subjects.saveError"));
     } finally {
       setLoading(false);
     }
@@ -84,10 +87,10 @@ const Subjects: React.FC<SubjectsProps> = ({ user }) => {
   const handleDeleteSubject = async (id: number) => {
     try {
       await api.delete(`/subjects/${id}`);
-      message.success("Предмет удалён");
+      message.success(t("subjects.deleteSuccess"));
       fetchSubjects();
     } catch (error) {
-      message.error("Ошибка удаления");
+      message.error(t("subjects.deleteError"));
     }
   };
 
@@ -103,7 +106,7 @@ const Subjects: React.FC<SubjectsProps> = ({ user }) => {
           marginBottom: 24,
         }}
       >
-        <Title level={3}>Предметы</Title>
+        <Title level={3}>{t("subjects.title")}</Title>
         {isTeacher && (
           <Button
             type="primary"
@@ -115,7 +118,7 @@ const Subjects: React.FC<SubjectsProps> = ({ user }) => {
             }}
             style={{ backgroundColor: "#52c41a" }}
           >
-            Добавить предмет
+            {t("subjects.addButton")}
           </Button>
         )}
       </div>
@@ -152,11 +155,11 @@ const Subjects: React.FC<SubjectsProps> = ({ user }) => {
                         type="link"
                         onClick={() =>
                           message.success(
-                            `Вы записаны на предмет "${subject.name}"`,
+                            t("subjects.enrollSuccess", { name: subject.name }),
                           )
                         }
                       >
-                        Записаться
+                        {t("subjects.enrollButton")}
                       </Button>,
                     ]
               }
@@ -174,7 +177,7 @@ const Subjects: React.FC<SubjectsProps> = ({ user }) => {
                 }
                 description={
                   <div style={{ marginTop: 8, color: "#666" }}>
-                    {subject.description || "Описание отсутствует"}
+                    {subject.description || t("subjects.noDescription")}
                   </div>
                 }
               />
@@ -184,7 +187,9 @@ const Subjects: React.FC<SubjectsProps> = ({ user }) => {
       </Row>
 
       <Modal
-        title={editingSubject ? "Редактировать предмет" : "Новый предмет"}
+        title={
+          editingSubject ? t("subjects.editTitle") : t("subjects.createTitle")
+        }
         open={isModalOpen}
         onCancel={() => {
           setIsModalOpen(false);
@@ -196,15 +201,22 @@ const Subjects: React.FC<SubjectsProps> = ({ user }) => {
         <Form form={form} onFinish={handleCreateSubject} layout="vertical">
           <Form.Item
             name="name"
-            label="Название предмета"
-            rules={[{ required: true, message: "Введите название" }]}
+            label={t("subjects.nameLabel")}
+            rules={[{ required: true, message: t("subjects.nameRequired") }]}
           >
-            <Input placeholder="Например: Математика" />
+            <Input placeholder={t("subjects.namePlaceholder")} />
           </Form.Item>
-          <Form.Item name="description" label="Описание">
-            <Input.TextArea rows={3} placeholder="Краткое описание предмета" />
+          <Form.Item name="description" label={t("subjects.descriptionLabel")}>
+            <Input.TextArea
+              rows={3}
+              placeholder={t("subjects.descriptionPlaceholder")}
+            />
           </Form.Item>
-          <Form.Item name="color" label="Цвет" initialValue={colors[0]}>
+          <Form.Item
+            name="color"
+            label={t("subjects.colorLabel")}
+            initialValue={colors[0]}
+          >
             <Space>
               {colors.map((color) => (
                 <div
@@ -233,9 +245,13 @@ const Subjects: React.FC<SubjectsProps> = ({ user }) => {
                 loading={loading}
                 style={{ backgroundColor: "#52c41a" }}
               >
-                {editingSubject ? "Сохранить" : "Создать"}
+                {editingSubject
+                  ? t("subjects.saveButton")
+                  : t("subjects.createButton")}
               </Button>
-              <Button onClick={() => setIsModalOpen(false)}>Отмена</Button>
+              <Button onClick={() => setIsModalOpen(false)}>
+                {t("subjects.cancelButton")}
+              </Button>
             </Space>
           </Form.Item>
         </Form>

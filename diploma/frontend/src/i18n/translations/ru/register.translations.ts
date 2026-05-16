@@ -1,0 +1,28 @@
+import { IRegisterTranslations } from "@interfaces/i18n/frontend";
+
+export const register: IRegisterTranslations = {
+  title: "Регистрация",
+  subtitle: "Создайте новый аккаунт",
+  nameLabel: "Имя",
+  namePlaceholder: "Имя",
+  nameRequired: "Введите ваше имя",
+  emailLabel: "Email",
+  emailPlaceholder: "Email",
+  emailRequired: "Введите ваш email",
+  emailInvalid: "Введите корректный email",
+  passwordLabel: "Пароль",
+  passwordPlaceholder: "Пароль",
+  passwordRequired: "Введите ваш пароль",
+  passwordMinLength: "Пароль должен быть не менее 6 символов",
+  roleLabel: "Роль",
+  roleRequired: "Выберите роль",
+  studentRole: "Ученик",
+  teacherRole: "Преподаватель",
+  registerButton: "Зарегистрироваться",
+  alreadyHaveAccount: "Уже есть аккаунт?",
+  loginLink: "Войти",
+  registerSuccess: "Регистрация успешна!",
+  emailConflict: "Пользователь с таким email уже существует",
+  registerError: "Ошибка регистрации",
+  schoolTitle: "Онлайн Школа",
+};

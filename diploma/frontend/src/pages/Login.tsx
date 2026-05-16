@@ -3,6 +3,8 @@ import { Form, Input, Button, Card, message, Typography } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../services/api";
+import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 
 const { Title, Text } = Typography;
 
@@ -13,6 +15,7 @@ interface LoginProps {
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const onFinish = async (values: { email: string; password: string }) => {
     setLoading(true);
@@ -20,10 +23,10 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       const response = await api.post("/auth/login", values);
       const { user } = response.data;
       onLogin(user);
-      message.success(`Добро пожаловать, ${user.name}!`);
+      message.success(t("login.loginSuccess", { name: user.name }));
       navigate("/dashboard");
     } catch (error: any) {
-      message.error(error.response?.data?.message || "Ошибка входа");
+      message.error(error.response?.data?.message || t("login.loginError"));
     } finally {
       setLoading(false);
     }
@@ -32,14 +35,19 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   return (
     <div
       style={{
-        minHeight: "100vh",
+        height: "100vh",
+        width: "100vw",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: "20px",
         background: "linear-gradient(135deg, #f0f9f0 0%, #e8f5e8 100%)",
+        position: "relative",
       }}
     >
+      <div style={{ position: "absolute", top: 20, right: 24 }}>
+        <LanguageSwitcher />
+      </div>
+
       <Card
         style={{
           width: 450,
@@ -47,34 +55,39 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           borderRadius: 16,
           background: "white",
         }}
-        bodyStyle={{ padding: 40 }}
       >
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <Title
             level={2}
             style={{ marginTop: 16, marginBottom: 8, color: "#1a1a1a" }}
           >
-            Онлайн Школа
+            {t("login.title")}
           </Title>
-          <Text type="secondary">Войдите в свой аккаунт</Text>
+          <Text type="secondary">{t("login.subtitle")}</Text>
         </div>
 
         <Form name="login" onFinish={onFinish} autoComplete="off" size="large">
           <Form.Item
             name="email"
             rules={[
-              { required: true, message: "Введите email" },
-              { type: "email", message: "Введите корректный email" },
+              { required: true, message: t("login.emailRequired") },
+              { type: "email", message: t("login.emailInvalid") },
             ]}
           >
-            <Input prefix={<UserOutlined />} placeholder="Email" />
+            <Input
+              prefix={<UserOutlined />}
+              placeholder={t("login.emailPlaceholder")}
+            />
           </Form.Item>
 
           <Form.Item
             name="password"
-            rules={[{ required: true, message: "Введите пароль" }]}
+            rules={[{ required: true, message: t("login.passwordRequired") }]}
           >
-            <Input.Password prefix={<LockOutlined />} placeholder="Пароль" />
+            <Input.Password
+              prefix={<LockOutlined />}
+              placeholder={t("login.passwordPlaceholder")}
+            />
           </Form.Item>
 
           <Form.Item>
@@ -85,13 +98,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               block
               style={{ height: 44, backgroundColor: "#52c41a" }}
             >
-              Войти
+              {t("login.loginButton")}
             </Button>
           </Form.Item>
 
           <div style={{ textAlign: "center" }}>
             <Text type="secondary">
-              Нет аккаунта? <Link to="/register">Зарегистрироваться</Link>
+              {t("login.noAccount")}{" "}
+              <Link to="/register">{t("login.registerLink")}</Link>
             </Text>
           </div>
         </Form>

@@ -1,0 +1,28 @@
+import { IRegisterTranslations } from "../../../interfaces/i18n/frontend/register.interface";
+
+export const register: IRegisterTranslations = {
+  title: "Registration",
+  subtitle: "Create a new account",
+  nameLabel: "Name",
+  namePlaceholder: "Name",
+  nameRequired: "Please enter your name",
+  emailLabel: "Email",
+  emailPlaceholder: "Email",
+  emailRequired: "Please enter your email",
+  emailInvalid: "Please enter a valid email",
+  passwordLabel: "Password",
+  passwordPlaceholder: "Password",
+  passwordRequired: "Please enter your password",
+  passwordMinLength: "Password must be at least 6 characters",
+  roleLabel: "Role",
+  roleRequired: "Please select a role",
+  studentRole: "Student",
+  teacherRole: "Teacher",
+  registerButton: "Register",
+  alreadyHaveAccount: "Already have an account?",
+  loginLink: "Login",
+  registerSuccess: "Registration successful!",
+  emailConflict: "User with this email already exists",
+  registerError: "Registration failed",
+  schoolTitle: "Online School",
+};

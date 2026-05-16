@@ -1,0 +1,28 @@
+import { ISubjectsTranslations } from "@interfaces/i18n/frontend";
+
+export const subjects: ISubjectsTranslations = {
+  title: "Предметы",
+  addButton: "Добавить предмет",
+  editButton: "Редактировать",
+  deleteButton: "Удалить",
+  enrollButton: "Записаться",
+  enrollSuccess: 'Вы успешно записаны на предмет "{{name}}"',
+  createTitle: "Новый предмет",
+  editTitle: "Редактировать предмет",
+  nameLabel: "Название предмета",
+  namePlaceholder: "Например: Математика",
+  nameRequired: "Введите название предмета",
+  descriptionLabel: "Описание",
+  descriptionPlaceholder: "Краткое описание предмета",
+  colorLabel: "Цвет",
+  createButton: "Создать",
+  saveButton: "Сохранить",
+  cancelButton: "Отмена",
+  noDescription: "Описание отсутствует",
+  loadingError: "Ошибка загрузки предметов",
+  saveError: "Ошибка сохранения предмета",
+  deleteError: "Ошибка удаления предмета",
+  createSuccess: "Предмет успешно создан",
+  updateSuccess: "Предмет успешно обновлён",
+  deleteSuccess: "Предмет успешно удалён",
+};

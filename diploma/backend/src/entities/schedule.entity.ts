@@ -4,24 +4,24 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   JoinColumn,
-} from 'typeorm';
-import { User } from '@entities/user.entity';
-import { Subject } from '@entities/subject.entity';
+} from "typeorm";
+import { Subject } from "./subject.entity";
+import { User } from "./user.entity";
 
-@Entity('schedules')
+@Entity("schedules")
 export class Schedule {
   @PrimaryGeneratedColumn()
   id!: number;
 
   @ManyToOne(() => Subject)
-  @JoinColumn({ name: 'subjectId' })
+  @JoinColumn({ name: "subjectId" })
   subject!: Subject;
 
   @Column()
   subjectId!: number;
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'teacherId' })
+  @JoinColumn({ name: "teacherId" })
   teacher!: User;
 
   @Column()

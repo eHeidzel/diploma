@@ -7,7 +7,6 @@ import {
   Typography,
   Table,
   message,
-  Button,
   Dropdown,
 } from "antd";
 import {
@@ -19,9 +18,12 @@ import {
   LogoutOutlined,
 } from "@ant-design/icons";
 import { Routes, Route, Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import Subjects from "./Subjects";
 import ScheduleView from "./ScheduleView";
 import api from "../services/api";
+import { UserRole } from "@libs/shared/enums/user-role.enums";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -34,30 +36,37 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const menuItems = [
     {
       key: "dashboard",
       icon: <DashboardOutlined />,
-      label: <Link to="/dashboard">Главная</Link>,
+      label: <Link to="/dashboard">{t("dashboard.menu.main")}</Link>,
     },
     {
       key: "subjects",
       icon: <BookOutlined />,
-      label: <Link to="/dashboard/subjects">Предметы</Link>,
+      label: (
+        <Link to="/dashboard/subjects">{t("dashboard.menu.subjects")}</Link>
+      ),
     },
     {
       key: "schedule",
       icon: <CalendarOutlined />,
-      label: <Link to="/dashboard/schedule">Расписание</Link>,
+      label: (
+        <Link to="/dashboard/schedule">{t("dashboard.menu.schedule")}</Link>
+      ),
     },
   ];
 
-  if (user?.role === "teacher") {
+  if (user?.role === UserRole.TEACHER) {
     menuItems.push({
       key: "students",
       icon: <TeamOutlined />,
-      label: <Link to="/dashboard/students">Ученики</Link>,
+      label: (
+        <Link to="/dashboard/students">{t("dashboard.menu.students")}</Link>
+      ),
     });
   }
 
@@ -66,7 +75,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
       {
         key: "logout",
         icon: <LogoutOutlined />,
-        label: "Выйти",
+        label: t("dashboard.menu.logout"),
         onClick: () => {
           onLogout();
           navigate("/login");
@@ -121,20 +130,27 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
           }}
         >
           <Title level={4} style={{ margin: 0, color: "#52c41a" }}>
-            Управление расписанием
+            {t("dashboard.title")}
           </Title>
-          <Dropdown menu={userMenu} placement="bottomRight">
-            <Space style={{ cursor: "pointer" }}>
-              <Avatar
-                style={{ backgroundColor: "#52c41a" }}
-                icon={<UserOutlined />}
-              />
-              <span style={{ color: "#1a1a1a" }}>
-                {user?.name} (
-                {user?.role === "teacher" ? "Преподаватель" : "Ученик"})
-              </span>
-            </Space>
-          </Dropdown>
+
+          <Space size="large">
+            <LanguageSwitcher></LanguageSwitcher>
+            <Dropdown menu={userMenu} placement="bottomRight">
+              <Space style={{ cursor: "pointer" }}>
+                <Avatar
+                  style={{ backgroundColor: "#52c41a" }}
+                  icon={<UserOutlined />}
+                />
+                <span style={{ color: "#1a1a1a" }}>
+                  {user?.name} (
+                  {user?.role === UserRole.TEACHER
+                    ? t("dashboard.roles.teacher")
+                    : t("dashboard.roles.student")}
+                  )
+                </span>
+              </Space>
+            </Dropdown>
+          </Space>
         </Header>
 
         <Content
@@ -148,10 +164,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
           }}
         >
           <Routes>
-            <Route path="/" element={<DashboardHome user={user} />} />
+            <Route path="/" element={<DashboardHome user={user} t={t} />} />
             <Route path="/subjects" element={<Subjects user={user} />} />
             <Route path="/schedule" element={<ScheduleView user={user} />} />
-            <Route path="/students" element={<StudentsList />} />
+            <Route path="/students" element={<StudentsList t={t} />} />
           </Routes>
         </Content>
       </Layout>
@@ -159,9 +175,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
   );
 };
 
-const DashboardHome: React.FC<{ user: any }> = ({ user }) => (
+const DashboardHome: React.FC<{ user: any; t: any }> = ({ user, t }) => (
   <div>
-    <Title level={3}>Добро пожаловать, {user?.name}!</Title>
+    <Title level={3}>{t("dashboard.welcome", { name: user?.name })}</Title>
     <div
       style={{
         marginTop: 32,
@@ -173,15 +189,15 @@ const DashboardHome: React.FC<{ user: any }> = ({ user }) => (
     >
       <BookOutlined style={{ fontSize: 64, color: "#52c41a" }} />
       <Title level={4} style={{ marginTop: 16 }}>
-        {user?.role === "teacher"
-          ? "Управляйте расписанием и предметами"
-          : "Следите за расписанием и успеваемостью"}
+        {user?.role === UserRole.TEACHER
+          ? t("dashboard.teacherText")
+          : t("dashboard.studentText")}
       </Title>
     </div>
   </div>
 );
 
-const StudentsList: React.FC = () => {
+const StudentsList: React.FC<{ t: any }> = ({ t }) => {
   const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -193,9 +209,11 @@ const StudentsList: React.FC = () => {
     setLoading(true);
     try {
       const response = await api.get("/users");
-      setStudents(response.data.filter((u: any) => u.role === "student"));
+      setStudents(
+        response.data.filter((u: any) => u.role === UserRole.STUDENT),
+      );
     } catch (error) {
-      message.error("Ошибка загрузки учеников");
+      message.error(t("dashboard.errors.loadStudents"));
     } finally {
       setLoading(false);
     }

@@ -18,6 +18,8 @@ import {
 } from "@ant-design/icons";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../services/api";
+import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 
 const { Title, Text } = Typography;
 
@@ -28,6 +30,7 @@ interface RegisterProps {
 const Register: React.FC<RegisterProps> = ({ onRegister }) => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const onFinish = async (values: any) => {
     setLoading(true);
@@ -35,13 +38,15 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
       const response = await api.post("/auth/register", values);
       const { user } = response.data;
       onRegister(user);
-      message.success("Регистрация успешна!");
+      message.success(t("register.registerSuccess"));
       navigate("/dashboard");
     } catch (error: any) {
       if (error.response?.status === 409) {
-        message.error("Пользователь с таким email уже существует");
+        message.error(t("register.emailConflict"));
       } else {
-        message.error(error.response?.data?.message || "Ошибка регистрации");
+        message.error(
+          error.response?.data?.message || t("register.registerError"),
+        );
       }
     } finally {
       setLoading(false);
@@ -59,6 +64,10 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
         background: "linear-gradient(135deg, #f0f9f0 0%, #e8f5e8 100%)",
       }}
     >
+      <div style={{ position: "absolute", top: 20, right: 24 }}>
+        <LanguageSwitcher />
+      </div>
+
       <Card
         style={{
           width: 500,
@@ -66,7 +75,6 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
           borderRadius: 16,
           background: "white",
         }}
-        bodyStyle={{ padding: 40 }}
       >
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <TeamOutlined style={{ fontSize: 48, color: "#52c41a" }} />
@@ -74,9 +82,9 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
             level={2}
             style={{ marginTop: 16, marginBottom: 8, color: "#1a1a1a" }}
           >
-            Регистрация
+            {t("register.title")}
           </Title>
-          <Text type="secondary">Создайте новый аккаунт</Text>
+          <Text type="secondary">{t("register.subtitle")}</Text>
         </div>
 
         <Form
@@ -87,43 +95,52 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
         >
           <Form.Item
             name="name"
-            rules={[{ required: true, message: "Введите имя" }]}
+            rules={[{ required: true, message: t("register.nameRequired") }]}
           >
-            <Input prefix={<UserOutlined />} placeholder="Имя" />
+            <Input
+              prefix={<UserOutlined />}
+              placeholder={t("register.namePlaceholder")}
+            />
           </Form.Item>
 
           <Form.Item
             name="email"
             rules={[
-              { required: true, message: "Введите email" },
-              { type: "email", message: "Введите корректный email" },
+              { required: true, message: t("register.emailRequired") },
+              { type: "email", message: t("register.emailInvalid") },
             ]}
           >
-            <Input prefix={<MailOutlined />} placeholder="Email" />
+            <Input
+              prefix={<MailOutlined />}
+              placeholder={t("register.emailPlaceholder")}
+            />
           </Form.Item>
 
           <Form.Item
             name="password"
             rules={[
-              { required: true, message: "Введите пароль" },
-              { min: 6, message: "Пароль должен быть не менее 6 символов" },
+              { required: true, message: t("register.passwordRequired") },
+              { min: 6, message: t("register.passwordMinLength") },
             ]}
           >
-            <Input.Password prefix={<LockOutlined />} placeholder="Пароль" />
+            <Input.Password
+              prefix={<LockOutlined />}
+              placeholder={t("register.passwordPlaceholder")}
+            />
           </Form.Item>
 
           <Form.Item
             name="role"
-            rules={[{ required: true, message: "Выберите роль" }]}
+            rules={[{ required: true, message: t("register.roleRequired") }]}
             initialValue="student"
           >
             <Radio.Group>
               <Space>
                 <Radio value="student">
-                  <UserSwitchOutlined /> Ученик
+                  <UserSwitchOutlined /> {t("register.studentRole")}
                 </Radio>
                 <Radio value="teacher">
-                  <TeamOutlined /> Преподаватель
+                  <TeamOutlined /> {t("register.teacherRole")}
                 </Radio>
               </Space>
             </Radio.Group>
@@ -137,13 +154,14 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
               block
               style={{ height: 44, backgroundColor: "#52c41a" }}
             >
-              Зарегистрироваться
+              {t("register.registerButton")}
             </Button>
           </Form.Item>
 
           <div style={{ textAlign: "center" }}>
             <Text type="secondary">
-              Уже есть аккаунт? <Link to="/login">Войти</Link>
+              {t("register.alreadyHaveAccount")}{" "}
+              <Link to="/login">{t("register.loginLink")}</Link>
             </Text>
           </div>
         </Form>

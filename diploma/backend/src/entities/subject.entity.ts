@@ -1,8 +1,8 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
-import { Enrollment } from '@entities/enrollment.entity';
-import { Schedule } from '@entities/schedule.entity';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from "typeorm";
+import { Enrollment } from "./enrollment.entity";
+import { Schedule } from "./schedule.entity";
 
-@Entity('subjects')
+@Entity("subjects")
 export class Subject {
   @PrimaryGeneratedColumn()
   id!: number;
@@ -10,15 +10,15 @@ export class Subject {
   @Column({ length: 100 })
   name!: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   description!: string;
 
   @Column({ length: 50 })
   color!: string;
 
-  @OneToMany(() => Enrollment, (enrollment) => enrollment.subject)
+  @OneToMany(() => Enrollment, (enrollment: Enrollment) => enrollment.subject)
   enrollments!: Enrollment[];
 
-  @OneToMany(() => Schedule, (schedule) => schedule.subject)
+  @OneToMany(() => Schedule, (schedule: Schedule) => schedule.subject)
   schedules!: Schedule[];
 }

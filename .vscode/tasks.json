@@ -2,10 +2,30 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "wakeUp",
+      "label": "backend",
       "type": "npm",
       "script": "start:debug",
-      "path": "diploma/backend"
+      "path": "diploma/backend",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "frontend",
+      "type": "npm",
+      "script": "dev",
+      "path": "diploma/frontend",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "wake up",
+      "dependsOrder": "parallel",
+      "dependsOn": ["backend", "frontend"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
     }
   ]
 }

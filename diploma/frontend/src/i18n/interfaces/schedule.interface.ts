@@ -1,0 +1,44 @@
+export interface IScheduleTranslations {
+  title: string;
+  addButton: string;
+  editButton: string;
+  deleteButton: string;
+  createTitle: string;
+  editTitle: string;
+  dayColumn: string;
+  timeColumn: string;
+  subjectColumn: string;
+  teacherColumn: string;
+  roomColumn: string;
+  actionsColumn: string;
+  subjectLabel: string;
+  subjectRequired: string;
+  teacherLabel: string;
+  teacherRequired: string;
+  dayLabel: string;
+  dayRequired: string;
+  timeLabel: string;
+  timeRequired: string;
+  roomLabel: string;
+  roomPlaceholder: string;
+  createButton: string;
+  saveButton: string;
+  cancelButton: string;
+  daysOfWeek: {
+    sunday: string;
+    monday: string;
+    tuesday: string;
+    wednesday: string;
+    thursday: string;
+    friday: string;
+    saturday: string;
+  };
+  loadingError: string;
+  subjectsError: string;
+  teachersError: string;
+  saveError: string;
+  deleteError: string;
+  createSuccess: string;
+  updateSuccess: string;
+  deleteSuccess: string;
+}

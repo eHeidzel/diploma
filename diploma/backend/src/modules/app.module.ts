@@ -13,6 +13,13 @@ import { UsersService } from '@services/users.service';
 import { SubjectsService } from '@services/subjects.service';
 import { ScheduleService } from '@services/schedule.service';
 import { AuthService } from '@services/auth.service';
+import {
+  I18nModule,
+  HeaderResolver,
+  QueryResolver,
+  CookieResolver,
+} from 'nestjs-i18n';
+import * as path from 'path';
 
 @Module({
   imports: [
@@ -36,6 +43,18 @@ import { AuthService } from '@services/auth.service';
       }),
     }),
     TypeOrmModule.forFeature([User, Subject, Schedule, Enrollment]),
+    I18nModule.forRoot({
+      fallbackLanguage: 'en',
+      loaderOptions: {
+        path: path.join(process.cwd(), 'src', 'i18n'),
+        watch: true,
+      },
+      resolvers: [
+        { use: QueryResolver, options: ['lang', 'locale'] },
+        { use: HeaderResolver, options: ['accept-language'] },
+        { use: CookieResolver, options: ['lang'] },
+      ],
+    }),
   ],
   controllers: [
     UsersController,

@@ -5,13 +5,9 @@ import {
   CreateDateColumn,
   OneToMany,
 } from 'typeorm';
-import { Enrollment } from '@entities/enrollment.entity';
-import { Schedule } from '@entities/schedule.entity';
-
-export enum UserRole {
-  STUDENT = 'student',
-  TEACHER = 'teacher',
-}
+import { Enrollment } from './enrollment.entity';
+import { Schedule } from './schedule.entity';
+import { UserRole } from '@libs/shared';
 
 @Entity('users')
 export class User {
@@ -37,9 +33,9 @@ export class User {
   @CreateDateColumn()
   createdAt!: Date;
 
-  @OneToMany(() => Enrollment, (enrollment) => enrollment.user)
+  @OneToMany(() => Enrollment, (enrollment: Enrollment) => enrollment.user)
   enrollments!: Enrollment[];
 
-  @OneToMany(() => Schedule, (schedule) => schedule.teacher)
+  @OneToMany(() => Schedule, (schedule: Schedule) => schedule.teacher)
   taughtSchedules!: Schedule[];
 }

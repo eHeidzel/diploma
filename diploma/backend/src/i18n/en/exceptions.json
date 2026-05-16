@@ -1,0 +1,3 @@
+{
+  "auth.controller.register.conflict": "User with that email is already exist"
+}

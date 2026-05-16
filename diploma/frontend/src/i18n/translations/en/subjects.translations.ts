@@ -1,0 +1,28 @@
+import { ISubjectsTranslations } from "../../../interfaces/i18n/frontend/subjects.interface";
+
+export const subjects: ISubjectsTranslations = {
+  title: "Subjects",
+  addButton: "Add Subject",
+  editButton: "Edit",
+  deleteButton: "Delete",
+  enrollButton: "Enroll",
+  enrollSuccess: 'You have successfully enrolled in the subject "{{name}}"',
+  createTitle: "New Subject",
+  editTitle: "Edit Subject",
+  nameLabel: "Subject Name",
+  namePlaceholder: "e.g., Mathematics",
+  nameRequired: "Please enter subject name",
+  descriptionLabel: "Description",
+  descriptionPlaceholder: "Brief description of the subject",
+  colorLabel: "Color",
+  createButton: "Create",
+  saveButton: "Save",
+  cancelButton: "Cancel",
+  noDescription: "No description",
+  loadingError: "Failed to load subjects",
+  saveError: "Failed to save subject",
+  deleteError: "Failed to delete subject",
+  createSuccess: "Subject created successfully",
+  updateSuccess: "Subject updated successfully",
+  deleteSuccess: "Subject deleted successfully",
+};
