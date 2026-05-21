@@ -1,0 +1,175 @@
+.layout {
+  min-height: 100vh;
+}
+
+.sider {
+  background: white;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sider :global(.ant-layout-sider-children) {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.logo {
+  padding: 24px;
+  text-align: center;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.logoIcon {
+  font-size: 32px;
+  color: #52c41a;
+}
+
+.logoText {
+  margin-top: 8px;
+  margin-bottom: 0;
+  color: #52c41a;
+}
+
+.collapsedLogo .logoText {
+  display: none;
+}
+
+.menu {
+  border-right: none;
+  margin-top: 16px;
+  flex: 1;
+}
+
+.header {
+  background: white;
+  padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  flex-wrap: nowrap;
+  gap: 12px;
+}
+
+.headerTitle {
+  margin: 0;
+  white-space: nowrap;
+  color: #52c41a;
+}
+
+.headerTitle h4 {
+  margin: 0;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 12px;
+  flex-wrap: nowrap;
+}
+
+.userAvatar {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.avatar {
+  background-color: #52c41a;
+}
+
+.userName {
+  color: #1a1a1a;
+}
+
+.content {
+  margin: 24px;
+  padding: 24px;
+  background: white;
+  border-radius: 16px;
+  min-height: 280px;
+}
+
+/* Стили для карточек предметов */
+.subjectCard {
+  border-radius: 12px;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.subjectCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Стили для заголовка дашборда */
+.dashboardTitle {
+  margin-top: 16px;
+}
+
+/* Блок приветствия */
+.welcomeBlock {
+  margin-top: 32px;
+  padding: 32px;
+  background: linear-gradient(135deg, #f0f9f0 0%, #e8f5e8 100%);
+  border-radius: 16px;
+  text-align: center;
+}
+
+.welcomeIcon {
+  font-size: 64px;
+  color: #52c41a;
+}
+
+/* Стили для скроллбара сайдбара */
+.sider::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sider::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.sider::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.sider::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 0 16px;
+  }
+
+  .content {
+    margin: 16px;
+    padding: 20px;
+  }
+
+  .userName {
+    display: none;
+  }
+
+  .welcomeBlock {
+    padding: 24px;
+    margin-top: 24px;
+  }
+
+  .welcomeIcon {
+    font-size: 48px;
+  }
+}

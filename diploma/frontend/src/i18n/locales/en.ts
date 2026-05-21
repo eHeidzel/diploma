@@ -5,6 +5,7 @@ import {
   register,
   schedule,
   subjects,
+  test,
 } from "../translations/en/index";
 
 export const en: IAppTranslations = {
@@ -13,4 +14,5 @@ export const en: IAppTranslations = {
   register: register,
   schedule: schedule,
   subjects: subjects,
+  test: test,
 };

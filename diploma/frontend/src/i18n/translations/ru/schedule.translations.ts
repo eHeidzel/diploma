@@ -1,4 +1,4 @@
-import { IScheduleTranslations } from "@interfaces/i18n/frontend/index";
+import { IScheduleTranslations } from "@interfaces/schedule.interface";
 
 export const schedule: IScheduleTranslations = {
   title: "Расписание занятий",
@@ -43,4 +43,5 @@ export const schedule: IScheduleTranslations = {
   createSuccess: "Занятие успешно добавлено",
   updateSuccess: "Занятие успешно обновлено",
   deleteSuccess: "Занятие успешно удалено",
+  noData: "Нет расписания",
 };

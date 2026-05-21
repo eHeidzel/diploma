@@ -1,0 +1,65 @@
+# Создать пустую миграцию (ручное написание)
+
+typeorm migration:create ./src/migrations/name
+
+# Сгенерировать миграцию из изменений в моделях (автоматически)
+
+typeorm migration:generate ./src/migrations/name -d ./src/data-source.ts
+
+# Запустить все миграции
+
+typeorm migration:run
+
+# Запустить с указанием конфигурации
+
+typeorm migration:run -d ./src/data-source.ts
+
+# Запустить с логгированием
+
+typeorm migration:run --verbose
+
+# Запустить до определенной миграции (не включая её)
+
+typeorm migration:run --to 1700000000000-CreateUserTable
+
+# Запустить только одну миграцию по имени
+
+typeorm migration:run --only ./src/migrations/1700000000001-UpdateUserEmail.ts
+
+# Откатить последнюю выполненную миграцию
+
+typeorm migration:revert
+
+# Откатить с указанием конфигурации
+
+typeorm migration:revert -d ./src/data-source.ts
+
+# Откатить с логгированием
+
+typeorm migration:revert --verbose
+
+# Откатить несколько миграций (нужно выполнить команду несколько раз)
+
+typeorm migration:revert
+
+# Откатить до определенной миграции (нужно выполнять revert несколько раз)
+
+# Сначала смотрим все миграции:
+
+typeorm migration:show
+
+# Затем откатываем до нужной:
+
+typeorm migration:revert --to 1700000000000-CreateUserTable
+
+# Очистить схему (удалить все таблицы)
+
+typeorm schema:drop
+
+# Создать пустую базу данных
+
+typeorm database:create
+
+# Удалить базу данных
+
+typeorm database:drop

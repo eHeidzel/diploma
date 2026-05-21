@@ -1,4 +1,4 @@
-import { IScheduleTranslations } from "../../../interfaces/i18n/frontend/schedule.interface";
+import { IScheduleTranslations } from "@interfaces/schedule.interface";
 
 export const schedule: IScheduleTranslations = {
   title: "Class Schedule",
@@ -43,4 +43,5 @@ export const schedule: IScheduleTranslations = {
   createSuccess: "Class added successfully",
   updateSuccess: "Class updated successfully",
   deleteSuccess: "Class deleted successfully",
+  noData: "No schedule",
 };

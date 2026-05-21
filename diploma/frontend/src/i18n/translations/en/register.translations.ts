@@ -1,4 +1,4 @@
-import { IRegisterTranslations } from "../../../interfaces/i18n/frontend/register.interface";
+import { IRegisterTranslations } from "@interfaces/register.interface";
 
 export const register: IRegisterTranslations = {
   title: "Registration",

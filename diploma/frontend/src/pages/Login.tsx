@@ -5,6 +5,8 @@ import { useNavigate, Link } from "react-router-dom";
 import api from "../services/api";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "../components/LanguageSwitcher";
+import styles from "../css/login.module.css";
+import { useAdaptiveLevel } from "../hooks/useAdaptiveLevel";
 
 const { Title, Text } = Typography;
 
@@ -13,6 +15,8 @@ interface LoginProps {
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
+  const { getTitleLevel } = useAdaptiveLevel();
+
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -33,37 +37,17 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   };
 
   return (
-    <div
-      style={{
-        height: "100vh",
-        width: "100vw",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "linear-gradient(135deg, #f0f9f0 0%, #e8f5e8 100%)",
-        position: "relative",
-      }}
-    >
-      <div style={{ position: "absolute", top: 20, right: 24 }}>
+    <div className={styles.container}>
+      <div className={styles.languageSwitcher}>
         <LanguageSwitcher />
       </div>
 
-      <Card
-        style={{
-          width: 450,
-          boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
-          borderRadius: 16,
-          background: "white",
-        }}
-      >
-        <div style={{ textAlign: "center", marginBottom: 32 }}>
-          <Title
-            level={2}
-            style={{ marginTop: 16, marginBottom: 8, color: "#1a1a1a" }}
-          >
-            {t("login.title")}
-          </Title>
-          <Text type="secondary">{t("login.subtitle")}</Text>
+      <Card className={styles.card}>
+        <div className={styles.title}>
+          <Title level={getTitleLevel(2)}>{t("login.title")}</Title>
+          <Text type="secondary" className={styles.subtitle}>
+            {t("login.subtitle")}
+          </Text>
         </div>
 
         <Form name="login" onFinish={onFinish} autoComplete="off" size="large">
@@ -96,13 +80,13 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               htmlType="submit"
               loading={loading}
               block
-              style={{ height: 44, backgroundColor: "#52c41a" }}
+              className={styles.submitButton}
             >
               {t("login.loginButton")}
             </Button>
           </Form.Item>
 
-          <div style={{ textAlign: "center" }}>
+          <div className={styles.registerLink}>
             <Text type="secondary">
               {t("login.noAccount")}{" "}
               <Link to="/register">{t("login.registerLink")}</Link>

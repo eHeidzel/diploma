@@ -1,4 +1,4 @@
-import { ISubjectsTranslations } from "@interfaces/i18n/frontend";
+import { ISubjectsTranslations } from "@interfaces/subjects.interface";
 
 export const subjects: ISubjectsTranslations = {
   title: "Предметы",
@@ -19,6 +19,7 @@ export const subjects: ISubjectsTranslations = {
   saveButton: "Сохранить",
   cancelButton: "Отмена",
   noDescription: "Описание отсутствует",
+  noSubjects: "Нет предметов",
   loadingError: "Ошибка загрузки предметов",
   saveError: "Ошибка сохранения предмета",
   deleteError: "Ошибка удаления предмета",

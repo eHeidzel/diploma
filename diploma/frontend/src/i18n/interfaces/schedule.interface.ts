@@ -41,4 +41,5 @@ export interface IScheduleTranslations {
   createSuccess: string;
   updateSuccess: string;
   deleteSuccess: string;
+  noData: string;
 }

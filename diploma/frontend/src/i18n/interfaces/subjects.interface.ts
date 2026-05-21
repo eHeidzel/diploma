@@ -17,6 +17,7 @@ export interface ISubjectsTranslations {
   saveButton: string;
   cancelButton: string;
   noDescription: string;
+  noSubjects: string;
   loadingError: string;
   saveError: string;
   deleteError: string;

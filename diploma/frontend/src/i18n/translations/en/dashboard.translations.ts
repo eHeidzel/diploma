@@ -1,16 +1,20 @@
-import { IDashboardTranslations } from "@interfaces/i18n/frontend/index";
+import { IDashboardTranslations } from "@interfaces/dashboard.interface";
 
 export const dashboard: IDashboardTranslations = {
   title: "Schedule Management",
   welcome: "Welcome, {{name}}!",
   teacherText: "Manage schedule and subjects",
   studentText: "Track your schedule and academic progress",
+  noData: "No data",
+  registrationDate: "Registration date",
+  name: "Name",
   menu: {
     main: "Home",
     subjects: "Subjects",
     schedule: "Schedule",
     students: "Students",
     logout: "Logout",
+    test: "Test",
   },
   roles: {
     teacher: "Teacher",

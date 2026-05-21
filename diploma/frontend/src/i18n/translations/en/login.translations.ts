@@ -1,4 +1,4 @@
-import { ILoginTranslations } from "../../../interfaces/i18n/frontend/login.interface";
+import { ILoginTranslations } from "@interfaces/login.interface";
 
 export const login: ILoginTranslations = {
   title: "Online School",

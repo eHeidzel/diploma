@@ -20,6 +20,15 @@ import {
   CookieResolver,
 } from 'nestjs-i18n';
 import * as path from 'path';
+import { QuestionsController } from '@controllers/questions.controller';
+import { QuestionsService } from '@services/questions.service';
+import { TranslationService } from '@services/translation.service';
+import { Question } from '../entities/question.entity';
+import { QuestionOption } from '../entities/question-option.entity';
+import { Translation } from '../entities/translation.entity';
+import { Direction } from '@entities/direction.entity';
+import { DirectionSkill } from '@entities/direction-skill.entity';
+import { DirectionRecommendation } from '@entities/direction-recommendation.entity';
 
 @Module({
   imports: [
@@ -37,12 +46,37 @@ import * as path from 'path';
         username: configService.get('DB_USER', 'root'),
         password: configService.get('DB_PASSWORD', ''),
         database: configService.get('DB_NAME', 'diploma_db'),
-        entities: [User, Subject, Schedule, Enrollment],
-        synchronize: true,
+        entities: [
+          User,
+          Subject,
+          Schedule,
+          Enrollment,
+          Question,
+          QuestionOption,
+          Translation,
+          Direction,
+          DirectionSkill,
+          DirectionRecommendation,
+        ],
+        synchronize: process.env.NODE_ENV !== 'production',
         logging: true,
+        migrations: ['dist/migrations/*.js'],
+        migrationsTableName: 'migrations',
+        migrationsRun: false,
       }),
     }),
-    TypeOrmModule.forFeature([User, Subject, Schedule, Enrollment]),
+    TypeOrmModule.forFeature([
+      User,
+      Subject,
+      Schedule,
+      Enrollment,
+      Question,
+      QuestionOption,
+      Translation,
+      Direction,
+      DirectionSkill,
+      DirectionRecommendation,
+    ]),
     I18nModule.forRoot({
       fallbackLanguage: 'en',
       loaderOptions: {
@@ -61,7 +95,15 @@ import * as path from 'path';
     SubjectsController,
     ScheduleController,
     AuthController,
+    QuestionsController,
   ],
-  providers: [UsersService, SubjectsService, ScheduleService, AuthService],
+  providers: [
+    UsersService,
+    SubjectsService,
+    ScheduleService,
+    AuthService,
+    QuestionsService,
+    TranslationService,
+  ],
 })
 export class AppModule {}

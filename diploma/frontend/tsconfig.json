@@ -19,7 +19,8 @@
     "allowSyntheticDefaultImports": true,
     "paths": {
       "@libs/shared": ["../libs/shared/src"],
-      "@libs/shared/*": ["../libs/shared/src/*"]
+      "@libs/shared/*": ["../libs/shared/src/*"],
+      "@interfaces/*": ["./src/i18n/interfaces/*"]
     }
   },
   "include": ["src"],

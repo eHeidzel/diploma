@@ -1,4 +1,4 @@
-import { ISubjectsTranslations } from "../../../interfaces/i18n/frontend/subjects.interface";
+import { ISubjectsTranslations } from "@interfaces/subjects.interface";
 
 export const subjects: ISubjectsTranslations = {
   title: "Subjects",
@@ -19,6 +19,7 @@ export const subjects: ISubjectsTranslations = {
   saveButton: "Save",
   cancelButton: "Cancel",
   noDescription: "No description",
+  noSubjects: "No subjects",
   loadingError: "Failed to load subjects",
   saveError: "Failed to save subject",
   deleteError: "Failed to delete subject",

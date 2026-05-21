@@ -4,6 +4,7 @@ import {
   IRegisterTranslations,
   IScheduleTranslations,
   ISubjectsTranslations,
+  ITestTranslations,
 } from "./";
 
 export interface IAppTranslations {
@@ -12,4 +13,5 @@ export interface IAppTranslations {
   register: IRegisterTranslations;
   schedule: IScheduleTranslations;
   subjects: ISubjectsTranslations;
+  test: ITestTranslations;
 }

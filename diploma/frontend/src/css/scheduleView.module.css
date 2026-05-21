@@ -1,0 +1,131 @@
+.container {
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.title {
+  margin: 0;
+}
+
+.addButton {
+  background-color: #52c41a;
+}
+
+.addButton:hover {
+  background-color: #73d13d !important;
+}
+
+.scheduleTable {
+  background: white;
+  border-radius: 8px;
+}
+
+.timeCell {
+  font-family: monospace;
+  font-size: 14px;
+}
+
+.subjectTag {
+  font-weight: 500;
+}
+
+.teacherName {
+  font-weight: 500;
+}
+
+.actionsSpace {
+  gap: 8px;
+}
+
+.editButton {
+  color: #1890ff;
+}
+
+.editButton:hover {
+  color: #40a9ff;
+}
+
+.deleteButton {
+  color: #ff4d4f;
+}
+
+.deleteButton:hover {
+  color: #ff7875;
+}
+
+.modalForm :global(.ant-modal-header) {
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 24px;
+}
+
+.modalForm :global(.ant-modal-body) {
+  padding: 24px;
+}
+
+.modalFooter {
+  margin-bottom: 0;
+  margin-top: 24px;
+}
+
+.modalButtons {
+  width: 100%;
+  justify-content: flex-end;
+}
+
+.selectField,
+.timePicker,
+.inputField {
+  width: 100%;
+}
+
+.timePicker :global(.ant-picker-range) {
+  width: 100%;
+}
+
+.submitButton {
+  background-color: #52c41a;
+  border-color: #52c41a;
+}
+
+.submitButton:hover {
+  background-color: #73d13d !important;
+  border-color: #73d13d !important;
+}
+
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .title {
+    text-align: center;
+  }
+
+  .scheduleTable {
+    overflow-x: auto;
+  }
+
+  .scheduleTable :global(.ant-table-cell) {
+    white-space: nowrap;
+  }
+
+  .modalForm :global(.ant-modal-body) {
+    padding: 16px;
+  }
+}

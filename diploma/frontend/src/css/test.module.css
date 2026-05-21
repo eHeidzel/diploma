@@ -1,0 +1,241 @@
+.container {
+  padding: 24px;
+  min-height: 100vh;
+}
+
+.testCard {
+  max-width: 800px;
+  margin: 0 auto;
+  border-radius: 24px;
+  border: none;
+}
+
+.header {
+  text-align: center;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.subtitle {
+  display: block;
+  margin-top: 8px;
+}
+
+.progressInfo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 16px 0;
+  color: #666;
+}
+
+.progress {
+  margin-top: 16px;
+}
+
+.questionContainer {
+  padding: 24px 12px;
+}
+
+.questionText {
+  margin-bottom: 24px !important;
+  color: #1a1a1a;
+}
+
+.hint {
+  display: block;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.optionsGroup {
+  width: 100%;
+}
+
+.option {
+  padding: 12px 16px;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  transition: all 0.3s;
+  width: 100%;
+}
+
+.option:hover {
+  background-color: #f6ffed;
+  border-color: #52c41a;
+  transform: translateX(4px);
+}
+
+.explanation {
+  margin-top: 24px;
+  padding: 12px;
+  background-color: #f6f6f6;
+  border-radius: 12px;
+}
+
+.footer {
+  padding: 16px 24px;
+  border-top: 1px solid #f0f0f0;
+  text-align: center;
+}
+
+/* Результаты */
+.resultsContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.topDirectionCard {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 32px;
+  padding: 48px 24px;
+  text-align: center;
+  margin-bottom: 32px;
+  color: white;
+}
+
+.topDirectionIcon {
+  font-size: 80px;
+  margin-bottom: 16px;
+}
+
+.topDirectionName {
+  color: white !important;
+  margin-bottom: 8px;
+}
+
+.topDirectionDescription {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 18px;
+  display: block;
+  margin-bottom: 16px;
+}
+
+.salaryTag {
+  font-size: 18px;
+  padding: 8px 16px;
+  border-radius: 24px;
+}
+
+.directionCard {
+  border-radius: 16px;
+  transition: all 0.3s;
+  height: 100%;
+}
+
+.directionCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+}
+
+.directionHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.directionIcon {
+  font-size: 32px;
+}
+
+.directionName {
+  margin: 0 !important;
+}
+
+.directionDescription {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.directionSkills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.skillTag {
+  border-radius: 16px;
+  padding: 4px 12px;
+}
+
+.recommendationsCard {
+  border-radius: 16px;
+  background-color: #fafafa;
+  margin-top: 16px;
+}
+
+.recommendationsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.recommendationsList li {
+  padding: 12px 0;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.restartButton {
+  display: block;
+  margin: 32px auto 0;
+  width: 250px;
+  height: 48px;
+  border-radius: 24px;
+  font-size: 16px;
+}
+
+.loadingContainer {
+  text-align: center;
+  padding: 48px;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #52c41a;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+
+  .questionContainer {
+    padding: 20px 16px;
+  }
+
+  .questionText {
+    font-size: 18px;
+  }
+
+  .topDirectionName {
+    font-size: 24px;
+  }
+
+  .topDirectionIcon {
+    font-size: 60px;
+  }
+
+  .resultsContainer {
+    padding: 16px;
+  }
+}

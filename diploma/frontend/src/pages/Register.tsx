@@ -1,25 +1,17 @@
-import React, { useState } from "react";
-import {
-  Form,
-  Input,
-  Button,
-  Card,
-  message,
-  Typography,
-  Radio,
-  Space,
-} from "antd";
+import React, { useEffect, useState } from "react";
+import { Form, Input, Button, Card, message, Typography } from "antd";
 import {
   UserOutlined,
   LockOutlined,
   MailOutlined,
   TeamOutlined,
-  UserSwitchOutlined,
 } from "@ant-design/icons";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../services/api";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "../components/LanguageSwitcher";
+import styles from "../css/register.module.css";
+import { useAdaptiveLevel } from "../hooks/useAdaptiveLevel";
 
 const { Title, Text } = Typography;
 
@@ -28,9 +20,18 @@ interface RegisterProps {
 }
 
 const Register: React.FC<RegisterProps> = ({ onRegister }) => {
+  const { getTitleLevel } = useAdaptiveLevel();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { t } = useTranslation();
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, []);
 
   const onFinish = async (values: any) => {
     setLoading(true);
@@ -54,36 +55,15 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "20px",
-        background: "linear-gradient(135deg, #f0f9f0 0%, #e8f5e8 100%)",
-      }}
-    >
-      <div style={{ position: "absolute", top: 20, right: 24 }}>
+    <div className={styles.container}>
+      <div className={styles.languageSwitcher}>
         <LanguageSwitcher />
       </div>
 
-      <Card
-        style={{
-          width: 500,
-          boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
-          borderRadius: 16,
-          background: "white",
-        }}
-      >
-        <div style={{ textAlign: "center", marginBottom: 32 }}>
-          <TeamOutlined style={{ fontSize: 48, color: "#52c41a" }} />
-          <Title
-            level={2}
-            style={{ marginTop: 16, marginBottom: 8, color: "#1a1a1a" }}
-          >
-            {t("register.title")}
-          </Title>
+      <Card className={styles.card}>
+        <div className={styles.header}>
+          <TeamOutlined className={styles.headerIcon} />
+          <Title level={getTitleLevel(2)}>{t("register.title")}</Title>
           <Text type="secondary">{t("register.subtitle")}</Text>
         </div>
 
@@ -92,9 +72,11 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
           onFinish={onFinish}
           autoComplete="off"
           size="large"
+          layout="vertical"
         >
           <Form.Item
             name="name"
+            label={t("register.nameLabel")}
             rules={[{ required: true, message: t("register.nameRequired") }]}
           >
             <Input
@@ -105,6 +87,7 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
 
           <Form.Item
             name="email"
+            label={t("register.emailLabel")}
             rules={[
               { required: true, message: t("register.emailRequired") },
               { type: "email", message: t("register.emailInvalid") },
@@ -118,6 +101,7 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
 
           <Form.Item
             name="password"
+            label={t("register.passwordLabel")}
             rules={[
               { required: true, message: t("register.passwordRequired") },
               { min: 6, message: t("register.passwordMinLength") },
@@ -129,36 +113,19 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
             />
           </Form.Item>
 
-          <Form.Item
-            name="role"
-            rules={[{ required: true, message: t("register.roleRequired") }]}
-            initialValue="student"
-          >
-            <Radio.Group>
-              <Space>
-                <Radio value="student">
-                  <UserSwitchOutlined /> {t("register.studentRole")}
-                </Radio>
-                <Radio value="teacher">
-                  <TeamOutlined /> {t("register.teacherRole")}
-                </Radio>
-              </Space>
-            </Radio.Group>
-          </Form.Item>
-
           <Form.Item>
             <Button
               type="primary"
               htmlType="submit"
               loading={loading}
               block
-              style={{ height: 44, backgroundColor: "#52c41a" }}
+              className={styles.submitButton}
             >
               {t("register.registerButton")}
             </Button>
           </Form.Item>
 
-          <div style={{ textAlign: "center" }}>
+          <div className={styles.loginLink}>
             <Text type="secondary">
               {t("register.alreadyHaveAccount")}{" "}
               <Link to="/login">{t("register.loginLink")}</Link>

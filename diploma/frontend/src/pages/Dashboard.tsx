@@ -16,25 +16,31 @@ import {
   DashboardOutlined,
   TeamOutlined,
   LogoutOutlined,
+  QuestionOutlined,
 } from "@ant-design/icons";
 import { Routes, Route, Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Subjects from "./Subjects";
 import ScheduleView from "./ScheduleView";
 import api from "../services/api";
-import { UserRole } from "@libs/shared/enums/user-role.enums";
 import LanguageSwitcher from "../components/LanguageSwitcher";
+import styles from "../css/dashboard.module.css";
+import { useAdaptiveLevel } from "../hooks/useAdaptiveLevel";
+import { User, UserRole } from "@libs/shared";
+import Test from "./Test";
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
 
 interface DashboardProps {
-  user: any;
+  user: User;
   onLogout: () => void;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
   const [collapsed, setCollapsed] = useState(false);
+  const { getTitleLevel } = useAdaptiveLevel();
+
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -59,6 +65,14 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
       ),
     },
   ];
+
+  if (user?.role === UserRole.STUDENT) {
+    menuItems.push({
+      key: "test",
+      icon: <QuestionOutlined />,
+      label: <Link to="/dashboard/test">{t("dashboard.menu.test")}</Link>,
+    });
+  }
 
   if (user?.role === UserRole.TEACHER) {
     menuItems.push({
@@ -85,27 +99,26 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
   };
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
+    <Layout className={styles.layout}>
       <Sider
         collapsible
         collapsed={collapsed}
         onCollapse={setCollapsed}
-        style={{ background: "white", boxShadow: "2px 0 8px rgba(0,0,0,0.05)" }}
+        className={styles.sider}
         theme="light"
+        breakpoint="md"
+        onBreakpoint={(broken) => {
+          if (broken) {
+            setCollapsed(true);
+          }
+        }}
       >
         <div
-          style={{
-            padding: 24,
-            textAlign: "center",
-            borderBottom: "1px solid #f0f0f0",
-          }}
+          className={`${styles.logo} ${collapsed ? styles.collapsedLogo : ""}`}
         >
-          <BookOutlined style={{ fontSize: 32, color: "#52c41a" }} />
+          <BookOutlined className={styles.logoIcon} />
           {!collapsed && (
-            <Title
-              level={4}
-              style={{ marginTop: 8, marginBottom: 0, color: "#52c41a" }}
-            >
+            <Title level={getTitleLevel(4)} className={styles.logoText}>
               CodeZone
             </Title>
           )}
@@ -114,34 +127,22 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
           mode="inline"
           defaultSelectedKeys={["dashboard"]}
           items={menuItems}
-          style={{ borderRight: "none", marginTop: 16 }}
+          className={styles.menu}
         />
       </Sider>
 
       <Layout>
-        <Header
-          style={{
-            background: "white",
-            padding: "0 24px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-          }}
-        >
-          <Title level={4} style={{ margin: 0, color: "#52c41a" }}>
+        <Header className={styles.header}>
+          <Title level={getTitleLevel(4)} className={styles.headerTitle}>
             {t("dashboard.title")}
           </Title>
 
-          <Space size="large">
-            <LanguageSwitcher></LanguageSwitcher>
+          <Space size="large" className={styles.userInfo}>
+            <LanguageSwitcher />
             <Dropdown menu={userMenu} placement="bottomRight">
-              <Space style={{ cursor: "pointer" }}>
-                <Avatar
-                  style={{ backgroundColor: "#52c41a" }}
-                  icon={<UserOutlined />}
-                />
-                <span style={{ color: "#1a1a1a" }}>
+              <Space className={styles.userAvatar}>
+                <Avatar className={styles.avatar} icon={<UserOutlined />} />
+                <span className={styles.userName}>
                   {user?.name} (
                   {user?.role === UserRole.TEACHER
                     ? t("dashboard.roles.teacher")
@@ -153,21 +154,13 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
           </Space>
         </Header>
 
-        <Content
-          style={{
-            margin: 24,
-            padding: 24,
-            background: "white",
-            borderRadius: 16,
-            minHeight: 280,
-            overflow: "auto",
-          }}
-        >
+        <Content className={styles.content}>
           <Routes>
             <Route path="/" element={<DashboardHome user={user} t={t} />} />
             <Route path="/subjects" element={<Subjects user={user} />} />
             <Route path="/schedule" element={<ScheduleView user={user} />} />
             <Route path="/students" element={<StudentsList t={t} />} />
+            <Route path="/test" element={<Test />} />
           </Routes>
         </Content>
       </Layout>
@@ -175,27 +168,25 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
   );
 };
 
-const DashboardHome: React.FC<{ user: any; t: any }> = ({ user, t }) => (
-  <div>
-    <Title level={3}>{t("dashboard.welcome", { name: user?.name })}</Title>
-    <div
-      style={{
-        marginTop: 32,
-        padding: 48,
-        background: "linear-gradient(135deg, #f0f9f0 0%, #e8f5e8 100%)",
-        borderRadius: 16,
-        textAlign: "center",
-      }}
-    >
-      <BookOutlined style={{ fontSize: 64, color: "#52c41a" }} />
-      <Title level={4} style={{ marginTop: 16 }}>
-        {user?.role === UserRole.TEACHER
-          ? t("dashboard.teacherText")
-          : t("dashboard.studentText")}
+const DashboardHome: React.FC<{ user: User; t: any }> = ({ user, t }) => {
+  const { getTitleLevel } = useAdaptiveLevel();
+
+  return (
+    <div>
+      <Title level={getTitleLevel(3)}>
+        {t("dashboard.welcome", { name: user?.name })}
       </Title>
+      <div className={styles.welcomeBlock}>
+        <BookOutlined className={styles.welcomeIcon} />
+        <Title level={getTitleLevel(4)} className={styles.dashboardTitle}>
+          {user?.role === UserRole.TEACHER
+            ? t("dashboard.teacherText")
+            : t("dashboard.studentText")}
+        </Title>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const StudentsList: React.FC<{ t: any }> = ({ t }) => {
   const [students, setStudents] = useState<any[]>([]);
@@ -221,14 +212,14 @@ const StudentsList: React.FC<{ t: any }> = ({ t }) => {
 
   const columns = [
     { title: "ID", dataIndex: "id", key: "id", width: 80 },
-    { title: "Имя", dataIndex: "name", key: "name" },
+    { title: t("dashboard.name"), dataIndex: "name", key: "name" },
     { title: "Email", dataIndex: "email", key: "email" },
     {
-      title: "Дата регистрации",
+      title: t("dashboard.registrationDate"),
       dataIndex: "createdAt",
       key: "createdAt",
       render: (date: string) =>
-        date ? new Date(date).toLocaleDateString() : "Нет данных",
+        date ? new Date(date).toLocaleDateString() : t("dashboard.noData"),
     },
   ];
 
@@ -238,7 +229,8 @@ const StudentsList: React.FC<{ t: any }> = ({ t }) => {
       columns={columns}
       rowKey="id"
       loading={loading}
-      pagination={{ pageSize: 10 }}
+      pagination={{ pageSize: 10, responsive: true }}
+      scroll={{ x: true }}
     />
   );
 };
