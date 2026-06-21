@@ -1,4 +1,4 @@
-
+// services/settings.service.ts
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -33,27 +33,17 @@ export class SettingsService {
     return settings;
   }
 
-  async updateNotificationSettings(
+  async updateLanguage(
     userId: number,
-    data: {
-      emailNotifications?: boolean;
-      pushNotifications?: boolean;
-      bookingReminders?: boolean;
-      scheduleChanges?: boolean;
-      promotions?: boolean;
-    },
+    language: string,
   ): Promise<UserSettings> {
-    return this.updateSettings(userId, data);
+    return this.updateSettings(userId, { language });
   }
 
-  async updatePrivacySettings(
+  async updateNotificationsEnabled(
     userId: number,
-    data: {
-      showProfile?: boolean;
-      showEmail?: boolean;
-      showPhone?: boolean;
-    },
+    enabled: boolean,
   ): Promise<UserSettings> {
-    return this.updateSettings(userId, data);
+    return this.updateSettings(userId, { notificationsEnabled: enabled });
   }
 }

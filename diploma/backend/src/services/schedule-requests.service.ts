@@ -1,4 +1,4 @@
-
+// services/schedule-requests.service.ts
 import {
   Injectable,
   NotFoundException,
@@ -11,23 +11,24 @@ import {
   RequestType,
   RequestStatus,
 } from '../entities/schedule-request.entity';
-import { Schedule } from '../entities/schedule.entity';
 import { User } from '../entities/user.entity';
+import { NotificationsService } from './notifications.service';
+import { NotificationType } from '../entities/notification.entity';
+import { UserRole } from '@libs/shared';
 
 @Injectable()
 export class ScheduleRequestsService {
   constructor(
     @InjectRepository(ScheduleRequest)
     private scheduleRequestRepo: Repository<ScheduleRequest>,
-    @InjectRepository(Schedule)
-    private scheduleRepo: Repository<Schedule>,
     @InjectRepository(User)
     private userRepo: Repository<User>,
+    private notificationsService: NotificationsService,
   ) {}
 
   async getAllRequests(): Promise<ScheduleRequest[]> {
     return this.scheduleRequestRepo.find({
-      relations: ['schedule', 'requester'],
+      relations: ['requester'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -35,7 +36,7 @@ export class ScheduleRequestsService {
   async getPendingRequests(): Promise<ScheduleRequest[]> {
     return this.scheduleRequestRepo.find({
       where: { status: RequestStatus.PENDING },
-      relations: ['schedule', 'requester'],
+      relations: ['requester'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -43,7 +44,7 @@ export class ScheduleRequestsService {
   async getRequestsByUser(userId: number): Promise<ScheduleRequest[]> {
     return this.scheduleRequestRepo.find({
       where: { requesterId: userId },
-      relations: ['schedule', 'requester'],
+      relations: ['requester'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -51,7 +52,7 @@ export class ScheduleRequestsService {
   async getRequestById(id: number): Promise<ScheduleRequest> {
     const request = await this.scheduleRequestRepo.findOne({
       where: { id },
-      relations: ['schedule', 'requester'],
+      relations: ['requester'],
     });
     if (!request) {
       throw new NotFoundException('Запрос не найден');
@@ -61,68 +62,47 @@ export class ScheduleRequestsService {
 
   async createRequest(
     requesterId: number,
-    data: {
-      scheduleId: number;
-      requestType: RequestType;
-      reason: string;
-      proposedDate?: string;
-      proposedTime?: string;
-    },
+    reason: string,
   ): Promise<ScheduleRequest> {
-    
-    const schedule = await this.scheduleRepo.findOne({
-      where: { id: data.scheduleId },
-    });
-    if (!schedule) {
-      throw new NotFoundException('Расписание не найдено');
-    }
-
-    
-    const requester = await this.userRepo.findOne({
-      where: { id: requesterId },
-    });
+    const requester = await this.userRepo.findOne({ where: { id: requesterId } });
     if (!requester) {
       throw new NotFoundException('Пользователь не найден');
     }
 
-    
-    if (requester.role !== 'teacher') {
-      throw new BadRequestException(
-        'Только преподаватели могут создавать запросы',
-      );
-    }
-
-    
-    if (schedule.teacherId !== requesterId) {
-      throw new BadRequestException(
-        'Вы можете создавать запросы только для своих занятий',
-      );
-    }
-
-    
-    const existingRequest = await this.scheduleRequestRepo.findOne({
-      where: {
-        scheduleId: data.scheduleId,
-        status: RequestStatus.PENDING,
-      },
-    });
-    if (existingRequest) {
-      throw new BadRequestException(
-        'Для этого занятия уже есть активный запрос',
-      );
-    }
-
     const request = this.scheduleRequestRepo.create({
-      scheduleId: data.scheduleId,
       requesterId,
-      requestType: data.requestType,
-      reason: data.reason,
-      proposedDate: data.proposedDate,
-      proposedTime: data.proposedTime,
+      reason,
+      requestType: RequestType.CANCELLATION,
       status: RequestStatus.PENDING,
     });
 
-    return this.scheduleRequestRepo.save(request);
+    const saved = await this.scheduleRequestRepo.save(request);
+
+    // Уведомление для отправителя
+    await this.notificationsService.create(
+      requesterId,
+      'Запрос отправлен',
+      `Ваш запрос: "${reason}" успешно отправлен администратору. Ожидайте рассмотрения.`,
+      NotificationType.SYSTEM,
+      '/dashboard/schedule',
+    );
+
+    // Уведомление для всех администраторов (используем enum)
+    const admins = await this.userRepo.find({
+      where: { role: UserRole.ADMIN },
+    });
+
+    for (const admin of admins) {
+      await this.notificationsService.create(
+        admin.id,
+        'Новый запрос от преподавателя',
+        `Преподаватель ${requester.name} отправил запрос: ${reason}`,
+        NotificationType.SYSTEM,
+        '/dashboard/admin-schedule',
+      );
+    }
+
+    return saved;
   }
 
   async approveRequest(id: number): Promise<ScheduleRequest> {
@@ -135,7 +115,17 @@ export class ScheduleRequestsService {
     }
 
     request.status = RequestStatus.APPROVED;
-    return this.scheduleRequestRepo.save(request);
+    const saved = await this.scheduleRequestRepo.save(request);
+
+    await this.notificationsService.create(
+      request.requesterId,
+      'Запрос одобрен',
+      `Ваш запрос "${request.reason}" был одобрен администратором`,
+      NotificationType.SYSTEM,
+      '/dashboard/schedule',
+    );
+
+    return saved;
   }
 
   async rejectRequest(id: number): Promise<ScheduleRequest> {
@@ -148,19 +138,21 @@ export class ScheduleRequestsService {
     }
 
     request.status = RequestStatus.REJECTED;
-    return this.scheduleRequestRepo.save(request);
+    const saved = await this.scheduleRequestRepo.save(request);
+
+    await this.notificationsService.create(
+      request.requesterId,
+      'Запрос отклонен',
+      `Ваш запрос "${request.reason}" был отклонен администратором`,
+      NotificationType.SYSTEM,
+      '/dashboard/schedule',
+    );
+
+    return saved;
   }
 
   async deleteRequest(id: number): Promise<void> {
     const request = await this.getRequestById(id);
     await this.scheduleRequestRepo.delete(id);
-  }
-
-  async getRequestsBySchedule(scheduleId: number): Promise<ScheduleRequest[]> {
-    return this.scheduleRequestRepo.find({
-      where: { scheduleId },
-      relations: ['requester'],
-      order: { createdAt: 'DESC' },
-    });
   }
 }

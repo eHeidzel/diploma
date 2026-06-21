@@ -1,3 +1,4 @@
+// pages/Settings.tsx
 import React, { useState, useEffect } from "react";
 import {
   Card,
@@ -6,11 +7,12 @@ import {
   Button,
   Space,
   message,
-  Divider,
   Typography,
+  Select,
 } from "antd";
-import { BellOutlined, SafetyOutlined } from "@ant-design/icons";
+import { BellOutlined, GlobalOutlined } from "@ant-design/icons";
 import { settingsApi } from "../services/api";
+import { useTranslation } from "react-i18next";
 import styles from "../css/settings.module.css";
 
 const { Title } = Typography;
@@ -20,6 +22,7 @@ interface SettingsPageProps {
 }
 
 const Settings: React.FC<SettingsPageProps> = ({ user }) => {
+  const { i18n } = useTranslation();
   const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -35,13 +38,8 @@ const Settings: React.FC<SettingsPageProps> = ({ user }) => {
       const response = await settingsApi.get();
       setSettings(response.data);
       form.setFieldsValue({
-        emailNotifications: response.data.emailNotifications,
-        pushNotifications: response.data.pushNotifications,
-        bookingReminders: response.data.bookingReminders,
-        scheduleChanges: response.data.scheduleChanges,
-        showProfile: response.data.showProfile,
-        showEmail: response.data.showEmail,
-        showPhone: response.data.showPhone,
+        language: response.data.language || i18n.language,
+        notificationsEnabled: response.data.notificationsEnabled !== false,
       });
     } catch (error) {
       console.error("Error fetching settings:", error);
@@ -54,24 +52,16 @@ const Settings: React.FC<SettingsPageProps> = ({ user }) => {
   const handleSaveAll = async (values: any) => {
     setSaving(true);
     try {
-      const notificationsData = {
-        emailNotifications: values.emailNotifications,
-        pushNotifications: values.pushNotifications,
-        bookingReminders: values.bookingReminders,
-        scheduleChanges: values.scheduleChanges,
-      };
-      const privacyData = {
-        showProfile: values.showProfile,
-        showEmail: values.showEmail,
-        showPhone: values.showPhone,
-      };
+      await settingsApi.update({
+        language: values.language,
+        notificationsEnabled: values.notificationsEnabled,
+      });
 
-      await Promise.all([
-        settingsApi.updateNotifications(notificationsData),
-        settingsApi.updatePrivacy(privacyData),
-      ]);
+      if (values.language && values.language !== i18n.language) {
+        i18n.changeLanguage(values.language);
+      }
 
-      message.success("Все настройки сохранены");
+      message.success("Настройки сохранены");
       fetchSettings();
     } catch (error) {
       console.error("Error saving settings:", error);
@@ -92,15 +82,26 @@ const Settings: React.FC<SettingsPageProps> = ({ user }) => {
         layout="vertical"
         onFinish={handleSaveAll}
         initialValues={{
-          emailNotifications: true,
-          pushNotifications: true,
-          bookingReminders: true,
-          scheduleChanges: true,
-          showProfile: true,
-          showEmail: false,
-          showPhone: false,
+          language: "ru",
+          notificationsEnabled: true,
         }}
       >
+        <Card
+          title={
+            <Space>
+              <GlobalOutlined /> Язык
+            </Space>
+          }
+          className={styles.card}
+        >
+          <Form.Item name="language" label="Язык интерфейса">
+            <Select>
+              <Select.Option value="ru">Русский</Select.Option>
+              <Select.Option value="en">English</Select.Option>
+            </Select>
+          </Form.Item>
+        </Card>
+
         <Card
           title={
             <Space>
@@ -110,63 +111,11 @@ const Settings: React.FC<SettingsPageProps> = ({ user }) => {
           className={styles.card}
         >
           <Form.Item
-            name="emailNotifications"
-            label="Email уведомления"
+            name="notificationsEnabled"
+            label="Включить уведомления"
             valuePropName="checked"
           >
             <Switch checkedChildren="Вкл" unCheckedChildren="Выкл" />
-          </Form.Item>
-          <Form.Item
-            name="pushNotifications"
-            label="Push уведомления"
-            valuePropName="checked"
-          >
-            <Switch checkedChildren="Вкл" unCheckedChildren="Выкл" />
-          </Form.Item>
-          <Form.Item
-            name="bookingReminders"
-            label="Напоминания о записи"
-            valuePropName="checked"
-          >
-            <Switch checkedChildren="Вкл" unCheckedChildren="Выкл" />
-          </Form.Item>
-          <Form.Item
-            name="scheduleChanges"
-            label="Изменения в расписании"
-            valuePropName="checked"
-          >
-            <Switch checkedChildren="Вкл" unCheckedChildren="Выкл" />
-          </Form.Item>
-        </Card>
-
-        <Card
-          title={
-            <Space>
-              <SafetyOutlined /> Конфиденциальность
-            </Space>
-          }
-          className={styles.card}
-        >
-          <Form.Item
-            name="showProfile"
-            label="Показывать профиль другим пользователям"
-            valuePropName="checked"
-          >
-            <Switch checkedChildren="Да" unCheckedChildren="Нет" />
-          </Form.Item>
-          <Form.Item
-            name="showEmail"
-            label="Показывать email"
-            valuePropName="checked"
-          >
-            <Switch checkedChildren="Да" unCheckedChildren="Нет" />
-          </Form.Item>
-          <Form.Item
-            name="showPhone"
-            label="Показывать телефон"
-            valuePropName="checked"
-          >
-            <Switch checkedChildren="Да" unCheckedChildren="Нет" />
           </Form.Item>
         </Card>
 
@@ -177,7 +126,7 @@ const Settings: React.FC<SettingsPageProps> = ({ user }) => {
             loading={saving}
             size="large"
           >
-            Сохранить все настройки
+            Сохранить настройки
           </Button>
         </Form.Item>
       </Form>

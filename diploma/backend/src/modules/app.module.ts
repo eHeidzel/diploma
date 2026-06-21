@@ -80,6 +80,8 @@ import {
   CookieResolver,
 } from 'nestjs-i18n';
 import * as path from 'path';
+import { ScheduleRequestsController } from '@controllers/schedule-requests.controller';
+import { ScheduleRequestsService } from '@services/schedule-requests.service';
 
 @Module({
   imports: [
@@ -186,6 +188,7 @@ import * as path from 'path';
     WorkloadController,
     AdminController,
     ActivityReviewsController,
+    ScheduleRequestsController,
   ],
   providers: [
     UsersService,
@@ -210,6 +213,7 @@ import * as path from 'path';
     EmailService,
     JwtStrategy,
     NotificationsGateway,
+    ScheduleRequestsService,
   ],
 })
 export class AppModule {}

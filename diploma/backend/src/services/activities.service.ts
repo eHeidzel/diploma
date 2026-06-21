@@ -1,4 +1,4 @@
-
+// services/activities.service.ts
 import {
   Injectable,
   NotFoundException,
@@ -41,6 +41,7 @@ export interface IActivityResponse {
   groupShift: string | null;
   learningPlan: any[] | null;
   targetAudience: any;
+  meetLink: string | null;
 }
 
 interface IIndividualScheduleData {
@@ -219,7 +220,6 @@ export class ActivitiesService {
     return false;
   }
 
-  
   private async checkAllDatesForConflicts(
     userId: number,
     startDateStr: string,
@@ -233,15 +233,6 @@ export class ActivitiesService {
     const endDate = this.addMonths(startDate, monthsToAdd);
 
     let currentDate = new Date(startDate);
-
-    console.log('========================================');
-    console.log('🔍 CHECKING FOR CONFLICTS');
-    console.log(`User ID: ${userId}`);
-    console.log(`Start date: ${this.formatDate(startDate)}`);
-    console.log(`End date: ${this.formatDate(endDate)}`);
-    console.log(`Days of week: ${daysOfWeek.join(', ')}`);
-    console.log(`Time: ${startTime} - ${endTime}`);
-    console.log('========================================');
 
     while (this.isBeforeOrEqual(currentDate, endDate)) {
       const dayOfWeek = currentDate.getDay();
@@ -258,22 +249,11 @@ export class ActivitiesService {
 
         if (hasOverlap) {
           conflictDates.push(dateStr);
-          console.log(
-            `❌ Conflict found: ${dateStr} (${['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'][dayOfWeek]})`,
-          );
-        } else {
-          console.log(
-            `✅ Free: ${dateStr} (${['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'][dayOfWeek]})`,
-          );
         }
       }
 
       currentDate = this.addDays(currentDate, 1);
     }
-
-    console.log('========================================');
-    console.log(`Total conflicts: ${conflictDates.length}`);
-    console.log('========================================');
 
     return {
       hasConflicts: conflictDates.length > 0,
@@ -281,7 +261,6 @@ export class ActivitiesService {
     };
   }
 
-  
   private async createIndividualSchedulesWithEnrollments(
     activityId: number,
     teacherId: number,
@@ -292,6 +271,7 @@ export class ActivitiesService {
     endTime: string,
     durationMinutes: number,
     price: number,
+    meetLink: string | null,
   ): Promise<Schedule[]> {
     const schedules: Schedule[] = [];
     const startDate = this.parseDate(startDateStr);
@@ -300,25 +280,14 @@ export class ActivitiesService {
     let currentDate = new Date(startDate);
     let createdCount = 0;
 
-    console.log('========================================');
-    console.log('📅 CREATING INDIVIDUAL SCHEDULES WITH ENROLLMENTS');
-    console.log(`Activity ID: ${activityId}`);
-    console.log(`User ID: ${userId}`);
-    console.log(`Start date: ${this.formatDate(startDate)}`);
-    console.log(`End date: ${this.formatDate(endDate)}`);
-    console.log(`Days of week: ${daysOfWeek.join(', ')}`);
-    console.log(`Time: ${startTime} - ${endTime}`);
-    console.log('========================================');
-
     while (this.isBeforeOrEqual(currentDate, endDate)) {
       const dayOfWeek = currentDate.getDay();
 
       if (daysOfWeek.includes(dayOfWeek)) {
         const dateStr = this.formatDate(currentDate);
 
-        const meetLink = this.generateMeetLink();
+        const link = meetLink || this.generateMeetLink();
 
-        
         const schedule = await this.scheduleService.createFromBooking(
           activityId,
           teacherId,
@@ -326,16 +295,12 @@ export class ActivitiesService {
           startTime,
           endTime,
           1,
-          meetLink,
+          link,
         );
 
         schedules.push(schedule);
         createdCount++;
-        console.log(
-          `✅ Created schedule: ${dateStr} (${['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'][dayOfWeek]})`,
-        );
 
-        
         const enrollment: Enrollment = this.enrollmentRepo.create({
           userId,
           activityId,
@@ -344,9 +309,7 @@ export class ActivitiesService {
           paidAmount: price || 0,
         });
         await this.enrollmentRepo.save(enrollment);
-        console.log(`✅ Created enrollment for: ${dateStr}`);
 
-        
         schedule.enrolledCount += 1;
         await this.scheduleRepo.save(schedule);
       }
@@ -354,14 +317,9 @@ export class ActivitiesService {
       currentDate = this.addDays(currentDate, 1);
     }
 
-    console.log('========================================');
-    console.log(`✅ Created: ${createdCount} schedules with enrollments`);
-    console.log('========================================');
-
     return schedules;
   }
 
-  
   private async createGroupSchedulesWithEnrollments(
     activityId: number,
     teacherId: number,
@@ -372,7 +330,8 @@ export class ActivitiesService {
     endTime: string,
     period: string,
     price: number,
-    maxStudents: number = 15,
+    maxStudents: number,
+    meetLink: string | null,
   ): Promise<Schedule[]> {
     const schedules: Schedule[] = [];
     const startDate = this.parseDate(startDateStr);
@@ -382,26 +341,14 @@ export class ActivitiesService {
     let currentDate = new Date(startDate);
     let createdCount = 0;
 
-    console.log('========================================');
-    console.log('📅 CREATING GROUP SCHEDULES WITH ENROLLMENTS');
-    console.log(`Activity ID: ${activityId}`);
-    console.log(`User ID: ${userId}`);
-    console.log(`Period: ${period}`);
-    console.log(`Start date: ${this.formatDate(startDate)}`);
-    console.log(`End date: ${this.formatDate(endDate)}`);
-    console.log(`Days of week: ${daysOfWeek.join(', ')}`);
-    console.log(`Time: ${startTime} - ${endTime}`);
-    console.log('========================================');
-
     while (this.isBeforeOrEqual(currentDate, endDate)) {
       const dayOfWeek = currentDate.getDay();
 
       if (daysOfWeek.includes(dayOfWeek)) {
         const dateStr = this.formatDate(currentDate);
 
-        const meetLink = this.generateMeetLink();
+        const link = meetLink || this.generateMeetLink();
 
-        
         const schedule = await this.scheduleService.createFromBooking(
           activityId,
           teacherId,
@@ -409,16 +356,12 @@ export class ActivitiesService {
           startTime,
           endTime,
           maxStudents,
-          meetLink,
+          link,
         );
 
         schedules.push(schedule);
         createdCount++;
-        console.log(
-          `✅ Created schedule: ${dateStr} (${['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'][dayOfWeek]})`,
-        );
 
-        
         const enrollment: Enrollment = this.enrollmentRepo.create({
           userId,
           activityId,
@@ -427,19 +370,13 @@ export class ActivitiesService {
           paidAmount: price || 0,
         });
         await this.enrollmentRepo.save(enrollment);
-        console.log(`✅ Created enrollment for: ${dateStr}`);
 
-        
         schedule.enrolledCount += 1;
         await this.scheduleRepo.save(schedule);
       }
 
       currentDate = this.addDays(currentDate, 1);
     }
-
-    console.log('========================================');
-    console.log(`✅ Created: ${createdCount} schedules with enrollments`);
-    console.log('========================================');
 
     return schedules;
   }
@@ -488,6 +425,7 @@ export class ActivitiesService {
         groupShift: activity.groupShift,
         learningPlan: activity.learningPlan,
         targetAudience: activity.targetAudience,
+        meetLink: activity.meetLink || null,
       });
     }
     return result;
@@ -536,6 +474,7 @@ export class ActivitiesService {
       groupShift: activity.groupShift,
       learningPlan: activity.learningPlan,
       targetAudience: activity.targetAudience,
+      meetLink: activity.meetLink || null,
     };
   }
 
@@ -572,14 +511,8 @@ export class ActivitiesService {
       throw new BadRequestException('Не выбраны дни недели');
     }
 
-    console.log('=== Creating Individual Series ===');
-    console.log(`Activity: ${activity.title}`);
-    console.log(`Start date: ${data.startDate}`);
-    console.log(`Days: ${selectedDays.join(', ')}`);
-    console.log(`Time: ${startTime} - ${endTime}`);
-    console.log(`Duration: ${durationMinutes} minutes`);
+    const meetLink = activity.meetLink || null;
 
-    
     const conflictCheck = await this.checkAllDatesForConflicts(
       userId,
       data.startDate,
@@ -589,7 +522,6 @@ export class ActivitiesService {
       6,
     );
 
-    
     if (conflictCheck.hasConflicts) {
       const conflictDatesStr = conflictCheck.conflictDates
         .slice(0, 5)
@@ -604,7 +536,6 @@ export class ActivitiesService {
       );
     }
 
-    
     const createdSchedules =
       await this.createIndividualSchedulesWithEnrollments(
         activityId,
@@ -616,6 +547,7 @@ export class ActivitiesService {
         endTime,
         durationMinutes,
         activity.price || 0,
+        meetLink,
       );
 
     if (createdSchedules.length === 0) {
@@ -668,15 +600,8 @@ export class ActivitiesService {
 
     const monthsToAdd = data.period === 'год' ? 12 : 6;
 
-    console.log('=== Creating Group Series ===');
-    console.log(`Activity: ${activity.title}`);
-    console.log(`Start date: ${data.startDate}`);
-    console.log(`Period: ${data.period}`);
-    console.log(`Shift: ${data.shift}`);
-    console.log(`Days: ${config.days.join(', ')}`);
-    console.log(`Time: ${config.time} - ${endTime}`);
+    const meetLink = activity.meetLink || null;
 
-    
     const conflictCheck = await this.checkAllDatesForConflicts(
       userId,
       data.startDate,
@@ -686,7 +611,6 @@ export class ActivitiesService {
       monthsToAdd,
     );
 
-    
     if (conflictCheck.hasConflicts) {
       const conflictDatesStr = conflictCheck.conflictDates
         .slice(0, 5)
@@ -701,7 +625,6 @@ export class ActivitiesService {
       );
     }
 
-    
     const createdSchedules = await this.createGroupSchedulesWithEnrollments(
       activityId,
       teacherId,
@@ -713,6 +636,7 @@ export class ActivitiesService {
       data.period,
       activity.price || 0,
       15,
+      meetLink,
     );
 
     if (createdSchedules.length === 0) {
@@ -767,7 +691,8 @@ export class ActivitiesService {
       throw new BadRequestException('У вас уже есть занятие в это время');
     }
 
-    const meetLink: string = this.generateMeetLink();
+    const meetLink: string = activity.meetLink || this.generateMeetLink();
+
     const schedule: Schedule = await this.scheduleService.createFromBooking(
       activityId,
       teacherId,
@@ -944,27 +869,21 @@ export class ActivitiesService {
     await this.activityRepo.delete(id);
   }
 
-  
-
-  
   async getTeacherAvailableSlots(
     teacherId: number,
     date: string,
     durationMinutes: number = 60,
   ): Promise<{ slots: string[]; date: string; teacherId: number }> {
-    
     const workingHours = {
-      start: 9, 
-      end: 20, 
+      start: 9,
+      end: 20,
     };
 
-    
     const teacher = await this.userRepo.findOne({ where: { id: teacherId } });
     if (!teacher) {
       throw new NotFoundException('Преподаватель не найден');
     }
 
-    
     const existingSchedules = await this.scheduleRepo
       .createQueryBuilder('s')
       .where('s.teacherId = :teacherId', { teacherId })
@@ -978,7 +897,6 @@ export class ActivitiesService {
     const availableSlots: string[] = [];
     const slotDuration = durationMinutes;
 
-    
     for (let hour = workingHours.start; hour < workingHours.end; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
         const startTime = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
@@ -987,7 +905,6 @@ export class ActivitiesService {
         const endMinute = endMinutes % 60;
         const endTime = `${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}`;
 
-        
         if (
           endHour > workingHours.end ||
           (endHour === workingHours.end && endMinute > 0)
@@ -995,7 +912,6 @@ export class ActivitiesService {
           break;
         }
 
-        
         let isOccupied = false;
         for (const schedule of existingSchedules) {
           const existingStart = schedule.startTime;
@@ -1024,7 +940,6 @@ export class ActivitiesService {
     };
   }
 
-  
   async checkTeacherAvailability(
     teacherId: number,
     date: string,

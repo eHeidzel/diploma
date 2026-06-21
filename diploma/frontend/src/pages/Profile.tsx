@@ -1,4 +1,4 @@
-
+// pages/Profile.tsx
 import React, { useState, useEffect } from "react";
 import {
   Card,
@@ -35,9 +35,10 @@ const { TextArea } = Input;
 
 interface ProfilePageProps {
   user: any;
+  onUserUpdate?: (updatedUser: any) => void; // Добавляем опциональный пропс
 }
 
-const Profile: React.FC<ProfilePageProps> = ({ user }) => {
+const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
   const [profile, setProfile] = useState<any>(null);
   const [balance, setBalance] = useState<number>(0);
   const [loading, setLoading] = useState(false);
@@ -67,6 +68,11 @@ const Profile: React.FC<ProfilePageProps> = ({ user }) => {
         city: response.data.city,
         bio: response.data.bio,
       });
+
+      // Обновляем аватар в родительском компоненте
+      if (onUserUpdate && response.data.avatar) {
+        onUserUpdate({ avatar: response.data.avatar });
+      }
     } catch (error) {
       console.error("Error fetching profile:", error);
       message.error("Ошибка загрузки профиля");
@@ -86,9 +92,20 @@ const Profile: React.FC<ProfilePageProps> = ({ user }) => {
 
   const handleUpdateProfile = async (values: any) => {
     try {
-      await profileApi.update(values);
+      const response = await profileApi.update(values);
       message.success("Профиль успешно обновлен");
       setEditMode(false);
+
+      // Обновляем данные в родительском компоненте
+      if (onUserUpdate) {
+        onUserUpdate({
+          name: values.name,
+          phone: values.phone,
+          city: values.city,
+          bio: values.bio,
+        });
+      }
+
       fetchProfile();
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -117,7 +134,15 @@ const Profile: React.FC<ProfilePageProps> = ({ user }) => {
 
     try {
       const response = await profileApi.uploadAvatar(file as File);
-      setProfile((prev: any) => ({ ...prev, avatar: response.data.avatar }));
+      const newAvatarUrl = response.data.avatar;
+
+      setProfile((prev: any) => ({ ...prev, avatar: newAvatarUrl }));
+
+      // Обновляем аватар в родительском компоненте
+      if (onUserUpdate) {
+        onUserUpdate({ avatar: newAvatarUrl });
+      }
+
       message.success("Аватар успешно обновлен");
       onSuccess?.(response.data);
     } catch (error) {
@@ -129,101 +154,36 @@ const Profile: React.FC<ProfilePageProps> = ({ user }) => {
     }
   };
 
-  
-  const formatPhoneInput = (value: string) => {
-    
-    const digits = value.replace(/\D/g, "");
-
-    
-    let formatted = digits;
-    if (!formatted.startsWith("375")) {
-      
-      if (formatted.length > 0) {
-        
-        if (formatted.startsWith("8")) {
-          formatted = "375" + formatted.slice(1);
-        } else {
-          
-          formatted = "375" + formatted;
-        }
-      } else {
-        formatted = "375";
-      }
-    }
-
-    
-    if (formatted.length > 12) {
-      formatted = formatted.slice(0, 12);
-    }
-
-    
-    let result = "+375";
-    const remaining = formatted.slice(3);
-
-    if (remaining.length > 0) {
-      result += ` (${remaining.slice(0, 2)}`;
-    }
-    if (remaining.length > 2) {
-      result += `) ${remaining.slice(2, 5)}`;
-    }
-    if (remaining.length > 5) {
-      result += `-${remaining.slice(5, 7)}`;
-    }
-    if (remaining.length > 7) {
-      result += `-${remaining.slice(7, 9)}`;
-    }
-
-    return result;
-  };
-
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const rawValue = e.target.value;
-    const formatted = formatPhoneInput(rawValue);
-    setPhoneValue(formatted);
-    form.setFieldsValue({ phone: formatted });
-  };
-
-  
-  const handlePhoneFocus = () => {
-    if (!phoneValue || phoneValue === "") {
-      setPhoneValue("+375");
-      form.setFieldsValue({ phone: "+375" });
-    }
-  };
-
-  
+  // Функция валидации телефона
   const validatePhone = (_: any, value: string) => {
     if (!value) return Promise.resolve();
-    const digits = value.replace(/\D/g, "");
-    
-    if (digits.length !== 12) {
+    const phoneRegex = /^(\+375|80)?(29|33|44|25)\d{7}$/;
+    if (!phoneRegex.test(value)) {
       return Promise.reject(
-        new Error("Введите полный номер (например, +375291234567)"),
-      );
-    }
-    
-    const operatorCode = digits.slice(3, 5);
-    if (!["29", "33", "44", "25"].includes(operatorCode)) {
-      return Promise.reject(
-        new Error("Введите корректный код оператора (29, 33, 44, 25)"),
+        new Error(
+          "Введите корректный номер телефона (например, +375291234567)",
+        ),
       );
     }
     return Promise.resolve();
   };
 
-  
-  const formatPhoneDisplay = (phone: string) => {
+  // Форматирование телефона для отображения
+  const formatPhone = (phone: string) => {
     if (!phone) return "Не указан";
-    const digits = phone.replace(/\D/g, "");
-    if (digits.length === 0) return "Не указан";
-
-    if (digits.length === 12) {
-      return `+${digits.slice(0, 3)} (${digits.slice(3, 5)}) ${digits.slice(5, 8)}-${digits.slice(8, 10)}-${digits.slice(10, 12)}`;
+    if (phone.startsWith("+375")) {
+      return phone.replace(
+        /(\+375)(\d{2})(\d{3})(\d{2})(\d{2})/,
+        "$1 ($2) $3-$4-$5",
+      );
+    }
+    if (phone.length === 9) {
+      return `+375 (${phone.slice(0, 2)}) ${phone.slice(2, 5)}-${phone.slice(5, 7)}-${phone.slice(7, 9)}`;
     }
     return phone;
   };
 
-  
+  // Валидация био
   const validateBio = (_: any, value: string) => {
     if (!value) return Promise.resolve();
     if (value.length < 10) {
@@ -234,48 +194,6 @@ const Profile: React.FC<ProfilePageProps> = ({ user }) => {
     if (value.length > 500) {
       return Promise.reject(
         new Error("Описание не должно превышать 500 символов"),
-      );
-    }
-    return Promise.resolve();
-  };
-
-  
-  const validateName = (_: any, value: string) => {
-    if (!value) return Promise.reject(new Error("Введите имя"));
-    if (value.length < 2) {
-      return Promise.reject(
-        new Error("Имя должно содержать минимум 2 символа"),
-      );
-    }
-    if (value.length > 100) {
-      return Promise.reject(new Error("Имя не должно превышать 100 символов"));
-    }
-    if (!/^[a-zA-Zа-яА-ЯёЁ\s]+$/.test(value)) {
-      return Promise.reject(
-        new Error("Имя должно содержать только буквы и пробелы"),
-      );
-    }
-    return Promise.resolve();
-  };
-
-  
-  const validateCity = (_: any, value: string) => {
-    if (!value) return Promise.resolve();
-    if (value.length < 2) {
-      return Promise.reject(
-        new Error("Название города должно содержать минимум 2 символа"),
-      );
-    }
-    if (value.length > 100) {
-      return Promise.reject(
-        new Error("Название города не должно превышать 100 символов"),
-      );
-    }
-    if (!/^[a-zA-Zа-яА-ЯёЁ\s-]+$/.test(value)) {
-      return Promise.reject(
-        new Error(
-          "Название города должно содержать только буквы, пробелы и дефисы",
-        ),
       );
     }
     return Promise.resolve();
@@ -383,7 +301,7 @@ const Profile: React.FC<ProfilePageProps> = ({ user }) => {
                   {profile.name}
                 </Descriptions.Item>
                 <Descriptions.Item label="Телефон">
-                  {formatPhoneDisplay(profile.phone) || "Не указан"}
+                  {formatPhone(profile.phone) || "Не указан"}
                 </Descriptions.Item>
                 <Descriptions.Item label="Город">
                   {profile.city || "Не указан"}
@@ -402,7 +320,15 @@ const Profile: React.FC<ProfilePageProps> = ({ user }) => {
                 <Form.Item
                   name="name"
                   label="Имя"
-                  rules={[{ validator: validateName }]}
+                  rules={[
+                    { required: true, message: "Введите имя" },
+                    { min: 2, message: "Имя должно содержать минимум 2 символа" },
+                    { max: 100, message: "Имя не должно превышать 100 символов" },
+                    {
+                      pattern: /^[a-zA-Zа-яА-ЯёЁ\s]+$/,
+                      message: "Имя должно содержать только буквы и пробелы",
+                    },
+                  ]}
                 >
                   <Input placeholder="Введите ваше имя" />
                 </Form.Item>
@@ -410,21 +336,29 @@ const Profile: React.FC<ProfilePageProps> = ({ user }) => {
                 <Form.Item
                   name="phone"
                   label="Телефон"
-                  rules={[{ validator: validatePhone }]}
+                  rules={[
+                    {
+                      pattern: /^(\+375|80)?(29|33|44|25)\d{7}$/,
+                      message:
+                        "Введите корректный номер (например, +375291234567)",
+                    },
+                  ]}
                 >
-                  <Input
-                    placeholder="+375 (29) 123-45-67"
-                    value={phoneValue}
-                    onChange={handlePhoneChange}
-                    onFocus={handlePhoneFocus}
-                    maxLength={20}
-                  />
+                  <Input placeholder="+375 (29) 123-45-67" />
                 </Form.Item>
 
                 <Form.Item
                   name="city"
                   label="Город"
-                  rules={[{ validator: validateCity }]}
+                  rules={[
+                    { min: 2, message: "Название города должно содержать минимум 2 символа" },
+                    { max: 100, message: "Название города не должно превышать 100 символов" },
+                    {
+                      pattern: /^[a-zA-Zа-яА-ЯёЁ\s-]+$/,
+                      message:
+                        "Название города должно содержать только буквы, пробелы и дефисы",
+                    },
+                  ]}
                 >
                   <Input placeholder="Введите ваш город" />
                 </Form.Item>

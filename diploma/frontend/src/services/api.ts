@@ -10,13 +10,6 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
-  const isGuest = localStorage.getItem("isGuest") === "true";
-
-  if (isGuest) {
-    config.headers["X-Guest"] = "true";
-    delete config.headers.Authorization;
-    return config;
-  }
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -218,13 +211,8 @@ export const scheduleRequestsApi = {
   getAll: () => api.get("/schedule-requests"),
   getPending: () => api.get("/schedule-requests/pending"),
   getByUser: (userId: number) => api.get(`/schedule-requests/user/${userId}`),
-  create: (data: {
-    scheduleId: number;
-    requestType: string;
-    reason: string;
-    proposedDate?: string;
-    proposedTime?: string;
-  }) => api.post("/schedule-requests", data),
+  getMy: () => api.get("/schedule-requests/my"),
+  create: (data: { reason: string }) => api.post("/schedule-requests", data),
   approve: (id: number) => api.patch(`/schedule-requests/${id}/approve`),
   reject: (id: number) => api.patch(`/schedule-requests/${id}/reject`),
   delete: (id: number) => api.delete(`/schedule-requests/${id}`),

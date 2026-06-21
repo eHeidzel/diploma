@@ -1,4 +1,4 @@
-
+// pages/Dashboard.tsx
 import React, { useState, useEffect } from "react";
 import {
   Layout,
@@ -20,7 +20,6 @@ import {
   DollarOutlined,
   FileTextOutlined,
   ClockCircleOutlined,
-  BlockOutlined,
 } from "@ant-design/icons";
 import {
   Routes,
@@ -60,28 +59,22 @@ interface DashboardProps {
   onLogout: () => void;
 }
 
-
 const DashboardRedirect: React.FC<{ user: any }> = ({ user }) => {
   const getDefaultPath = () => {
-    
     if (user?.role === UserRole.ADMIN) {
       return "/dashboard/admin-activities";
     }
-    
     if (user?.role === UserRole.TEACHER) {
       return "/dashboard/schedule";
     }
-    
     if (user?.role === UserRole.STUDENT) {
       return "/dashboard/home";
     }
-    
     return "/dashboard/home";
   };
 
   return <Navigate to={getDefaultPath()} replace />;
 };
-
 
 const RoleRoute: React.FC<{
   children: React.ReactNode;
@@ -93,18 +86,14 @@ const RoleRoute: React.FC<{
   const userRole = user?.role;
   const isGuest = user?.isGuest || userRole === "guest";
 
-  
   if ((!userRole && !isGuest) || isGuest) {
-    
     if (allowedRoles.includes(UserRole.GUEST)) {
       return <>{children}</>;
     }
     return <Navigate to="/dashboard/home" replace />;
   }
 
-  
   if (!allowedRoles.includes(userRole)) {
-    
     if (userRole === UserRole.ADMIN) {
       return <Navigate to="/dashboard/admin-activities" replace />;
     }
@@ -121,6 +110,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [balanceModalVisible, setBalanceModalVisible] = useState(false);
   const [userBalance, setUserBalance] = useState(0);
+  const [currentUser, setCurrentUser] = useState(user);
+  const [avatarKey, setAvatarKey] = useState(Date.now()); // Для принудительного обновления
   const { getTitleLevel } = useAdaptiveLevel();
   const navigate = useNavigate();
   const location = useLocation();
@@ -132,11 +123,15 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
   const isAdmin = user?.role === UserRole.ADMIN;
 
   useEffect(() => {
-    
     if (isStudent && !isGuest && user?.id && user?.id !== "guest") {
       fetchBalance();
     }
   }, [isStudent, isGuest, user?.id]);
+
+  // Обновляем currentUser при изменении user
+  useEffect(() => {
+    setCurrentUser(user);
+  }, [user]);
 
   const fetchBalance = async () => {
     try {
@@ -144,10 +139,15 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
       setUserBalance(response.data.balance);
     } catch (error) {
       console.error("Error fetching balance:", error);
-      
-      if (!isGuest) {
-        
-      }
+    }
+  };
+
+  const handleUserUpdate = (updatedUser: any) => {
+    if (updatedUser) {
+      const mergedUser = { ...currentUser, ...updatedUser };
+      setCurrentUser(mergedUser);
+      setAvatarKey(Date.now()); // Принудительно обновляем аватар
+      localStorage.setItem("user", JSON.stringify(mergedUser));
     }
   };
 
@@ -170,7 +170,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
     return "dashboard";
   };
 
-  
   const studentMenuItems = [
     {
       key: "dashboard",
@@ -194,7 +193,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
     },
   ];
 
-  
   const teacherMenuItems = [
     {
       key: "schedule",
@@ -207,18 +205,12 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
       label: <Link to="/dashboard/students">Ученики</Link>,
     },
     {
-      key: "materials",
-      icon: <FileTextOutlined />,
-      label: <Link to="/dashboard/materials">Учебные материалы</Link>,
-    },
-    {
       key: "workload",
       icon: <ClockCircleOutlined />,
       label: <Link to="/dashboard/workload">Нагрузка</Link>,
     },
   ];
 
-  
   const adminMenuItems = [
     {
       key: "admin-activities",
@@ -237,14 +229,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
       icon: <CalendarOutlined />,
       label: <Link to="/dashboard/admin-schedule">Управление расписанием</Link>,
     },
-    {
-      key: "blacklist",
-      icon: <BlockOutlined />,
-      label: <Link to="/dashboard/blacklist">Черный список</Link>,
-    },
   ];
 
-  
   const guestMenuItems = [
     {
       key: "dashboard",
@@ -298,17 +284,23 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
   ];
 
   const getDisplayRole = () => {
-    if (!user) return "Гость";
+    if (!currentUser) return "Гость";
     if (isTeacher) return "Преподаватель";
     if (isAdmin) return "Администратор";
     if (isGuest) return "Гость";
     return "Ученик";
   };
 
-  
   const canSeeHome = () => {
-    return isStudent || isGuest || !user;
+    return isStudent || isGuest || !currentUser;
   };
+
+  // Формируем URL аватара с ключом для принудительного обновления
+  const avatarUrl = currentUser?.avatar
+    ? currentUser.avatar.startsWith("http")
+      ? currentUser.avatar
+      : `http://localhost:8080${currentUser.avatar}?t=${avatarKey}`
+    : null;
 
   return (
     <Layout className={styles.layout}>
@@ -347,8 +339,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
 
           <Space size="large" className={styles.userInfo}>
             <LanguageSwitcher />
-            {!isGuest && <NotificationsPopover userId={user?.id} />}
-            {isStudent && !isGuest && user?.id && user?.id !== "guest" && (
+            {!isGuest && <NotificationsPopover userId={currentUser?.id} />}
+            {isStudent && !isGuest && currentUser?.id && currentUser?.id !== "guest" && (
               <Button
                 type="text"
                 onClick={() => setBalanceModalVisible(true)}
@@ -359,9 +351,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
             )}
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
               <Space className={styles.userAvatar}>
-                <Avatar src={user?.avatar} icon={<UserOutlined />} />
+                <Avatar src={avatarUrl} icon={<UserOutlined />} key={avatarKey} />
                 <span className={styles.userName}>
-                  {user?.name || "Гость"} ({getDisplayRole()})
+                  {currentUser?.name || "Гость"} ({getDisplayRole()})
                 </span>
               </Space>
             </Dropdown>
@@ -370,18 +362,16 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
 
         <Content className={styles.content}>
           <Routes>
-            {/* Редирект для корневого пути в зависимости от роли */}
-            <Route path="/" element={<DashboardRedirect user={user} />} />
+            <Route path="/" element={<DashboardRedirect user={currentUser} />} />
             <Route
               path="/dashboard"
-              element={<DashboardRedirect user={user} />}
+              element={<DashboardRedirect user={currentUser} />}
             />
 
-            {/* Маршрут главной страницы - для учеников и гостей */}
             {canSeeHome() ? (
               <Route
                 path="/home"
-                element={<DashboardHome user={user} t={t} />}
+                element={<DashboardHome user={currentUser} t={t} />}
               />
             ) : (
               <Route
@@ -390,30 +380,35 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
               />
             )}
 
-            {/* Общие маршруты */}
-            <Route path="/learning" element={<Learning user={user} />} />
+            <Route path="/learning" element={<Learning user={currentUser} />} />
             <Route path="/test" element={<Test />} />
-            <Route path="/profile" element={<Profile user={user} />} />
-            <Route path="/settings" element={<Settings user={user} />} />
+            <Route
+              path="/profile"
+              element={
+                <Profile
+                  user={currentUser}
+                  onUserUpdate={handleUserUpdate}
+                />
+              }
+            />
+            <Route path="/settings" element={<Settings user={currentUser} />} />
 
-            {/* Расписание - только для учеников, преподавателей и администраторов */}
             <Route
               path="/schedule"
               element={
                 !isGuest ? (
-                  <ScheduleView user={user} />
+                  <ScheduleView user={currentUser} />
                 ) : (
                   <Navigate to="/dashboard/home" replace />
                 )
               }
             />
 
-            {/* Маршруты преподавателя */}
             <Route
               path="/students"
               element={
                 isTeacher ? (
-                  <MyStudents user={user} />
+                  <MyStudents user={currentUser} />
                 ) : (
                   <Navigate to="/dashboard/schedule" replace />
                 )
@@ -423,22 +418,20 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
               path="/workload"
               element={
                 isTeacher ? (
-                  <Workload user={user} />
+                  <Workload user={currentUser} />
                 ) : (
                   <Navigate to="/dashboard/schedule" replace />
                 )
               }
             />
 
-            {/* Учебные материалы - доступны всем авторизованным */}
-            <Route path="/materials" element={<Materials user={user} />} />
+            <Route path="/materials" element={<Materials user={currentUser} />} />
 
-            {/* Админ-маршруты */}
             <Route
               path="/admin-activities"
               element={
                 isAdmin ? (
-                  <AdminActivities user={user} />
+                  <AdminActivities user={currentUser} />
                 ) : (
                   <Navigate to="/dashboard/schedule" replace />
                 )
@@ -448,7 +441,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
               path="/admin-users"
               element={
                 isAdmin ? (
-                  <AdminUsers user={user} />
+                  <AdminUsers user={currentUser} />
                 ) : (
                   <Navigate to="/dashboard/schedule" replace />
                 )
@@ -458,7 +451,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
               path="/admin-schedule"
               element={
                 isAdmin ? (
-                  <AdminSchedule user={user} />
+                  <AdminSchedule user={currentUser} />
                 ) : (
                   <Navigate to="/dashboard/schedule" replace />
                 )
@@ -468,7 +461,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
               path="/blacklist"
               element={
                 isAdmin ? (
-                  <Blacklist user={user} />
+                  <Blacklist user={currentUser} />
                 ) : (
                   <Navigate to="/dashboard/schedule" replace />
                 )

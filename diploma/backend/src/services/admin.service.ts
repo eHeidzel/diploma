@@ -1,4 +1,4 @@
-
+// services/admin.service.ts
 import {
   Injectable,
   NotFoundException,
@@ -6,15 +6,20 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 import { User } from '../entities/user.entity';
 import { Activity } from '../entities/activity.entity';
 import { Schedule } from '../entities/schedule.entity';
 import {
   ScheduleRequest,
   RequestStatus,
+  RequestType,
 } from '../entities/schedule-request.entity';
 import { UserAccess } from '../entities/user-access.entity';
 import { UserRole } from '@libs/shared';
+import { UserBalance } from '../entities/user-balance.entity';
+import { NotificationsService } from './notifications.service';
+import { NotificationType } from '../entities/notification.entity';
 
 @Injectable()
 export class AdminService {
@@ -29,9 +34,11 @@ export class AdminService {
     private scheduleRequestRepo: Repository<ScheduleRequest>,
     @InjectRepository(UserAccess)
     private userAccessRepo: Repository<UserAccess>,
+    @InjectRepository(UserBalance)
+    private balanceRepo: Repository<UserBalance>,
+    private notificationsService: NotificationsService,
   ) {}
 
-  
   async getUsers() {
     return this.userRepo.find();
   }
@@ -41,13 +48,46 @@ export class AdminService {
   }
 
   async createTeacher(data: any) {
-    const user = this.userRepo.create({ ...data, role: UserRole.TEACHER });
-    return this.userRepo.save(user);
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+
+    const user = this.userRepo.create({
+      ...data,
+      password: hashedPassword,
+      role: UserRole.TEACHER,
+    });
+
+    const saved = await this.userRepo.save(user);
+    const teacher = saved[0] || saved;
+
+    const balance = this.balanceRepo.create({
+      userId: teacher.id,
+      balance: 0,
+    });
+    await this.balanceRepo.save(balance);
+
+    await this.notificationsService.create(
+      teacher.id,
+      'Добро пожаловать в CodeZone!',
+      `Здравствуйте, ${teacher.name}! Вы были зарегистрированы как преподаватель.`,
+      NotificationType.SYSTEM,
+      '/dashboard/profile',
+    );
+
+    const { password, ...result } = teacher;
+    return result;
   }
 
   async updateUser(id: number, data: any) {
+    if (data.password) {
+      data.password = await bcrypt.hash(data.password, 10);
+    }
+
     await this.userRepo.update(id, data);
-    return this.userRepo.findOne({ where: { id } });
+    const user = await this.userRepo.findOne({ where: { id } });
+    if (!user) throw new NotFoundException('Пользователь не найден');
+
+    const { password, ...result } = user;
+    return result;
   }
 
   async deleteUser(id: number) {
@@ -66,10 +106,16 @@ export class AdminService {
     const user = await this.userRepo.findOne({ where: { id } });
     if (!user) throw new NotFoundException('Пользователь не найден');
 
-    await this.userRepo.update(id, {
+    const updateData: any = {
       isBlocked,
       blockReason: reason,
-    });
+    };
+
+    if (until) {
+      updateData.blockUntil = new Date(until);
+    }
+
+    await this.userRepo.update(id, updateData);
 
     return {
       message: isBlocked
@@ -78,39 +124,47 @@ export class AdminService {
     };
   }
 
-  
   async getBlacklist() {
     return this.userRepo.find({
       where: { isBlocked: true },
-      select: ['id', 'name', 'email', 'phone', 'blockReason', 'blockUntil', 'createdAt'],
+      select: [
+        'id',
+        'name',
+        'email',
+        'phone',
+        'blockReason',
+        'blockUntil',
+        'createdAt',
+      ],
     });
   }
 
-  
   async getTeacherRequests() {
-    
     return this.scheduleRequestRepo.find({
+      where: { requestType: RequestType.CANCELLATION },
       order: { createdAt: 'DESC' },
     });
   }
 
   async processTeacherRequest(id: number, status: string) {
-    const request = await this.scheduleRequestRepo.findOne({ 
+    const request = await this.scheduleRequestRepo.findOne({
       where: { id },
-      relations: ['requester', 'schedule'],
     });
     if (!request) throw new NotFoundException('Заявка не найдена');
-    
+
     await this.scheduleRequestRepo.update(id, {
       status: status === 'approved' ? RequestStatus.APPROVED : RequestStatus.REJECTED,
     });
-    
+
+    if (status === 'approved') {
+      await this.userRepo.update(request.requesterId, { role: UserRole.TEACHER });
+    }
+
     return {
       message: `Заявка ${status === 'approved' ? 'одобрена' : 'отклонена'}`,
     };
   }
 
-  
   async getActivities() {
     return this.activityRepo.find();
   }
@@ -129,7 +183,6 @@ export class AdminService {
     return { message: 'Активность удалена' };
   }
 
-  
   async getSchedule() {
     return this.scheduleRepo.find({ relations: ['teacher'] });
   }
@@ -148,33 +201,15 @@ export class AdminService {
     return { message: 'Занятие удалено' };
   }
 
-  
   async getAccesses() {
-    return this.userAccessRepo.find({ relations: ['teacher'] });
+    return this.userAccessRepo.find({ relations: ['user'] });
   }
 
   async getAccessByTeacher(teacherId: number) {
     return this.userAccessRepo.find({
-      where: { teacherId },
-      relations: ['teacher'],
+      where: { userId: teacherId },
+      relations: ['user'],
     });
-  }
-
-  async grantAccess(data: {
-    teacherId: number;
-    category: string;
-    googleDriveLink: string;
-  }) {
-    const access = this.userAccessRepo.create(data);
-    return this.userAccessRepo.save(access);
-  }
-
-  async updateAccess(
-    id: number,
-    data: { category?: string; googleDriveLink?: string },
-  ) {
-    await this.userAccessRepo.update(id, data);
-    return this.userAccessRepo.findOne({ where: { id } });
   }
 
   async revokeAccess(id: number) {
@@ -182,10 +217,9 @@ export class AdminService {
     return { message: 'Доступ отозван' };
   }
 
-  
   async getScheduleRequests() {
     return this.scheduleRequestRepo.find({
-      relations: ['schedule', 'requester'],
+      relations: ['requester'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -193,7 +227,7 @@ export class AdminService {
   async getPendingScheduleRequests() {
     return this.scheduleRequestRepo.find({
       where: { status: RequestStatus.PENDING },
-      relations: ['schedule', 'requester'],
+      relations: ['requester'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -201,7 +235,7 @@ export class AdminService {
   async getScheduleRequest(id: number) {
     const request = await this.scheduleRequestRepo.findOne({
       where: { id },
-      relations: ['schedule', 'requester'],
+      relations: ['requester'],
     });
     if (!request) throw new NotFoundException('Запрос не найден');
     return request;
@@ -217,6 +251,13 @@ export class AdminService {
     await this.scheduleRequestRepo.update(id, {
       status: RequestStatus.APPROVED,
     });
+    await this.notificationsService.create(
+      request.requesterId,
+      'Запрос одобрен',
+      `Ваш запрос "${request.reason}" был одобрен администратором`,
+      NotificationType.SYSTEM,
+      '/dashboard/schedule',
+    );
     return { message: 'Запрос одобрен' };
   }
 
@@ -230,6 +271,13 @@ export class AdminService {
     await this.scheduleRequestRepo.update(id, {
       status: RequestStatus.REJECTED,
     });
+    await this.notificationsService.create(
+      request.requesterId,
+      'Запрос отклонен',
+      `Ваш запрос "${request.reason}" был отклонен администратором`,
+      NotificationType.SYSTEM,
+      '/dashboard/schedule',
+    );
     return { message: 'Запрос отклонен' };
   }
 

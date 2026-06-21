@@ -1,4 +1,4 @@
-
+// components/NotificationsPopover.tsx
 import React, { useState, useEffect, useRef } from "react";
 import {
   Badge,
@@ -23,7 +23,7 @@ import {
   ClockCircleOutlined,
   CloseOutlined,
 } from "@ant-design/icons";
-import { notificationsApi } from "../services/api";
+import { notificationsApi, settingsApi } from "../services/api";
 import { io, Socket } from "socket.io-client";
 import styles from "../css/notifications.module.css";
 
@@ -53,11 +53,39 @@ const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
     useState<Notification | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const socketRef = useRef<Socket | null>(null);
 
-  
   useEffect(() => {
-    if (!userId) return;
+    if (userId) {
+      fetchSettings();
+    }
+  }, [userId]);
+
+  const fetchSettings = async () => {
+    try {
+      const response = await settingsApi.get();
+      const enabled = response.data.notificationsEnabled !== false;
+      setNotificationsEnabled(enabled);
+      
+      // Если уведомления отключены, обнуляем счетчик
+      if (!enabled) {
+        setUnreadCount(0);
+      } else {
+        // Если включены - загружаем количество
+        fetchUnreadCount();
+      }
+    } catch (error) {
+      console.error("Error fetching settings:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (!userId || !notificationsEnabled) {
+      // Если уведомления отключены - обнуляем счетчик
+      setUnreadCount(0);
+      return;
+    }
 
     const token = localStorage.getItem("token");
 
@@ -77,13 +105,19 @@ const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
 
     socket.on("unread_count_update", (data: { count: number }) => {
       console.log("Unread count update:", data.count);
-      setUnreadCount(data.count);
+      // Обновляем счетчик только если уведомления включены
+      if (notificationsEnabled) {
+        setUnreadCount(data.count);
+      }
     });
 
     socket.on("new_notification", (notification: Notification) => {
       console.log("New notification:", notification);
-      setNotifications((prev) => [notification, ...prev]);
-      setUnreadCount((prev) => prev + 1);
+      // Добавляем уведомление только если они включены
+      if (notificationsEnabled) {
+        setNotifications((prev) => [notification, ...prev]);
+        setUnreadCount((prev) => prev + 1);
+      }
     });
 
     socket.on("disconnect", () => {
@@ -99,21 +133,21 @@ const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
     return () => {
       socket.disconnect();
     };
-  }, [userId]);
+  }, [userId, notificationsEnabled]);
 
-  
   useEffect(() => {
-    if (open) {
+    if (open && notificationsEnabled) {
       fetchNotifications();
     }
-  }, [open]);
+  }, [open, notificationsEnabled]);
 
-  
   useEffect(() => {
-    if (userId) {
+    if (userId && notificationsEnabled) {
       fetchUnreadCount();
+    } else {
+      setUnreadCount(0);
     }
-  }, [userId]);
+  }, [userId, notificationsEnabled]);
 
   const fetchNotifications = async () => {
     setLoading(true);
@@ -123,7 +157,7 @@ const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
       const unread = response.data.filter(
         (n: Notification) => !n.isRead,
       ).length;
-      setUnreadCount(unread);
+      setUnreadCount(notificationsEnabled ? unread : 0);
     } catch (error) {
       console.error("Error fetching notifications:", error);
     } finally {
@@ -132,6 +166,10 @@ const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
   };
 
   const fetchUnreadCount = async () => {
+    if (!notificationsEnabled) {
+      setUnreadCount(0);
+      return;
+    }
     try {
       const response = await notificationsApi.getUnreadCount();
       setUnreadCount(response.data.count);
@@ -141,6 +179,7 @@ const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
   };
 
   const markAsRead = async (id: number) => {
+    if (!notificationsEnabled) return;
     try {
       await notificationsApi.markAsRead(id);
       setNotifications((prev) =>
@@ -153,6 +192,7 @@ const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
   };
 
   const markAllAsRead = async () => {
+    if (!notificationsEnabled) return;
     try {
       await notificationsApi.markAllAsRead();
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
@@ -164,6 +204,7 @@ const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
   };
 
   const deleteNotification = async (id: number) => {
+    if (!notificationsEnabled) return;
     try {
       await notificationsApi.delete(id);
       setNotifications((prev) => prev.filter((n) => n.id !== id));
@@ -180,6 +221,7 @@ const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
   };
 
   const handleNotificationClick = (notification: Notification) => {
+    if (!notificationsEnabled) return;
     if (!notification.isRead) {
       markAsRead(notification.id);
     }
@@ -253,11 +295,11 @@ const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
           <Text strong className={styles.headerTitle}>
             Уведомления
           </Text>
-          {unreadCount > 0 && (
+          {notificationsEnabled && unreadCount > 0 && (
             <Badge count={unreadCount} className={styles.headerBadge} />
           )}
         </div>
-        {unreadCount > 0 && (
+        {notificationsEnabled && unreadCount > 0 && (
           <Button
             type="link"
             size="small"
@@ -269,63 +311,99 @@ const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
         )}
       </div>
 
-      <List
-        className={styles.list}
-        loading={loading}
-        dataSource={notifications}
-        locale={{
-          emptyText: (
-            <Empty
-              description="Нет уведомлений"
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-              className={styles.empty}
-            />
-          ),
-        }}
-        renderItem={(item) => (
-          <List.Item
-            className={`${styles.notificationItem} ${!item.isRead ? styles.unread : ""}`}
-            onClick={() => handleNotificationClick(item)}
-          >
-            <div className={styles.notificationContent}>
-              <div className={styles.notificationIcon}>
-                {getIcon(item.type)}
-              </div>
-              <div className={styles.notificationBody}>
-                <div className={styles.notificationHeader}>
-                  <Text strong className={styles.notificationTitle}>
-                    {item.title}
-                  </Text>
-                  {getTypeTag(item.type)}
-                </div>
-                <Text className={styles.notificationMessage}>
-                  {item.message}
-                </Text>
-                <div className={styles.notificationFooter}>
-                  <ClockCircleOutlined className={styles.timeIcon} />
-                  <Text type="secondary" className={styles.notificationTime}>
-                    {formatDate(item.createdAt)}
-                  </Text>
-                </div>
-              </div>
-              <Button
-                type="text"
-                size="small"
-                icon={<DeleteOutlined />}
-                className={styles.deleteBtn}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  deleteNotification(item.id);
-                }}
+      {notificationsEnabled ? (
+        <List
+          className={styles.list}
+          loading={loading}
+          dataSource={notifications}
+          locale={{
+            emptyText: (
+              <Empty
+                description="Нет уведомлений"
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                className={styles.empty}
               />
-            </div>
-          </List.Item>
-        )}
-      />
+            ),
+          }}
+          renderItem={(item) => (
+            <List.Item
+              className={`${styles.notificationItem} ${!item.isRead ? styles.unread : ""}`}
+              onClick={() => handleNotificationClick(item)}
+            >
+              <div className={styles.notificationContent}>
+                <div className={styles.notificationIcon}>
+                  {getIcon(item.type)}
+                </div>
+                <div className={styles.notificationBody}>
+                  <div className={styles.notificationHeader}>
+                    <Text strong className={styles.notificationTitle}>
+                      {item.title}
+                    </Text>
+                    {getTypeTag(item.type)}
+                  </div>
+                  <Text className={styles.notificationMessage}>
+                    {item.message}
+                  </Text>
+                  <div className={styles.notificationFooter}>
+                    <ClockCircleOutlined className={styles.timeIcon} />
+                    <Text type="secondary" className={styles.notificationTime}>
+                      {formatDate(item.createdAt)}
+                    </Text>
+                  </div>
+                </div>
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<DeleteOutlined />}
+                  className={styles.deleteBtn}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteNotification(item.id);
+                  }}
+                />
+              </div>
+            </List.Item>
+          )}
+        />
+      ) : (
+        <div className={styles.notificationsDisabled}>
+          <Empty
+            description="Уведомления отключены"
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+          />
+          <Text type="secondary" style={{ display: 'block', textAlign: 'center', marginTop: 8 }}>
+            Включите уведомления в настройках
+          </Text>
+        </div>
+      )}
     </div>
   );
 
-  if (!userId) return null;
+  // Если уведомления отключены - не показываем иконку с бейджем
+  if (!userId || !notificationsEnabled) {
+    return (
+      <Popover
+        content={content}
+        trigger="click"
+        open={open}
+        onOpenChange={(visible) => {
+          setOpen(visible);
+          if (visible && notificationsEnabled) {
+            fetchNotifications();
+          }
+        }}
+        placement="bottomRight"
+        overlayClassName={styles.popover}
+        destroyTooltipOnHide
+      >
+        <Button
+          type="text"
+          icon={<BellOutlined />}
+          className={styles.bellButton}
+        />
+      </Popover>
+    );
+  }
 
   return (
     <>
@@ -335,7 +413,7 @@ const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
         open={open}
         onOpenChange={(visible) => {
           setOpen(visible);
-          if (visible) {
+          if (visible && notificationsEnabled) {
             fetchNotifications();
           }
         }}

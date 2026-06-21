@@ -1,4 +1,4 @@
-
+// pages/MyStudents.tsx
 import React, { useState, useEffect } from "react";
 import {
   Card,
@@ -38,8 +38,13 @@ interface Student {
   name: string;
   email: string;
   phone?: string;
-  avatar?: string;
+  avatar?: string | null;
   group?: string;
+  progress?: number;
+  lastLesson?: string;
+  activeLessons?: string[];
+  completedLessons?: number;
+  averageRating?: number;
 }
 
 const MyStudents: React.FC<MyStudentsProps> = ({ user }) => {
@@ -51,6 +56,13 @@ const MyStudents: React.FC<MyStudentsProps> = ({ user }) => {
   const [filterGroup, setFilterGroup] = useState<string>("all");
   const [groups, setGroups] = useState<string[]>([]);
 
+  // Функция для формирования полного URL аватара
+  const getFullAvatarUrl = (avatar: string | null | undefined): string | undefined => {
+    if (!avatar) return undefined;
+    if (avatar.startsWith("http")) return avatar;
+    return `http://localhost:8080${avatar}`;
+  };
+
   useEffect(() => {
     fetchStudents();
     fetchGroups();
@@ -60,7 +72,15 @@ const MyStudents: React.FC<MyStudentsProps> = ({ user }) => {
     setLoading(true);
     try {
       const response = await teacherApi.getStudents();
-      setStudents(response.data || []);
+      const studentsData = response.data || [];
+      
+      const formattedStudents = studentsData.map((student: any) => ({
+        ...student,
+        avatar: getFullAvatarUrl(student.avatar),
+        group: student.group || student.course || "Индивидуально",
+      }));
+      
+      setStudents(formattedStudents);
     } catch (error) {
       console.error("Error fetching students:", error);
       message.error("Ошибка загрузки учеников");
@@ -82,19 +102,27 @@ const MyStudents: React.FC<MyStudentsProps> = ({ user }) => {
     setStudentLoading(true);
     try {
       const response = await teacherApi.getStudentProfile(student.id);
-      setSelectedStudent(response.data);
+      const profileData = response.data;
+      if (profileData.avatar) {
+        profileData.avatar = getFullAvatarUrl(profileData.avatar);
+      }
+      setSelectedStudent(profileData);
     } catch (error) {
       console.error("Error fetching student profile:", error);
       message.error("Ошибка загрузки профиля ученика");
+      setSelectedStudent({
+        ...student,
+        avatar: getFullAvatarUrl(student.avatar),
+      });
     } finally {
       setStudentLoading(false);
     }
   };
 
-  
+  // Получаем уникальные группы из данных студентов
   const uniqueGroups = Array.from(
-    new Set(students.map((s) => s.group).filter(Boolean)),
-  );
+    new Set(students.map((s) => s.group).filter(Boolean))
+  ) as string[];
 
   const filteredStudents = students.filter((student) => {
     const matchesSearch =
@@ -110,7 +138,10 @@ const MyStudents: React.FC<MyStudentsProps> = ({ user }) => {
       key: "student",
       render: (_: any, record: Student) => (
         <Space>
-          <Avatar src={record.avatar} icon={<UserOutlined />} />
+          <Avatar 
+            src={record.avatar} 
+            icon={<UserOutlined />} 
+          />
           <div>
             <Text strong>{record.name || "Не указано"}</Text>
             <br />
@@ -120,14 +151,23 @@ const MyStudents: React.FC<MyStudentsProps> = ({ user }) => {
           </div>
         </Space>
       ),
+      sorter: (a: Student, b: Student) => 
+        (a.name || "").localeCompare(b.name || ""),
     },
     {
       title: "Группа",
       dataIndex: "group",
       key: "group",
       render: (group: string) => (
-        <Tag color="blue">{group || "Индивидуально"}</Tag>
+        <Tag color={group && group !== "Индивидуально" ? "blue" : "default"}>
+          {group || "Индивидуально"}
+        </Tag>
       ),
+      filters: uniqueGroups.map((g) => ({
+        text: g || "Без группы",
+        value: g,
+      })),
+      onFilter: (value: any, record: Student) => record.group === value,
     },
     {
       title: "Действия",
@@ -167,6 +207,7 @@ const MyStudents: React.FC<MyStudentsProps> = ({ user }) => {
                 label: g || "Без группы",
               })),
             ]}
+            allowClear
           />
         </Space>
       </Card>
@@ -223,6 +264,7 @@ const MyStudents: React.FC<MyStudentsProps> = ({ user }) => {
                 column={1}
                 className={styles.descriptions}
                 size="small"
+                bordered
               >
                 <Descriptions.Item
                   label={
@@ -240,10 +282,42 @@ const MyStudents: React.FC<MyStudentsProps> = ({ user }) => {
                     </>
                   }
                 >
-                  <Tag color="blue">
+                  <Tag color={selectedStudent.group && selectedStudent.group !== "Индивидуально" ? "blue" : "default"}>
                     {selectedStudent.group || "Индивидуально"}
                   </Tag>
                 </Descriptions.Item>
+                {selectedStudent.progress !== undefined && (
+                  <Descriptions.Item label="Прогресс">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ 
+                        width: '100%', 
+                        maxWidth: 150, 
+                        height: 8, 
+                        background: '#f0f0f0', 
+                        borderRadius: 4,
+                        overflow: 'hidden'
+                      }}>
+                        <div style={{ 
+                          width: `${selectedStudent.progress || 0}%`, 
+                          height: '100%', 
+                          background: '#52c41a',
+                          borderRadius: 4
+                        }} />
+                      </div>
+                      <Text>{selectedStudent.progress || 0}%</Text>
+                    </div>
+                  </Descriptions.Item>
+                )}
+                {selectedStudent.completedLessons !== undefined && (
+                  <Descriptions.Item label="Завершено занятий">
+                    {selectedStudent.completedLessons || 0}
+                  </Descriptions.Item>
+                )}
+                {selectedStudent.averageRating !== undefined && (
+                  <Descriptions.Item label="Средняя оценка">
+                    {selectedStudent.averageRating || "Нет оценок"}
+                  </Descriptions.Item>
+                )}
               </Descriptions>
             </div>
           )

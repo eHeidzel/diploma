@@ -1,4 +1,4 @@
-
+// pages/AdminActivities.tsx (обновленный - добавлено поле meetLink)
 import React, { useState, useEffect } from "react";
 import {
   Card,
@@ -34,6 +34,7 @@ import {
   CalendarOutlined,
   PlusCircleOutlined,
   CloseCircleOutlined,
+  LinkOutlined,
 } from "@ant-design/icons";
 import dayjs, { Dayjs } from "dayjs";
 import { adminApi } from "../services/api";
@@ -214,6 +215,7 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
         groupShift:
           values.type === "group" ? values.groupShift || "утренняя" : null,
         learningPlan: values.learningPlan || [],
+        meetLink: values.meetLink || null, // Добавляем поле для ссылки
         order: activities.length + 1,
       };
 
@@ -317,6 +319,20 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
       key: "duration",
     },
     {
+      title: "Ссылка на конференцию",
+      dataIndex: "meetLink",
+      key: "meetLink",
+      render: (link: string) => (
+        link ? (
+          <a href={link} target="_blank" rel="noopener noreferrer">
+            <LinkOutlined /> Открыть
+          </a>
+        ) : (
+          <Tag color="default">Не указана</Tag>
+        )
+      ),
+    },
+    {
       title: "Активна",
       dataIndex: "isActive",
       key: "isActive",
@@ -344,6 +360,7 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
                   level: record.targetAudience?.level || "all",
                   groupPeriod: record.groupPeriod || "6 месяцев",
                   groupShift: record.groupShift || "утренняя",
+                  meetLink: record.meetLink || null,
                 });
                 setModalVisible(true);
               }}
@@ -388,6 +405,7 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
               level: "all",
               groupPeriod: "6 месяцев",
               groupShift: "утренняя",
+              meetLink: null,
             });
             setModalVisible(true);
           }}
@@ -396,7 +414,7 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
         </Button>
       </div>
 
-      <Card className={styles.tableCard}>
+      <Card>
         <Table
           columns={columns}
           dataSource={activities}
@@ -616,6 +634,19 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
               </>
             )}
           </Row>
+
+          {/* Поле для ссылки на конференцию */}
+          <Form.Item
+            name="meetLink"
+            label="Ссылка на конференцию (опционально)"
+            extra="Общая ссылка для всех занятий этой активности"
+          >
+            <Input
+              placeholder="https://meet.google.com/xxx-xxxx-xxx"
+              prefix={<LinkOutlined />}
+              allowClear
+            />
+          </Form.Item>
 
           {showDatesBlock && (
             <div className={styles.datesBlock}>

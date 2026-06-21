@@ -1,4 +1,4 @@
-
+// entities/user-settings.entity.ts
 import {
   Entity,
   Column,
@@ -26,28 +26,7 @@ export class UserSettings {
   language!: string;
 
   @Column({ default: true })
-  emailNotifications!: boolean;
-
-  @Column({ default: true })
-  pushNotifications!: boolean;
-
-  @Column({ default: true })
-  bookingReminders!: boolean;
-
-  @Column({ default: true })
-  scheduleChanges!: boolean;
-
-  @Column({ default: false })
-  promotions!: boolean;
-
-  @Column({ default: true })
-  showProfile!: boolean;
-
-  @Column({ default: true })
-  showEmail!: boolean;
-
-  @Column({ default: false })
-  showPhone!: boolean;
+  notificationsEnabled!: boolean;
 
   @CreateDateColumn()
   createdAt!: Date;

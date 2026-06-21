@@ -1,3 +1,4 @@
+// controllers/schedule-requests.controller.ts
 import {
   Controller,
   Get,
@@ -15,7 +16,6 @@ import { ScheduleRequestsService } from '../services/schedule-requests.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../decorators/roles.decorator';
-import { RequestType } from '../entities/schedule-request.entity';
 import { UserRole } from '@libs/shared';
 
 @Controller('schedule-requests')
@@ -44,6 +44,11 @@ export class ScheduleRequestsController {
     return this.scheduleRequestsService.getRequestsByUser(userId);
   }
 
+  @Get('my')
+  async getMyRequests(@Request() req: any) {
+    return this.scheduleRequestsService.getRequestsByUser(req.user.id);
+  }
+
   @Get(':id')
   async getRequestById(@Param('id', ParseIntPipe) id: number) {
     return this.scheduleRequestsService.getRequestById(id);
@@ -51,23 +56,14 @@ export class ScheduleRequestsController {
 
   @Post()
   async createRequest(
-    @Request() req,
-    @Body()
-    body: {
-      scheduleId: number;
-      requestType: RequestType;
-      reason: string;
-      proposedDate?: string;
-      proposedTime?: string;
-    },
+    @Request() req: any,
+    @Body() body: { reason: string },
   ) {
     if (req.user.role !== UserRole.TEACHER) {
-      throw new BadRequestException(
-        'Только преподаватели могут создавать запросы',
-      );
+      throw new BadRequestException('Только преподаватели могут создавать запросы');
     }
 
-    return this.scheduleRequestsService.createRequest(req.user.id, body);
+    return this.scheduleRequestsService.createRequest(req.user.id, body.reason);
   }
 
   @Patch(':id/approve')

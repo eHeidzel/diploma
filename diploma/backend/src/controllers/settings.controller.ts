@@ -1,4 +1,12 @@
-import { Controller, Get, Put, Body, Request, UseGuards } from '@nestjs/common';
+// controllers/settings.controller.ts
+import {
+  Controller,
+  Get,
+  Put,
+  Body,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { SettingsService } from '../services/settings.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 
@@ -17,13 +25,22 @@ export class SettingsController {
     return this.settingsService.updateSettings(req.user.id, data);
   }
 
-  @Put('notifications')
-  async updateNotificationSettings(@Request() req: any, @Body() data: any) {
-    return this.settingsService.updateNotificationSettings(req.user.id, data);
+  @Put('language')
+  async updateLanguage(
+    @Request() req: any,
+    @Body() body: { language: string },
+  ) {
+    return this.settingsService.updateLanguage(req.user.id, body.language);
   }
 
-  @Put('privacy')
-  async updatePrivacySettings(@Request() req: any, @Body() data: any) {
-    return this.settingsService.updatePrivacySettings(req.user.id, data);
+  @Put('notifications')
+  async updateNotifications(
+    @Request() req: any,
+    @Body() body: { enabled: boolean },
+  ) {
+    return this.settingsService.updateNotificationsEnabled(
+      req.user.id,
+      body.enabled,
+    );
   }
 }

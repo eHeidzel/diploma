@@ -1,3 +1,4 @@
+// controllers/admin.controller.ts
 import {
   Controller,
   Get,
@@ -116,41 +117,6 @@ export class AdminController {
   @Delete('schedule/:id')
   deleteSchedule(@Param('id', ParseIntPipe) id: number) {
     return this.adminService.deleteSchedule(id);
-  }
-
-  @Get('access')
-  getAccesses() {
-    return this.adminService.getAccesses();
-  }
-
-  @Get('access/teacher/:teacherId')
-  getAccessByTeacher(@Param('teacherId', ParseIntPipe) teacherId: number) {
-    return this.adminService.getAccessByTeacher(teacherId);
-  }
-
-  @Post('access')
-  grantAccess(
-    @Body()
-    body: {
-      teacherId: number;
-      category: string;
-      googleDriveLink: string;
-    },
-  ) {
-    return this.adminService.grantAccess(body);
-  }
-
-  @Put('access/:id')
-  updateAccess(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() body: { category?: string; googleDriveLink?: string },
-  ) {
-    return this.adminService.updateAccess(id, body);
-  }
-
-  @Delete('access/:id')
-  revokeAccess(@Param('id', ParseIntPipe) id: number) {
-    return this.adminService.revokeAccess(id);
   }
 
   @Get('schedule-requests')

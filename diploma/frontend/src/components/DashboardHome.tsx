@@ -1,4 +1,4 @@
-
+// components/DashboardHome.tsx
 import React, { useState, useEffect } from "react";
 import {
   Card,
@@ -62,6 +62,13 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
   const isStudent = user?.role === "student";
   const currentUserId = user?.id;
 
+  // Функция для формирования полного URL аватара
+  const getFullAvatarUrl = (avatar: string) => {
+    if (!avatar) return null;
+    if (avatar.startsWith("http")) return avatar;
+    return `http://localhost:8080${avatar}`;
+  };
+
   useEffect(() => {
     fetchData();
     if (isAuthenticated && isStudent) {
@@ -91,7 +98,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
             experience:
               teacher.bio?.match(/\d+\s*лет/)?.[0] || "Опыт не указан",
             company: teacher.city || "Компания не указана",
-            avatar: teacher.avatar,
+            avatar: getFullAvatarUrl(teacher.avatar),
             bio: teacher.bio || "",
             skills: [],
             contacts: {
@@ -243,7 +250,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
                         <Space>
                           <Avatar
                             size={48}
-                            src={review.avatar}
+                            src={getFullAvatarUrl(review.avatar)}
                             icon={<UserOutlined />}
                           />
                           <div>
@@ -426,7 +433,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
             <div className={styles.teacherModalAvatar}>
               <Avatar
                 size={120}
-                src={selectedTeacher.avatar}
+                src={getFullAvatarUrl(selectedTeacher.avatar)}
                 icon={<UserOutlined />}
               />
             </div>

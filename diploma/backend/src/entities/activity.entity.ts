@@ -1,3 +1,4 @@
+// entities/activity.entity.ts
 import {
   Entity,
   Column,
@@ -89,6 +90,10 @@ export class Activity {
     ageRange: string;
     level: string;
   };
+
+  // Добавляем поле для ссылки на конференцию
+  @Column({ length: 500, nullable: true })
+  meetLink!: string;
 
   @CreateDateColumn()
   createdAt!: Date;
