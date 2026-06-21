@@ -1,0 +1,25 @@
+.container {
+  padding: 0;
+}
+
+.filterCard {
+  margin-bottom: 16px;
+}
+
+.statsRow {
+  margin-bottom: 16px;
+}
+
+.hoursBreakdown {
+  margin-top: 16px;
+  text-align: center;
+}
+
+.tableCard {
+  margin-top: 16px;
+}
+
+.loading {
+  text-align: center;
+  padding: 50px;
+}

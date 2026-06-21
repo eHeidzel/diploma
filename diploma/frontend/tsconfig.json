@@ -20,7 +20,9 @@
     "paths": {
       "@libs/shared": ["../libs/shared/src"],
       "@libs/shared/*": ["../libs/shared/src/*"],
-      "@interfaces/*": ["./src/i18n/interfaces/*"]
+      "@interfaces/*": ["./src/i18n/interfaces/*"],
+      "@components/*": ["./src/components/*"],
+      "@styles/*": ["./src/css/*"]
     }
   },
   "include": ["src"],

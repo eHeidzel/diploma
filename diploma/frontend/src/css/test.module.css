@@ -1,52 +1,71 @@
 .container {
-  padding: 24px;
-  min-height: 100vh;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .testCard {
-  max-width: 800px;
+  max-width: 680px;
+  width: 100%;
   margin: 0 auto;
-  border-radius: 24px;
+  border-radius: 16px;
   border: none;
+  background: white;
+  display: flex;
+  flex-direction: column;
+}
+
+.testCard :global(.ant-card-body) {
+  padding: 0 !important;
 }
 
 .header {
   text-align: center;
-  padding-bottom: 24px;
+  padding: 16px 16px 12px 16px;
   border-bottom: 1px solid #f0f0f0;
+}
+
+.header h2 {
+  margin-bottom: 2px;
+  font-size: 22px;
 }
 
 .subtitle {
   display: block;
-  margin-top: 8px;
+  margin-top: 2px;
+  font-size: 12px;
 }
 
 .progressInfo {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin: 16px 0;
+  gap: 6px;
+  margin: 8px 0;
   color: #666;
+  font-size: 12px;
 }
 
 .progress {
-  margin-top: 16px;
+  margin-top: 4px;
 }
 
 .questionContainer {
-  padding: 24px 12px;
+  padding: 20px 16px;
 }
 
 .questionText {
-  margin-bottom: 24px !important;
+  margin-bottom: 16px !important;
   color: #1a1a1a;
+  font-size: 17px;
 }
 
 .hint {
   display: block;
-  margin-bottom: 16px;
-  font-size: 14px;
+  margin-bottom: 10px;
+  font-size: 12px;
 }
 
 .optionsGroup {
@@ -54,11 +73,13 @@
 }
 
 .option {
-  padding: 12px 16px;
+  padding: 6px 10px;
   border: 1px solid #e8e8e8;
-  border-radius: 12px;
+  border-radius: 8px;
   transition: all 0.3s;
   width: 100%;
+  margin: 4px 0 !important;
+  font-size: 13px;
 }
 
 .option:hover {
@@ -67,105 +88,157 @@
   transform: translateX(4px);
 }
 
-.explanation {
-  margin-top: 24px;
-  padding: 12px;
-  background-color: #f6f6f6;
-  border-radius: 12px;
-}
-
 .footer {
-  padding: 16px 24px;
+  max-width: 680px;
+  width: 100%;
+  margin: 0 auto;
+  margin-top: 12px;
+  padding: 16px 20px;
   border-top: 1px solid #f0f0f0;
   text-align: center;
+  background: white;
+  border-radius: 16px;
 }
 
 /* Результаты */
 .resultsContainer {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 12px;
 }
 
 .topDirectionCard {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 32px;
-  padding: 48px 24px;
+  border-radius: 20px;
+  padding: 24px 16px;
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 20px;
   color: white;
 }
 
 .topDirectionIcon {
-  font-size: 80px;
-  margin-bottom: 16px;
+  font-size: 56px;
+  margin-bottom: 8px;
 }
 
 .topDirectionName {
   color: white !important;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
+  font-size: 24px !important;
 }
 
 .topDirectionDescription {
   color: rgba(255, 255, 255, 0.9);
-  font-size: 18px;
+  font-size: 14px;
   display: block;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 }
 
 .salaryTag {
-  font-size: 18px;
-  padding: 8px 16px;
-  border-radius: 24px;
+  font-size: 14px;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.sectionDivider {
+  margin: 16px 0;
+  font-size: 14px;
+}
+
+.directionsGrid {
+  margin-top: 4px;
 }
 
 .directionCard {
-  border-radius: 16px;
+  border-radius: 14px;
   transition: all 0.3s;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  background: white;
 }
 
 .directionCard:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.directionCard :global(.ant-card-body) {
+  padding: 14px !important;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  flex: 1;
 }
 
 .directionHeader {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
 }
 
 .directionIcon {
-  font-size: 32px;
+  font-size: 24px;
 }
 
 .directionName {
   margin: 0 !important;
+  font-size: 14px !important;
+  line-height: 1.3 !important;
+  flex: 1;
 }
 
 .directionDescription {
   display: block;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #666;
+  flex-shrink: 0;
 }
 
 .directionSkills {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
+  gap: 4px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
 }
 
 .skillTag {
-  border-radius: 16px;
-  padding: 4px 12px;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 10px;
+  margin: 0;
+}
+
+.chooseDirectionBtn {
+  width: 100%;
+  margin-top: auto;
+  background-color: #52c41a;
+  border-color: #52c41a;
+  font-size: 11px;
+  height: 32px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.chooseDirectionBtn:hover {
+  background-color: #73d13d !important;
+  border-color: #73d13d !important;
 }
 
 .recommendationsCard {
-  border-radius: 16px;
-  background-color: #fafafa;
-  margin-top: 16px;
+  border-radius: 14px;
+  background-color: white;
+  margin-top: 4px;
+}
+
+.recommendationsCard :global(.ant-card-body) {
+  padding: 14px !important;
 }
 
 .recommendationsList {
@@ -175,34 +248,48 @@
 }
 
 .recommendationsList li {
-  padding: 12px 0;
-  font-size: 16px;
+  padding: 8px 0;
+  font-size: 13px;
   display: flex;
   align-items: center;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.recommendationsList li:last-child {
+  border-bottom: none;
 }
 
 .restartButton {
   display: block;
-  margin: 32px auto 0;
-  width: 250px;
-  height: 48px;
-  border-radius: 24px;
-  font-size: 16px;
+  margin: 20px auto 0;
+  width: 200px;
+  height: 40px;
+  border-radius: 20px;
+  font-size: 13px;
+  background-color: #52c41a;
+  border-color: #52c41a;
+}
+
+.restartButton:hover {
+  background-color: #73d13d !important;
+  border-color: #73d13d !important;
 }
 
 .loadingContainer {
   text-align: center;
-  padding: 48px;
+  padding: 30px;
+  background: white;
+  border-radius: 16px;
 }
 
 .spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #52c41a;
+  width: 36px;
+  height: 36px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #52c41a;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin: 0 auto 16px;
+  margin: 0 auto 10px;
 }
 
 @keyframes spin {
@@ -214,28 +301,114 @@
   }
 }
 
+/* Адаптивность */
 @media (max-width: 768px) {
   .container {
-    padding: 16px;
+    padding: 8px;
+  }
+
+  .testCard {
+    margin: 0 auto;
+  }
+
+  .footer {
+    margin-top: 8px;
   }
 
   .questionContainer {
-    padding: 20px 16px;
+    padding: 16px 12px;
   }
 
   .questionText {
+    font-size: 15px;
+    margin-bottom: 12px !important;
+  }
+
+  .header h2 {
     font-size: 18px;
   }
 
-  .topDirectionName {
-    font-size: 24px;
+  .subtitle {
+    font-size: 11px;
+  }
+
+  .progressInfo {
+    font-size: 11px;
+    margin: 6px 0;
+  }
+
+  .topDirectionCard {
+    padding: 20px 12px;
+    margin-bottom: 16px;
   }
 
   .topDirectionIcon {
-    font-size: 60px;
+    font-size: 44px;
+  }
+
+  .topDirectionName {
+    font-size: 20px !important;
+  }
+
+  .topDirectionDescription {
+    font-size: 13px;
+  }
+
+  .salaryTag {
+    font-size: 13px;
+    padding: 3px 10px;
   }
 
   .resultsContainer {
-    padding: 16px;
+    padding: 8px;
+  }
+
+  .directionName {
+    font-size: 13px !important;
+  }
+
+  .directionIcon {
+    font-size: 22px;
+  }
+
+  .restartButton {
+    width: 160px;
+    height: 36px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 576px) {
+  .option {
+    padding: 5px 8px;
+    font-size: 12px;
+  }
+
+  .directionCard :global(.ant-card-body) {
+    padding: 10px !important;
+  }
+
+  .directionName {
+    font-size: 12px !important;
+  }
+
+  .directionDescription {
+    font-size: 10px;
+    margin-bottom: 8px;
+  }
+
+  .skillTag {
+    font-size: 9px;
+    padding: 1px 6px;
+  }
+
+  .chooseDirectionBtn {
+    height: 30px;
+    font-size: 10px;
+  }
+
+  .recommendationsList li {
+    padding: 6px 0;
+    font-size: 12px;
   }
 }

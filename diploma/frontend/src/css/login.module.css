@@ -29,14 +29,7 @@
 }
 
 .title {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.title h2 {
-  margin-top: 16px;
-  margin-bottom: 8px;
-  color: #1a1a1a;
+  text-align: left;
 }
 
 .subtitle {
@@ -54,6 +47,10 @@
 
 .registerLink {
   text-align: center;
+}
+
+.card :global(.ant-input-affix-wrapper .ant-input-prefix .anticon) {
+  color: #bfbfbf;
 }
 
 @media (max-width: 768px) {

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
@@ -9,17 +10,27 @@ import { ConfigProvider, theme, App as AntApp } from "antd";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
-    if (userData) {
-      setIsAuthenticated(true);
-      setUser(JSON.parse(userData));
+    const token = localStorage.getItem("token");
+    if (userData && token) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        setIsAuthenticated(true);
+        setUser(parsedUser);
+      } catch (error) {
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+      }
     }
+    setLoading(false);
   }, []);
 
   const handleLogin = (userData: any) => {
@@ -30,9 +41,25 @@ const App: React.FC = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("user");
+    localStorage.removeItem("token");
     setIsAuthenticated(false);
     setUser(null);
   };
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        Загрузка...
+      </div>
+    );
+  }
 
   return (
     <ConfigProvider
@@ -51,34 +78,17 @@ const App: React.FC = () => {
         <Router>
           <div className="app">
             <Routes>
-              <Route
-                path="/login"
-                element={
-                  !isAuthenticated ? (
-                    <Login onLogin={handleLogin} />
-                  ) : (
-                    <Navigate to="/dashboard" />
-                  )
-                }
-              />
+              <Route path="/login" element={<Login onLogin={handleLogin} />} />
               <Route
                 path="/register"
-                element={
-                  !isAuthenticated ? (
-                    <Register onRegister={handleLogin} />
-                  ) : (
-                    <Navigate to="/dashboard" />
-                  )
-                }
+                element={<Register onRegister={handleLogin} />}
               />
               <Route
                 path="/dashboard/*"
                 element={
-                  isAuthenticated ? (
+                  <ProtectedRoute isAuthenticated={isAuthenticated}>
                     <Dashboard user={user} onLogout={handleLogout} />
-                  ) : (
-                    <Navigate to="/login" />
-                  )
+                  </ProtectedRoute>
                 }
               />
               <Route path="/" element={<Navigate to="/dashboard" />} />

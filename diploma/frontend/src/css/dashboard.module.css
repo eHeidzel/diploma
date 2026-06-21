@@ -45,6 +45,22 @@
   flex: 1;
 }
 
+.menu :global(.ant-menu-item-selected) {
+  background-color: #e6f7e6 !important;
+}
+
+.menu :global(.ant-menu-item-selected .anticon) {
+  color: #52c41a;
+}
+
+.menu :global(.ant-menu-item):hover {
+  background-color: #f0f9f0 !important;
+}
+
+.menu :global(.ant-menu-item:hover .anticon) {
+  color: #52c41a;
+}
+
 .header {
   background: white;
   padding: 0 24px;
@@ -100,54 +116,229 @@
   min-height: 280px;
 }
 
-/* Стили для карточек предметов */
-.subjectCard {
+.balanceButton {
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+  border-radius: 20px;
+  color: #52c41a;
+  font-weight: 600;
+}
+
+.balanceButton:hover {
+  background: #f6ffed !important;
+  border-color: #73d13d !important;
+  color: #73d13d !important;
+}
+
+.sectionContainer {
+  margin-bottom: 40px;
+}
+
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.sectionIcon {
+  font-size: 48px;
+  color: #52c41a;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.reviewCard,
+.teacherCard,
+.projectCard {
   border-radius: 12px;
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
+  height: 100%;
+  transition: transform 0.3s;
 }
 
-.subjectCard:hover {
+.reviewCard:hover,
+.teacherCard:hover,
+.projectCard:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
-/* Стили для заголовка дашборда */
-.dashboardTitle {
-  margin-top: 16px;
+.reviewDate {
+  font-size: 12px;
 }
 
-/* Блок приветствия */
-.welcomeBlock {
-  margin-top: 32px;
-  padding: 32px;
-  background: linear-gradient(135deg, #f0f9f0 0%, #e8f5e8 100%);
-  border-radius: 16px;
+.teacherCard {
   text-align: center;
 }
 
-.welcomeIcon {
-  font-size: 64px;
+.teacherAvatar {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.teacherInfo {
+  text-align: center;
+}
+
+.teacherSkills {
+  margin: 12px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.moreButton {
+  margin-top: 8px;
+}
+
+.projectImage {
+  height: 200px;
+  object-fit: cover;
+}
+
+.statsRow {
+  margin-bottom: 32px;
+}
+
+.statCard {
+  text-align: center;
+  border-radius: 12px;
+  transition: all 0.3s;
+  height: 100%;
+}
+
+.statCard :global(.ant-statistic-title) {
+  font-size: 14px;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.statCard :global(.ant-statistic-content) {
+  font-size: 28px;
+  font-weight: 600;
   color: #52c41a;
 }
 
-/* Стили для скроллбара сайдбара */
-.sider::-webkit-scrollbar {
-  width: 4px;
+.tabs {
+  margin-top: 24px;
 }
 
-.sider::-webkit-scrollbar-track {
-  background: #f1f1f1;
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
 }
 
-.sider::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #52c41a;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
 }
 
-.sider::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.teacherModal :global(.ant-modal-content) {
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.teacherModal :global(.ant-modal-header) {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 20px 24px;
+  text-align: center;
+}
+
+.teacherModal :global(.ant-modal-title) {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.teacherModal :global(.ant-modal-body) {
+  padding: 24px;
+}
+
+.teacherModalContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.teacherModalAvatar {
+  margin-bottom: 20px;
+}
+
+.teacherModalAvatar :global(.ant-avatar) {
+  border: 4px solid #52c41a;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.teacherModalInfo {
+  width: 100%;
+  text-align: center;
+}
+
+.teacherModalRole {
+  display: block;
+  font-size: 16px;
+  color: #52c41a;
+  margin-bottom: 20px;
+}
+
+.teacherModalDetails {
+  text-align: left;
+  margin-top: 16px;
+}
+
+.teacherModalRow {
+  margin-bottom: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.teacherModalRow > :first-child {
+  width: 80px;
+  flex-shrink: 0;
+  color: #666;
+}
+
+.teacherModalRow > :last-child {
+  flex: 1;
+  color: #333;
+}
+
+.teacherModalSkills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.teacherModalContacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.teacherModalContacts .ant-btn {
+  border-radius: 20px;
 }
 
 @media (max-width: 768px) {
@@ -164,12 +355,520 @@
     display: none;
   }
 
-  .welcomeBlock {
-    padding: 24px;
-    margin-top: 24px;
+  .statCard :global(.ant-statistic-title) {
+    font-size: 12px;
+    white-space: normal;
+    word-break: keep-all;
+    line-height: 1.2;
   }
 
-  .welcomeIcon {
-    font-size: 48px;
+  .statCard :global(.ant-statistic-content) {
+    font-size: 22px;
+  }
+
+  .teacherModalRow {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .teacherModalRow > :first-child {
+    width: auto;
+  }
+
+  .teacherModal :global(.ant-modal-body) {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 576px) {
+  .statCard :global(.ant-statistic-title) {
+    font-size: 11px;
+  }
+
+  .statCard :global(.ant-statistic-content) {
+    font-size: 18px;
+  }
+}
+
+/* Добавьте в конец файла dashboard.module.css */
+
+/* Кнопка баланса в хедере */
+.balanceButton {
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+  border-radius: 20px;
+  color: #52c41a;
+  font-weight: 600;
+}
+
+.balanceButton:hover {
+  background: #f6ffed !important;
+  border-color: #73d13d !important;
+  color: #73d13d !important;
+}
+
+/* Стили для секций дашборда */
+.sectionContainer {
+  margin-bottom: 40px;
+}
+
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.sectionIcon {
+  font-size: 48px;
+  color: #52c41a;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.reviewCard,
+.teacherCard,
+.projectCard {
+  border-radius: 12px;
+  height: 100%;
+  transition: transform 0.3s;
+}
+
+.reviewCard:hover,
+.teacherCard:hover,
+.projectCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.reviewDate {
+  font-size: 12px;
+}
+
+.teacherCard {
+  text-align: center;
+}
+
+.teacherAvatar {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.teacherInfo {
+  text-align: center;
+}
+
+.teacherSkills {
+  margin: 12px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.moreButton {
+  margin-top: 8px;
+}
+
+.projectImage {
+  height: 200px;
+  object-fit: cover;
+}
+
+.statsRow {
+  margin-bottom: 32px;
+}
+
+.statCard {
+  text-align: center;
+  border-radius: 12px;
+  transition: all 0.3s;
+  height: 100%;
+}
+
+.tabs {
+  margin-top: 24px;
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #52c41a;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Модальное окно преподавателя */
+.teacherModal :global(.ant-modal-content) {
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.teacherModalContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.teacherModalAvatar {
+  margin-bottom: 20px;
+}
+
+.teacherModalAvatar :global(.ant-avatar) {
+  border: 4px solid #52c41a;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.teacherModalInfo {
+  width: 100%;
+  text-align: center;
+}
+
+.teacherModalRole {
+  display: block;
+  font-size: 16px;
+  color: #52c41a;
+  margin-bottom: 20px;
+}
+
+.teacherModalDetails {
+  text-align: left;
+  margin-top: 16px;
+}
+
+.teacherModalRow {
+  margin-bottom: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.teacherModalRow > :first-child {
+  width: 80px;
+  flex-shrink: 0;
+  color: #666;
+}
+
+.teacherModalRow > :last-child {
+  flex: 1;
+  color: #333;
+}
+
+.teacherModalSkills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.teacherModalContacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #f0f0f0;
+}
+
+/* dashboard.module.css */
+
+/* Stats Row */
+.statsRow {
+  margin-bottom: 24px;
+}
+
+.statCard {
+  text-align: center;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.statCard :global(.ant-statistic-title) {
+  font-size: 14px;
+  color: #666;
+}
+
+.statCard :global(.ant-statistic-content) {
+  font-size: 28px;
+  font-weight: 600;
+  color: #1890ff;
+}
+
+/* Tabs */
+.tabs {
+  margin-top: 16px;
+}
+
+.tabs :global(.ant-tabs-nav) {
+  margin-bottom: 24px;
+}
+
+/* Section Container */
+.sectionContainer {
+  padding: 8px 0;
+}
+
+.sectionHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.sectionIcon {
+  font-size: 32px;
+  color: #1890ff;
+  margin-bottom: 8px;
+}
+
+.sectionHeader h3 {
+  margin: 0 0 4px 0;
+}
+
+/* Projects */
+.projectCard {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.projectCard :global(.ant-card-cover) {
+  flex-shrink: 0;
+}
+
+.projectCard :global(.ant-card-body) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.projectCard :global(.ant-card-meta) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.projectCard :global(.ant-card-meta-description) {
+  flex: 1;
+}
+
+.projectCard :global(.ant-card-actions) {
+  margin-top: auto;
+  border-top: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+.projectCard :global(.ant-card-actions > li) {
+  margin: 0;
+}
+
+.projectCard :global(.ant-card-actions > li > span) {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 8px 0;
+}
+
+.projectImage {
+  height: 200px;
+  object-fit: cover;
+  width: 100%;
+}
+
+/* Teachers */
+.teacherCard {
+  text-align: center;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  height: 100%;
+}
+
+.teacherAvatar {
+  margin-bottom: 16px;
+}
+
+.teacherAvatar :global(.ant-avatar) {
+  border: 3px solid #e6f7ff;
+}
+
+.teacherInfo {
+  text-align: center;
+}
+
+.teacherInfo h4 {
+  margin: 0 0 4px 0;
+}
+
+.teacherSkills {
+  margin: 12px 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+
+.moreButton {
+  padding: 0;
+  color: #1890ff;
+}
+
+/* Teacher Modal */
+.teacherModal :global(.ant-modal-body) {
+  padding: 24px;
+}
+
+.teacherModalContent {
+  display: flex;
+  gap: 24px;
+}
+
+.teacherModalAvatar {
+  flex-shrink: 0;
+}
+
+.teacherModalAvatar :global(.ant-avatar) {
+  border: 3px solid #e6f7ff;
+}
+
+.teacherModalInfo {
+  flex: 1;
+}
+
+.teacherModalRole {
+  font-size: 16px;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.teacherModalDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.teacherModalRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.teacherModalRow :global(.ant-typography-secondary) {
+  font-size: 12px;
+}
+
+.teacherModalSkills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.teacherModalContacts {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+}
+
+/* Reviews */
+.reviewCard {
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  height: 100%;
+}
+
+.reviewCard :global(.ant-card-body) {
+  height: 100%;
+}
+
+.reviewDate {
+  font-size: 12px;
+}
+
+/* Loading */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 16px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #1890ff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .teacherModalContent {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .teacherModalRow {
+    align-items: center;
+  }
+
+  .teacherModalSkills {
+    justify-content: center;
+  }
+
+  .teacherModalContacts {
+    justify-content: center;
+  }
+
+  .projectImage {
+    height: 150px;
+  }
+}
+
+@media (max-width: 576px) {
+  .statCard :global(.ant-statistic-content) {
+    font-size: 22px;
+  }
+
+  .sectionHeader h3 {
+    font-size: 18px;
+  }
+
+  .projectImage {
+    height: 120px;
   }
 }

@@ -1,0 +1,59 @@
+
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { UserSettings } from '../entities/user-settings.entity';
+
+@Injectable()
+export class SettingsService {
+  constructor(
+    @InjectRepository(UserSettings)
+    private settingsRepo: Repository<UserSettings>,
+  ) {}
+
+  async getSettings(userId: number): Promise<UserSettings> {
+    let settings = await this.settingsRepo.findOne({ where: { userId } });
+    if (!settings) {
+      settings = this.settingsRepo.create({ userId });
+      await this.settingsRepo.save(settings);
+    }
+    return settings;
+  }
+
+  async updateSettings(
+    userId: number,
+    data: Partial<UserSettings>,
+  ): Promise<UserSettings> {
+    let settings = await this.settingsRepo.findOne({ where: { userId } });
+    if (!settings) {
+      settings = this.settingsRepo.create({ userId });
+    }
+    Object.assign(settings, data);
+    await this.settingsRepo.save(settings);
+    return settings;
+  }
+
+  async updateNotificationSettings(
+    userId: number,
+    data: {
+      emailNotifications?: boolean;
+      pushNotifications?: boolean;
+      bookingReminders?: boolean;
+      scheduleChanges?: boolean;
+      promotions?: boolean;
+    },
+  ): Promise<UserSettings> {
+    return this.updateSettings(userId, data);
+  }
+
+  async updatePrivacySettings(
+    userId: number,
+    data: {
+      showProfile?: boolean;
+      showEmail?: boolean;
+      showPhone?: boolean;
+    },
+  ): Promise<UserSettings> {
+    return this.updateSettings(userId, data);
+  }
+}

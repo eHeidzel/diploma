@@ -1,7 +1,7 @@
 import { ILoginTranslations } from "@interfaces/login.interface";
 
 export const login: ILoginTranslations = {
-  title: "Онлайн Школа",
+  title: "Вход",
   welcome: "Добро пожаловать!",
   subtitle: "Войдите в свой аккаунт",
   emailLabel: "Email",

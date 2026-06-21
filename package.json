@@ -1,5 +1,21 @@
 {
   "dependencies": {
-    "@nestjs/config": "^4.0.4"
+    "@nestjs/config": "^4.0.4",
+    "@nestjs/passport": "^11.0.5",
+    "@nestjs/platform-socket.io": "^11.1.26",
+    "@nestjs/websockets": "^11.1.26",
+    "@types/passport-jwt": "^4.0.1",
+    "bcrypt": "^6.0.0",
+    "dayjs": "^1.11.21",
+    "nodemailer": "^8.0.10",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
+    "react-input-mask": "^2.0.4",
+    "socket.io": "^4.8.3"
+  },
+  "devDependencies": {
+    "@types/react-input-mask": "^3.0.6",
+    "@types/socket.io-client": "^1.4.36",
+    "socket.io-client": "^4.8.3"
   }
 }

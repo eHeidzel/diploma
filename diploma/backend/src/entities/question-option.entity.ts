@@ -19,7 +19,7 @@ export class QuestionOption {
   order!: number;
 
   @Column({ type: 'json', nullable: true })
-  directionScores!: Record<AnswerDirection, number>; // { frontend: 10, backend: 5, ... }
+  directionScores!: Record<AnswerDirection, number>;
 
   @ManyToOne(() => Question, (question) => question.options, {
     onDelete: 'CASCADE',

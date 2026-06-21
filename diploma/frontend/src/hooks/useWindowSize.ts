@@ -26,6 +26,6 @@ export const useWindowSize = (): WindowSize => {
     };
   }, []);
 
-  //   console.log("📐 useWindowSize returning:", windowSize);
+  
   return windowSize;
 };

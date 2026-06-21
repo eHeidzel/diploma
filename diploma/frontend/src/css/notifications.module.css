@@ -1,0 +1,357 @@
+/* css/notifications.module.css */
+
+/* Popover стили */
+.popover :global(.ant-popover-inner) {
+  padding: 0;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.popover :global(.ant-popover-arrow) {
+  display: none;
+}
+
+.notificationsPopover {
+  width: 400px;
+  max-height: 500px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Хедер */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafafa;
+  border-radius: 16px 16px 0 0;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.headerIcon {
+  font-size: 18px;
+  color: #52c41a;
+}
+
+.headerTitle {
+  font-size: 16px;
+}
+
+.headerBadge {
+  margin-left: 4px;
+}
+
+.markAllBtn {
+  color: #52c41a;
+  padding: 0;
+  height: auto;
+  font-size: 12px;
+}
+
+.markAllBtn:hover {
+  color: #73d13d;
+}
+
+/* Список */
+.list {
+  max-height: 420px;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 2px;
+}
+
+.list::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 2px;
+}
+
+/* Элемент уведомления */
+.notificationItem {
+  cursor: pointer;
+  padding: 12px 16px !important;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f5f5f5 !important;
+}
+
+.notificationItem:hover {
+  background: #f9f9f9;
+}
+
+.notificationItem:last-child {
+  border-bottom: none !important;
+}
+
+.unread {
+  background: #f0f9ff;
+}
+
+.unread:hover {
+  background: #e6f4ff;
+}
+
+/* Контент уведомления */
+.notificationContent {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  align-items: flex-start;
+}
+
+.notificationIcon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #f5f5f5;
+}
+
+.iconBooking {
+  font-size: 18px;
+  color: #1890ff;
+}
+
+.iconReminder {
+  font-size: 18px;
+  color: #fa8c16;
+}
+
+.iconMessage {
+  font-size: 18px;
+  color: #722ed1;
+}
+
+.iconSystem {
+  font-size: 18px;
+  color: #52c41a;
+}
+
+.notificationBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.notificationHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.notificationTitle {
+  font-size: 14px;
+}
+
+.typeTag {
+  font-size: 10px;
+  padding: 0px 6px;
+  line-height: 18px;
+  border-radius: 4px;
+  margin: 0;
+}
+
+.notificationMessage {
+  font-size: 13px;
+  color: #666;
+  display: block;
+  margin-bottom: 6px;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notificationFooter {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.timeIcon {
+  font-size: 10px;
+  color: #bbb;
+}
+
+.notificationTime {
+  font-size: 10px;
+}
+
+.deleteBtn {
+  flex-shrink: 0;
+  color: #ccc;
+  transition: color 0.2s;
+}
+
+.deleteBtn:hover {
+  color: #ff4d4f !important;
+  background: transparent !important;
+}
+
+/* Пустое состояние */
+.empty {
+  margin: 40px 0;
+}
+
+/* Кнопка звонка */
+.bellButton {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.bellButton:hover {
+  background: #f5f5f5;
+}
+
+.bellBadge :global(.ant-badge-count) {
+  box-shadow: 0 0 0 2px #fff;
+  background: #ff4d4f;
+  font-size: 10px;
+  min-width: 18px;
+  height: 18px;
+  line-height: 18px;
+  padding: 0 5px;
+}
+
+/* Модальное окно */
+.notificationModal :global(.ant-modal-content) {
+  border-radius: 20px;
+  overflow: hidden;
+  padding: 0;
+}
+
+.notificationModal :global(.ant-modal-header) {
+  display: none;
+}
+
+.notificationModal :global(.ant-modal-body) {
+  padding: 0;
+}
+
+.notificationModal :global(.ant-modal-close) {
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+  color: #fff;
+}
+
+.modalContent {
+  padding: 24px;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.modalIcon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #f0f9ff;
+}
+
+.modalIcon .iconBooking {
+  font-size: 24px;
+}
+
+.modalIcon .iconReminder {
+  font-size: 24px;
+}
+
+.modalIcon .iconMessage {
+  font-size: 24px;
+}
+
+.modalIcon .iconSystem {
+  font-size: 24px;
+}
+
+.modalHeaderRight {
+  flex: 1;
+}
+
+.modalTitle {
+  font-size: 18px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.modalDivider {
+  margin: 16px 0;
+}
+
+.modalMessage {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+.modalFooter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.modalTimeIcon {
+  font-size: 12px;
+  color: #bbb;
+}
+
+/* Адаптивность */
+@media (max-width: 576px) {
+  .notificationsPopover {
+    width: 320px;
+  }
+
+  .notificationContent {
+    gap: 10px;
+  }
+
+  .notificationIcon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .notificationTitle {
+    font-size: 13px;
+  }
+
+  .notificationMessage {
+    font-size: 12px;
+  }
+
+  .modalContent {
+    padding: 20px;
+  }
+}

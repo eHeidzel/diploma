@@ -21,7 +21,9 @@
     "paths": {
       "@services/*": ["./src/services/*"],
       "@controllers/*": ["./src/controllers/*"],
-      "@entities/*": ["./src/entities/*"]
+      "@entities/*": ["./src/entities/*"],
+      "@dto/*": ["./src/dtos/*"],
+      "@strategies/*": ["./src/strategies/*"]
     }
   },
   "include": ["src/**/*"],

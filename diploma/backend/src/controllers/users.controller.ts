@@ -2,48 +2,49 @@ import {
   Controller,
   Get,
   Post,
-  Body,
-  Param,
   Put,
   Delete,
+  Body,
+  Param,
+  UseGuards,
 } from '@nestjs/common';
-import { UsersService } from '@services/users.service';
-import { User } from '@entities/user.entity';
+import { UsersService } from '../services/users.service';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { RolesGuard } from '../guards/roles.guard';
+import { Roles } from '../decorators/roles.decorator';
+import { UserRole } from '@libs/shared';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
-  create(@Body() userData: Partial<User>): Promise<User> {
-    return this.usersService.create(userData);
-  }
-
   @Get()
-  findAll(): Promise<User[]> {
+  @Roles(UserRole.ADMIN)
+  @UseGuards(RolesGuard)
+  async findAll() {
     return this.usersService.findAll();
   }
 
   @Get('teachers')
-  getTeachers(): Promise<User[]> {
+  async getTeachers() {
     return this.usersService.getTeachers();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<User | null> {
-    return this.usersService.findOne(+id);
+  async findOne(@Param('id') id: number) {
+    return this.usersService.findOne(id);
   }
 
   @Put(':id')
-  update(
-    @Param('id') id: string,
-    @Body() userData: Partial<User>,
-  ): Promise<User | null> {
-    return this.usersService.update(+id, userData);
+  async update(@Param('id') id: number, @Body() data: any) {
+    return this.usersService.update(id, data);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string): Promise<void> {
-    return this.usersService.remove(+id);
+  @Roles(UserRole.ADMIN)
+  @UseGuards(RolesGuard)
+  async remove(@Param('id') id: number) {
+    await this.usersService.remove(id);
+    return { success: true };
   }
 }

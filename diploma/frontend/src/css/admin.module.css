@@ -1,0 +1,66 @@
+.container {
+  padding: 0;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.activityModal :global(.ant-modal-body) {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* admin.module.css */
+.datesBlock {
+  margin: 16px 0;
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 8px;
+  border: 1px dashed #d9d9d9;
+}
+
+.datesHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.datesHeader span {
+  font-weight: 500;
+}
+
+.dateRow {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.dateRow .datePicker {
+  flex: 1;
+}
+
+.dateRow .timePicker {
+  flex: 2;
+}
+
+.dateRow .ant-btn {
+  flex-shrink: 0;
+}
+
+/* Медиа-запросы для адаптивности */
+@media (max-width: 768px) {
+  .dateRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dateRow .ant-btn {
+    align-self: flex-end;
+  }
+}

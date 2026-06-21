@@ -6,7 +6,6 @@ import {
   Query,
   HttpCode,
   HttpStatus,
-  NotImplementedException,
 } from '@nestjs/common';
 import { QuestionsService } from '../services/questions.service';
 import { Language, IUserAnswer } from '@libs/shared';
@@ -28,13 +27,6 @@ export class QuestionsController {
   ) {
     const language = body.lang || queryLang;
     return this.questionsService.calculateResults(body.answers, language);
-  }
-
-  @Get('seed')
-  @HttpCode(HttpStatus.OK)
-  async seedQuestions() {
-    await this.questionsService.seedDirections();
-    return { message: 'Aaaa seeded successfully!' };
   }
 
   @Get('directions')

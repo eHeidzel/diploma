@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Button } from "antd";
 import { GlobalOutlined } from "@ant-design/icons";
@@ -9,6 +10,7 @@ const LanguageSwitcher: React.FC = () => {
   const toggleLanguage = () => {
     const nextLang = i18n.language === "ru" ? "en" : "ru";
     i18n.changeLanguage(nextLang);
+    localStorage.setItem("language", nextLang);
   };
 
   return (

@@ -10,7 +10,7 @@ export const dashboard: IDashboardTranslations = {
   name: "Имя",
   menu: {
     main: "Главная",
-    subjects: "Предметы",
+    learning: "Обучение",
     schedule: "Расписание",
     students: "Ученики",
     logout: "Выйти",

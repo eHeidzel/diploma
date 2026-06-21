@@ -6,6 +6,7 @@
   justify-content: center;
   background: linear-gradient(135deg, #f0f9f0 0%, #e8f5e8 100%);
   position: relative;
+  padding: 80px 16px 16px;
 }
 
 .languageSwitcher {
@@ -17,61 +18,185 @@
 
 .card {
   width: 100%;
-  max-width: 500px;
+  max-width: 480px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   border-radius: 16px;
   background: white;
 }
 
 .card :global(.ant-card-body) {
-  padding: 32px 28px;
+  padding: 32px 24px;
 }
 
-.header {
+.title {
   text-align: center;
   margin-bottom: 32px;
 }
 
 .headerIcon {
-  font-size: 48px;
+  font-size: 40px;
+  color: #52c41a;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: #8c8c8c;
+  font-size: 14px;
+}
+
+.card :global(.ant-form-item) {
+  margin-bottom: 20px;
+}
+
+.card :global(.ant-form-item:last-of-type) {
+  margin-bottom: 8px;
+}
+
+.card :global(.ant-form-item-label) {
+  padding-bottom: 4px;
+}
+
+.card :global(.ant-input-affix-wrapper) {
+  padding: 0 11px;
+  height: 44px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  border: 1px solid #d9d9d9;
+  transition: all 0.3s;
+}
+
+.card :global(.ant-input-affix-wrapper):hover,
+.card :global(.ant-input-affix-wrapper):focus,
+.card :global(.ant-input-affix-wrapper-focused) {
+  border-color: #52c41a;
+  box-shadow: 0 0 0 2px rgba(82, 196, 26, 0.2);
+}
+
+.card :global(.ant-input-affix-wrapper .ant-input-prefix) {
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.card :global(.ant-input-affix-wrapper .ant-input-prefix .anticon) {
+  font-size: 16px;
+  color: #bfbfbf;
+}
+
+.card :global(.ant-input-affix-wrapper .ant-input) {
+  height: 42px;
+  font-size: 14px;
+  color: #333;
+}
+
+.card :global(.ant-input-affix-wrapper .ant-input::placeholder) {
+  color: #bfbfbf;
+}
+
+/* Кнопка показа пароля */
+.card :global(.ant-input-affix-wrapper .ant-input-suffix) {
+  display: flex;
+  align-items: center;
+  margin-left: 8px;
+}
+
+.card :global(.ant-input-affix-wrapper .ant-input-suffix .anticon) {
+  font-size: 16px;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.card :global(.ant-input-affix-wrapper .ant-input-suffix .anticon:hover) {
   color: #52c41a;
 }
 
-.header h2 {
-  margin-top: 16px;
-  margin-bottom: 8px;
-  color: #1a1a1a;
+/* Стили для DatePicker (из регистрации, но высота как у полей логина) */
+.card :global(.ant-picker) {
+  height: 44px;
+  border-radius: 8px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 11px;
+  border: 1px solid #d9d9d9;
+  transition: all 0.3s;
+  background: white;
 }
 
+.card :global(.ant-picker):hover,
+.card :global(.ant-picker-focused) {
+  border-color: #52c41a;
+  box-shadow: 0 0 0 2px rgba(82, 196, 26, 0.2);
+}
+
+.card :global(.ant-picker .ant-picker-input) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.card :global(.ant-picker .ant-picker-suffix) {
+  display: flex;
+  align-items: center;
+  margin-left: 0;
+  order: -1;
+  margin-right: 8px;
+}
+
+.card :global(.ant-picker .ant-picker-suffix .anticon) {
+  font-size: 16px;
+}
+
+.card :global(.ant-picker .ant-picker-input input) {
+  height: 42px;
+  font-size: 14px;
+  color: #333;
+  flex: 1;
+  min-width: 0;
+}
+
+.card :global(.ant-picker .ant-picker-input input::placeholder) {
+  color: #bfbfbf;
+}
+
+/* Кнопка отправки (как в логине) */
 .submitButton {
   height: 44px;
   background-color: #52c41a;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  margin-top: 8px;
+  border: none;
+  box-shadow: none;
 }
 
 .submitButton:hover {
   background-color: #73d13d !important;
 }
 
+/* Ссылка на регистрацию/логин (как в логине) */
+.registerLink, /* класс из логина */
 .loginLink {
+  /* класс из регистрации */
   text-align: center;
+  margin-top: 16px;
 }
 
 @media (max-width: 768px) {
   .container {
-    padding: 70px 12px 24px;
+    padding: 70px 12px 12px;
   }
 
   .card :global(.ant-card-body) {
     padding: 24px 16px;
   }
 
-  .header h2 {
+  .title h2 {
     font-size: 24px;
     margin-top: 12px;
-  }
-
-  .headerIcon {
-    font-size: 40px;
   }
 
   .languageSwitcher {
@@ -79,7 +204,61 @@
     right: 16px;
   }
 
+  .card :global(.ant-input-affix-wrapper) {
+    height: 40px;
+  }
+
+  .card :global(.ant-input-affix-wrapper .ant-input) {
+    height: 38px;
+    font-size: 13px;
+  }
+
+  .card :global(.ant-picker) {
+    height: 40px;
+  }
+
+  .card :global(.ant-picker .ant-picker-input input) {
+    height: 38px;
+    font-size: 13px;
+  }
+
   .submitButton {
     height: 40px;
+    font-size: 15px;
+  }
+
+  .card :global(.ant-form-item) {
+    margin-bottom: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .card :global(.ant-card-body) {
+    padding: 20px 12px;
+  }
+
+  .title h2 {
+    font-size: 20px;
+  }
+
+  .headerIcon {
+    font-size: 32px;
+  }
+
+  .card :global(.ant-input-affix-wrapper) {
+    height: 36px;
+  }
+
+  .card :global(.ant-input-affix-wrapper .ant-input) {
+    height: 34px;
+  }
+
+  .card :global(.ant-picker) {
+    height: 36px;
+  }
+
+  .submitButton {
+    height: 36px;
+    font-size: 14px;
   }
 }

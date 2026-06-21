@@ -1,0 +1,31 @@
+.container {
+  padding: 0;
+}
+
+.filtersCard {
+  margin-bottom: 16px;
+}
+
+.table {
+  background: white;
+  border-radius: 8px;
+}
+
+.studentProfile {
+  padding: 16px;
+}
+
+.profileHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.profileInfo {
+  flex: 1;
+}
+
+.descriptions {
+  margin-top: 16px;
+}

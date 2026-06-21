@@ -1,8 +1,9 @@
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './modules/app.module';
-import { Logger } from '@nestjs/common';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import * as mysql from 'mysql2/promise';
+import { join } from 'path';
 
 async function bootstrap() {
   const connection = await mysql.createConnection({
@@ -14,7 +15,11 @@ async function bootstrap() {
   await connection.query(`CREATE DATABASE IF NOT EXISTS diploma_db`);
   await connection.end();
 
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+    prefix: '/uploads/',
+  });
 
   app.useGlobalPipes(new ValidationPipe());
   app.enableCors({
@@ -29,4 +34,5 @@ async function bootstrap() {
   await app.listen(port);
   Logger.log(`Application started on port ${port}`);
 }
+
 bootstrap();

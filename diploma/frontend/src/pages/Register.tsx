@@ -1,17 +1,21 @@
-import React, { useEffect, useState } from "react";
-import { Form, Input, Button, Card, message, Typography } from "antd";
+import React, { useState } from "react";
 import {
-  UserOutlined,
-  LockOutlined,
-  MailOutlined,
-  TeamOutlined,
-} from "@ant-design/icons";
+  Form,
+  Input,
+  Button,
+  Card,
+  message,
+  Typography,
+  DatePicker,
+} from "antd";
+import { UserOutlined, LockOutlined, MailOutlined } from "@ant-design/icons";
 import { useNavigate, Link } from "react-router-dom";
-import api from "../services/api";
+import { authApi } from "../services/api";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "../components/LanguageSwitcher";
 import styles from "../css/register.module.css";
 import { useAdaptiveLevel } from "../hooks/useAdaptiveLevel";
+import dayjs from "dayjs";
 
 const { Title, Text } = Typography;
 
@@ -25,33 +29,75 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
+  const validatePassword = (_: any, value: string) => {
+    if (!value) {
+      return Promise.reject(new Error("Введите пароль"));
+    }
+    if (value.length < 6) {
+      return Promise.reject(
+        new Error("Пароль должен содержать минимум 6 символов"),
+      );
+    }
+    if (!/[a-zA-Z]/.test(value)) {
+      return Promise.reject(
+        new Error("Пароль должен содержать хотя бы одну букву"),
+      );
+    }
+    if (!/\d/.test(value)) {
+      return Promise.reject(
+        new Error("Пароль должен содержать хотя бы одну цифру"),
+      );
+    }
+    return Promise.resolve();
+  };
 
-    return () => {
-      document.body.style.overflow = "auto";
-    };
-  }, []);
+  const validateAge = (_: any, value: dayjs.Dayjs) => {
+    if (!value) {
+      return Promise.reject(new Error("Введите дату рождения"));
+    }
+    const age = dayjs().diff(value, "year");
+    if (age < 8) {
+      return Promise.reject(new Error("Возраст должен быть не менее 8 лет"));
+    }
+    if (age > 100) {
+      return Promise.reject(new Error("Некорректная дата рождения"));
+    }
+    return Promise.resolve();
+  };
 
   const onFinish = async (values: any) => {
     setLoading(true);
     try {
-      const response = await api.post("/auth/register", values);
-      const { user } = response.data;
+      const response = await authApi.register({
+        name: values.name,
+        email: values.email,
+        password: values.password,
+        birthDate: values.birthDate
+          ? values.birthDate.format("YYYY-MM-DD")
+          : null,
+      });
+
+      const { user, token } = response.data;
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+
       onRegister(user);
-      message.success(t("register.registerSuccess"));
+      message.success("Регистрация прошла успешно!");
       navigate("/dashboard");
     } catch (error: any) {
       if (error.response?.status === 409) {
-        message.error(t("register.emailConflict"));
+        message.error("Пользователь с таким email уже существует");
       } else {
-        message.error(
-          error.response?.data?.message || t("register.registerError"),
-        );
+        message.error(error.response?.data?.message || "Ошибка регистрации");
       }
     } finally {
       setLoading(false);
     }
+  };
+
+  const disabledDate = (current: dayjs.Dayjs) => {
+    return current && current > dayjs().endOf("day");
   };
 
   return (
@@ -62,9 +108,7 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
 
       <Card className={styles.card}>
         <div className={styles.header}>
-          <TeamOutlined className={styles.headerIcon} />
-          <Title level={getTitleLevel(2)}>{t("register.title")}</Title>
-          <Text type="secondary">{t("register.subtitle")}</Text>
+          <Title level={getTitleLevel(2)}>Регистрация в CodeZone</Title>
         </div>
 
         <Form
@@ -76,40 +120,60 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
         >
           <Form.Item
             name="name"
-            label={t("register.nameLabel")}
-            rules={[{ required: true, message: t("register.nameRequired") }]}
+            rules={[{ required: true, message: "Введите имя" }]}
           >
-            <Input
-              prefix={<UserOutlined />}
-              placeholder={t("register.namePlaceholder")}
-            />
+            <Input prefix={<UserOutlined />} placeholder="Имя" />
           </Form.Item>
 
           <Form.Item
             name="email"
-            label={t("register.emailLabel")}
             rules={[
-              { required: true, message: t("register.emailRequired") },
-              { type: "email", message: t("register.emailInvalid") },
+              { required: true, message: "Введите email" },
+              { type: "email", message: "Введите корректный email" },
             ]}
           >
-            <Input
-              prefix={<MailOutlined />}
-              placeholder={t("register.emailPlaceholder")}
+            <Input prefix={<MailOutlined />} placeholder="Email" />
+          </Form.Item>
+
+          <Form.Item
+            name="birthDate"
+            rules={[{ validator: validateAge }]}
+            tooltip="Укажите вашу дату рождения"
+          >
+            <DatePicker
+              placeholder="Дата рождения"
+              style={{ width: "100%" }}
+              format="DD.MM.YYYY"
+              disabledDate={disabledDate}
             />
           </Form.Item>
 
           <Form.Item
             name="password"
-            label={t("register.passwordLabel")}
+            rules={[{ validator: validatePassword }]}
+            validateTrigger="onBlur"
+          >
+            <Input.Password prefix={<LockOutlined />} placeholder="Пароль" />
+          </Form.Item>
+
+          <Form.Item
+            name="confirmPassword"
+            dependencies={["password"]}
             rules={[
-              { required: true, message: t("register.passwordRequired") },
-              { min: 6, message: t("register.passwordMinLength") },
+              { required: true, message: "Подтвердите пароль" },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || getFieldValue("password") === value) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(new Error("Пароли не совпадают"));
+                },
+              }),
             ]}
           >
             <Input.Password
               prefix={<LockOutlined />}
-              placeholder={t("register.passwordPlaceholder")}
+              placeholder="Подтвердите пароль"
             />
           </Form.Item>
 
@@ -121,14 +185,28 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
               block
               className={styles.submitButton}
             >
-              {t("register.registerButton")}
+              Зарегистрироваться
             </Button>
           </Form.Item>
 
           <div className={styles.loginLink}>
             <Text type="secondary">
-              {t("register.alreadyHaveAccount")}{" "}
-              <Link to="/login">{t("register.loginLink")}</Link>
+              Уже есть аккаунт? <Link to="/login">Войти</Link>
+              <br />
+              <Link
+                to="/dashboard"
+                onClick={() => {
+                  const guestUser = {
+                    id: "guest",
+                    name: "Гость",
+                    role: "guest",
+                    isGuest: true,
+                  };
+                  onRegister(guestUser);
+                }}
+              >
+                Войти как гость
+              </Link>
             </Text>
           </div>
         </Form>

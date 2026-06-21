@@ -1,52 +1,145 @@
+
 import {
   Injectable,
   UnauthorizedException,
   ConflictException,
 } from '@nestjs/common';
-import { UsersService } from '@services/users.service';
-import * as crypto from 'crypto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
+import { User } from '@entities/user.entity';
+import { UserRole } from '@libs/shared';
+import { I18nContext } from 'nestjs-i18n';
+import { EmailService } from './email.service';
+import { NotificationsService } from './notifications.service';
+import { NotificationType } from '../entities/notification.entity';
+import { UserBalance } from '../entities/user-balance.entity';
 
 @Injectable()
 export class AuthService {
-  constructor(private usersService: UsersService) {}
+  constructor(
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    @InjectRepository(UserBalance)
+    private balanceRepository: Repository<UserBalance>,
+    private jwtService: JwtService,
+    private emailService: EmailService,
+    private notificationsService: NotificationsService,
+  ) {}
 
-  private hashPassword(password: string): string {
-    return crypto.createHash('sha256').update(password).digest('hex');
-  }
-
-  async register(userData: any) {
-    const existingUser = await this.usersService.findByEmail(userData.email);
+  async register(
+    name: string,
+    email: string,
+    password: string,
+    birthDate?: string,
+  ): Promise<{ user: Partial<User>; token: string }> {
+    const existingUser = await this.userRepository.findOne({
+      where: { email },
+    });
     if (existingUser) {
-      throw new Error('User already exists');
+      throw new ConflictException('User with this email already exists');
     }
 
-    const hashedPassword = this.hashPassword(userData.password);
-    const user = await this.usersService.create({
-      name: userData.name,
-      email: userData.email,
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = this.userRepository.create({
+      name,
+      email,
       password: hashedPassword,
-      role: userData.role || 'student',
+      birthDate: birthDate,
+      role: UserRole.STUDENT,
     });
 
-    const { password, ...result } = user;
+    await this.userRepository.save(user);
+
+    
+    const balance = this.balanceRepository.create({
+      userId: user.id,
+      balance: 0,
+    });
+    await this.balanceRepository.save(balance);
+
+    
+    await this.emailService.sendRegistrationEmail(email, name);
+
+    
+    await this.notificationsService.create(
+      user.id,
+      'Добро пожаловать в CodeZone!',
+      `Здравствуйте, ${name}! Рады видеть вас в нашей школе программирования. Начните обучение прямо сейчас.`,
+      NotificationType.SYSTEM,
+      '/dashboard/learning',
+    );
+
+    const payload = { sub: user.id, email: user.email, role: user.role };
+    const token = this.jwtService.sign(payload);
+
+    const { password: _, ...userWithoutPassword } = user;
+
     return {
-      success: true,
-      user: result,
-      message: 'Регистрация успешна',
+      user: userWithoutPassword,
+      token,
     };
   }
 
-  async login(email: string, password: string) {
-    const user = await this.usersService.findByEmail(email);
-    if (!user || user.password !== this.hashPassword(password)) {
-      throw new UnauthorizedException('Неверный email или пароль');
+  async login(
+    email: string,
+    password: string,
+    i18n?: I18nContext,
+  ): Promise<{ user: Partial<User>; token: string }> {
+    const user = await this.userRepository.findOne({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException(
+        i18n?.t('auth.errors.invalidCredentials') || 'Invalid credentials',
+      );
     }
 
-    const { password: _, ...result } = user;
+    
+    if (user.isBlocked) {
+      const blockReason = user.blockReason || 'Ваш аккаунт заблокирован';
+      throw new UnauthorizedException(blockReason);
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException(
+        i18n?.t('auth.errors.invalidCredentials') || 'Invalid credentials',
+      );
+    }
+
+    const payload = { sub: user.id, email: user.email, role: user.role };
+    const token = this.jwtService.sign(payload);
+
+    const { password: _, ...userWithoutPassword } = user;
+
     return {
-      success: true,
-      user: result,
-      message: 'Вход выполнен успешно',
+      user: userWithoutPassword,
+      token,
+    };
+  }
+
+  async getProfile(userId: number) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Пользователь не найден');
+    }
+
+    const balance = await this.balanceRepository.findOne({
+      where: { userId: user.id },
+    });
+
+    const { password: _, ...userWithoutPassword } = user;
+
+    return {
+      ...userWithoutPassword,
+      balance: balance?.balance || 0,
     };
   }
 }

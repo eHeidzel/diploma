@@ -1,7 +1,6 @@
 import { DataSource } from 'typeorm';
 import { config } from 'dotenv';
 import { User } from './entities/user.entity';
-import { Subject } from './entities/subject.entity';
 import { Schedule } from './entities/schedule.entity';
 import { Enrollment } from './entities/enrollment.entity';
 import { Question } from './entities/question.entity';
@@ -10,6 +9,7 @@ import { Translation } from './entities/translation.entity';
 import { Direction } from '@entities/direction.entity';
 import { DirectionSkill } from '@entities/direction-skill.entity';
 import { DirectionRecommendation } from '@entities/direction-recommendation.entity';
+import { Activity } from '@entities/activity.entity';
 
 config();
 
@@ -22,7 +22,7 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_NAME || 'diploma_db',
   entities: [
     User,
-    Subject,
+    Activity,
     Schedule,
     Enrollment,
     Question,

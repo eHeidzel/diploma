@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Card,
   Radio,
@@ -20,6 +20,7 @@ import {
   CheckCircleFilled,
 } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { useAdaptiveLevel } from "../hooks/useAdaptiveLevel";
 import styles from "../css/test.module.css";
 import api from "../services/api";
@@ -30,7 +31,7 @@ const { Group: RadioGroup } = Radio;
 interface QuestionOption {
   id: number;
   text: string;
-  order: number;
+  directionScores: Record<string, number>;
 }
 
 interface Question {
@@ -67,15 +68,10 @@ const Test: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const { t, i18n } = useTranslation();
   const { getTitleLevel } = useAdaptiveLevel();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchQuestions();
-  }, [i18n.language]);
-
-  useEffect(() => {
-    if (result && answers.size > 0) {
-      recalculateResults();
-    }
   }, [i18n.language]);
 
   const fetchQuestions = async () => {
@@ -86,37 +82,12 @@ const Test: React.FC = () => {
       });
       setQuestions(response.data);
     } catch (error) {
-      message.error(t("test.errors.loadQuestions"));
+      console.error("Error fetching questions:", error);
+      message.error(
+        t("test.errors.loadQuestions") || "Ошибка загрузки вопросов",
+      );
     } finally {
       setLoading(false);
-    }
-  };
-
-  const recalculateResults = async () => {
-    if (answers.size === 0) return;
-
-    setSubmitting(true);
-    try {
-      const submitAnswers = Array.from(answers.entries()).map(
-        ([questionId, optionIds]) => ({
-          questionId,
-          selectedOptionId: optionIds[0],
-        }),
-      );
-
-      const response = await api.post(`/questions/calculate`, {
-        answers: submitAnswers,
-        lang: i18n.language,
-      });
-
-      setResult(response.data);
-    } catch (error: any) {
-      console.error("Error recalculating results:", error);
-      message.error(
-        error.response?.data?.message || t("test.errors.calculationError"),
-      );
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -151,12 +122,15 @@ const Test: React.FC = () => {
   const handleNext = () => {
     const answer = getCurrentAnswer();
     if (answer.length === 0) {
-      message.warning(t("test.errors.answerRequired"));
+      message.warning(
+        t("test.errors.answerRequired") || "Пожалуйста, ответьте на вопрос",
+      );
       return;
     }
 
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
+      window.scrollTo(0, 0);
     } else {
       handleFinish();
     }
@@ -165,6 +139,7 @@ const Test: React.FC = () => {
   const handlePrevious = () => {
     if (currentQuestion > 0) {
       setCurrentQuestion(currentQuestion - 1);
+      window.scrollTo(0, 0);
     }
   };
 
@@ -175,9 +150,7 @@ const Test: React.FC = () => {
     });
 
     if (unanswered.length > 0) {
-      message.warning(
-        t("test.errors.unansweredQuestions", { count: unanswered.length }),
-      );
+      message.warning(`Вы не ответили на ${unanswered.length} вопрос(ов)`);
       return;
     }
 
@@ -196,15 +169,28 @@ const Test: React.FC = () => {
       });
 
       setResult(response.data);
-      message.success(t("test.success.resultsReady"));
+      message.success("Результаты готовы!");
+      window.scrollTo(0, 0);
     } catch (error: any) {
       console.error("Error calculating results:", error);
       message.error(
-        error.response?.data?.message || t("test.errors.calculationError"),
+        error.response?.data?.message || "Ошибка при обработке результатов",
       );
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleRestart = () => {
+    setCurrentQuestion(0);
+    setAnswers(new Map());
+    setResult(null);
+    setSubmitting(false);
+    window.scrollTo(0, 0);
+  };
+
+  const handleCategoryClick = (directionCode: string) => {
+    navigate(`/dashboard/learning?category=${directionCode}`);
   };
 
   const renderQuestion = () => {
@@ -271,24 +257,40 @@ const Test: React.FC = () => {
             {result.topDirection.description}
           </Text>
           <Tag color={result.topDirection.color} className={styles.salaryTag}>
-            💰 {result.topDirection.salary}
+            Заработок {result.topDirection.salary}
           </Tag>
+          <Button
+            type="primary"
+            size="large"
+            onClick={() => handleCategoryClick(result.topDirection.direction)}
+            style={{ marginTop: 16 }}
+          >
+            Перейти к обучению по направлению {result.topDirection.name}
+          </Button>
         </div>
 
-        <Divider orientation="center">
-          {t("test.results.allDirections")}
+        <Divider orientation="center" className={styles.sectionDivider}>
+          Все возможные направления
         </Divider>
 
-        <Row gutter={[16, 16]}>
+        <Row gutter={[16, 16]} className={styles.directionsGrid}>
           {result.results.map((direction) => (
             <Col xs={24} sm={12} md={8} lg={6} key={direction.direction}>
               <Card
                 className={styles.directionCard}
                 style={{ borderTop: `4px solid ${direction.color}` }}
+                hoverable
+                bodyStyle={{
+                  padding: "16px",
+                  display: "flex",
+                  flexDirection: "column",
+                  height: "100%",
+                }}
+                onClick={() => handleCategoryClick(direction.direction)}
               >
                 <div className={styles.directionHeader}>
                   <span className={styles.directionIcon}>{direction.icon}</span>
-                  <Title level={4} className={styles.directionName}>
+                  <Title level={5} className={styles.directionName}>
                     {direction.name}
                   </Title>
                 </div>
@@ -302,13 +304,24 @@ const Test: React.FC = () => {
                     </Tag>
                   ))}
                 </div>
+                <Button
+                  type="primary"
+                  size="small"
+                  className={styles.chooseDirectionBtn}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCategoryClick(direction.direction);
+                  }}
+                >
+                  Выбрать направление
+                </Button>
               </Card>
             </Col>
           ))}
         </Row>
 
-        <Divider orientation="center">
-          {t("test.results.recommendations")}
+        <Divider orientation="center" className={styles.sectionDivider}>
+          Рекомендации для старта
         </Divider>
 
         <Card className={styles.recommendationsCard}>
@@ -326,10 +339,10 @@ const Test: React.FC = () => {
 
         <Button
           type="primary"
-          onClick={() => window.location.reload()}
+          onClick={handleRestart}
           className={styles.restartButton}
         >
-          {t("test.buttons.restart")}
+          Пройти тест заново
         </Button>
       </div>
     );
@@ -341,7 +354,7 @@ const Test: React.FC = () => {
         <Card className={styles.testCard}>
           <div className={styles.loadingContainer}>
             <div className={styles.spinner} />
-            <Text>{t("test.loading")}</Text>
+            <Text>Загрузка вопросов...</Text>
           </div>
         </Card>
       </div>
@@ -349,7 +362,7 @@ const Test: React.FC = () => {
   }
 
   if (result) {
-    return renderResults();
+    return <div className={styles.container}>{renderResults()}</div>;
   }
 
   if (!questions.length) return null;
@@ -358,19 +371,17 @@ const Test: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      <Card className={styles.testCard}>
+      <Card className={styles.testCard} bodyStyle={{ padding: 0 }}>
         <div className={styles.header}>
-          <Title level={getTitleLevel(2)}>{t("test.title")}</Title>
+          <Title level={getTitleLevel(2)}>Кто вы в IT?</Title>
           <Text type="secondary" className={styles.subtitle}>
-            {t("test.subtitle")}
+            Пройдите тест и узнайте, какое направление в IT вам подходит больше
+            всего
           </Text>
           <div className={styles.progressInfo}>
             <ClockCircleOutlined />
             <Text>
-              {t("test.progress.question", {
-                current: currentQuestion + 1,
-                total: questions.length,
-              })}
+              Вопрос {currentQuestion + 1} из {questions.length}
             </Text>
           </div>
           <Progress
@@ -386,39 +397,34 @@ const Test: React.FC = () => {
           </Title>
           {currentQ.type === "multiple" && (
             <Text type="secondary" className={styles.hint}>
-              {t("test.hints.multipleChoice")}
+              Можно выбрать несколько вариантов ответа
             </Text>
           )}
           {renderQuestion()}
-          {currentQ.explanation && (
-            <div className={styles.explanation}>
-              <Text type="secondary">{currentQ.explanation}</Text>
-            </div>
-          )}
-        </div>
-
-        <div className={styles.footer}>
-          <Space>
-            <Button
-              onClick={handlePrevious}
-              disabled={currentQuestion === 0}
-              icon={<ArrowLeftOutlined />}
-            >
-              {t("test.buttons.previous")}
-            </Button>
-            <Button
-              type="primary"
-              onClick={handleNext}
-              icon={<ArrowRightOutlined />}
-              loading={submitting}
-            >
-              {currentQuestion < questions.length - 1
-                ? t("test.buttons.next")
-                : t("test.buttons.finish")}
-            </Button>
-          </Space>
         </div>
       </Card>
+
+      <div className={styles.footer}>
+        <Space>
+          <Button
+            onClick={handlePrevious}
+            disabled={currentQuestion === 0}
+            icon={<ArrowLeftOutlined />}
+            size="large"
+          >
+            Назад
+          </Button>
+          <Button
+            type="primary"
+            onClick={handleNext}
+            icon={<ArrowRightOutlined />}
+            loading={submitting}
+            size="large"
+          >
+            {currentQuestion < questions.length - 1 ? "Далее" : "Завершить"}
+          </Button>
+        </Space>
+      </div>
     </div>
   );
 };

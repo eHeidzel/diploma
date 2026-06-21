@@ -8,7 +8,7 @@ export interface IDashboardTranslations {
   registrationDate: string;
   menu: {
     main: string;
-    subjects: string;
+    learning: string;
     schedule: string;
     students: string;
     logout: string;

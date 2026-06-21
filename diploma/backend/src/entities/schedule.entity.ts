@@ -1,34 +1,46 @@
+
 import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
   ManyToOne,
   JoinColumn,
-} from "typeorm";
-import { Subject } from "./subject.entity";
-import { User } from "./user.entity";
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+} from 'typeorm';
+import { Activity } from './activity.entity';
+import { User } from './user.entity';
+import { Enrollment } from './enrollment.entity';
 
-@Entity("schedules")
+export enum ScheduleStatus {
+  PLANNED = 'planned',
+  IN_PROGRESS = 'in_progress',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled',
+}
+
+@Entity('schedules')
 export class Schedule {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => Subject)
-  @JoinColumn({ name: "subjectId" })
-  subject!: Subject;
+  @ManyToOne(() => Activity, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'activityId' })
+  activity!: Activity;
 
   @Column()
-  subjectId!: number;
+  activityId!: number;
 
-  @ManyToOne(() => User)
-  @JoinColumn({ name: "teacherId" })
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'teacherId' })
   teacher!: User;
 
   @Column()
   teacherId!: number;
 
-  @Column()
-  dayOfWeek!: number;
+  @Column({ type: 'date' })
+  date!: string;
 
   @Column({ length: 5 })
   startTime!: string;
@@ -38,4 +50,29 @@ export class Schedule {
 
   @Column({ length: 100, nullable: true })
   room!: string;
+
+  @Column({ length: 500, nullable: true })
+  meetLink!: string;
+
+  @Column({
+    type: 'enum',
+    enum: ScheduleStatus,
+    default: ScheduleStatus.PLANNED,
+  })
+  status!: ScheduleStatus;
+
+  @Column({ type: 'int', default: 0 })
+  maxStudents!: number;
+
+  @Column({ type: 'int', default: 0 })
+  enrolledCount!: number;
+
+  @OneToMany(() => Enrollment, (enrollment) => enrollment.schedule)
+  enrollments!: Enrollment[];
+
+  @CreateDateColumn()
+  createdAt!: Date;
+
+  @UpdateDateColumn()
+  updatedAt!: Date;
 }

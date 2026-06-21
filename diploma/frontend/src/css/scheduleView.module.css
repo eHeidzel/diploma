@@ -1,5 +1,8 @@
+/* scheduleView.module.css */
 .container {
-  width: 100%;
+  padding: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .header {
@@ -8,96 +11,323 @@
   align-items: center;
   margin-bottom: 24px;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 12px;
+  position: relative;
+  z-index: 2;
+  background: white;
+  padding: 12px 0;
 }
 
 .title {
-  margin: 0;
+  margin: 0 !important;
 }
 
-.addButton {
-  background-color: #52c41a;
-}
-
-.addButton:hover {
-  background-color: #73d13d !important;
-}
-
-.scheduleTable {
-  background: white;
-  border-radius: 8px;
-}
-
-.timeCell {
-  font-family: monospace;
-  font-size: 14px;
-}
-
-.subjectTag {
-  font-weight: 500;
-}
-
-.teacherName {
-  font-weight: 500;
-}
-
-.actionsSpace {
+.viewControls {
+  display: flex;
   gap: 8px;
 }
 
-.editButton {
+.navigation {
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: flex-start;
+  position: relative;
+  z-index: 2;
+  background: white;
+  padding: 8px 0;
+}
+
+.weekRange {
+  font-size: 14px;
+  color: #666;
+  margin-left: 8px;
+}
+
+/* ========== НЕДЕЛЬНЫЙ ВИД ========== */
+.weekView {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  position: relative;
+  z-index: 1;
+}
+
+.weekHeader {
+  display: flex;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafafa;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.timeColumnHeader {
+  width: 80px;
+  flex-shrink: 0;
+  padding: 12px;
+  font-weight: 600;
+  text-align: center;
+  border-right: 1px solid #f0f0f0;
+  background: #fafafa;
+}
+
+.weekDayHeader {
+  flex: 1;
+  padding: 12px;
+  text-align: center;
+  cursor: pointer;
+  border-right: 1px solid #f0f0f0;
+  background: #fafafa;
+}
+
+.weekDayHeader.today {
+  background: #e6f7ff;
+}
+
+.weekDayName {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.weekDayDate {
+  font-size: 12px;
+  color: #666;
+}
+
+.weekBody {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 1;
+}
+
+.timeRow {
+  display: flex;
+  border-bottom: 1px solid #f0f0f0;
+  min-height: 60px;
+  position: relative;
+  z-index: 1;
+}
+
+.timeLabel {
+  width: 80px;
+  padding: 20px 8px;
+  text-align: center;
+  border-right: 1px solid #f0f0f0;
+  background: #fafafa;
+  font-size: 12px;
+  flex-shrink: 0;
+  position: sticky;
+  left: 0;
+  z-index: 3;
+}
+
+.timeCell {
+  flex: 1;
+  position: relative;
+  border-right: 1px solid #f0f0f0;
+  min-height: 60px;
+  background: white;
+  overflow: visible;
+}
+
+.weekLessonCard {
+  background: #e6f7ff;
+  border-left: 4px solid #1890ff;
+  border-radius: 6px;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  z-index: 10;
+}
+
+.weekLessonCard:hover {
+  background: #bae7ff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 20;
+}
+
+.weekLessonCard.cancelled {
+  background: #fff1f0;
+  border-left-color: #ff4d4f;
+  opacity: 0.8;
+}
+
+.lessonTitle {
+  font-size: 12px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 4px;
+}
+
+.lessonTime {
+  font-size: 11px;
+  color: #666;
+}
+
+.lessonMeetLink {
+  font-size: 10px;
+  color: #1890ff;
+  margin-top: 2px;
+}
+
+.lessonStudents {
+  font-size: 11px;
+  color: #888;
+  margin-top: 4px;
+}
+
+/* ========== ДНЕВНОЙ ВИД ========== */
+.dayView {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  position: relative;
+  z-index: 1;
+}
+
+.dayHeader {
+  padding: 16px 20px;
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.dayHeader h4 {
+  margin: 0;
+}
+
+.dayBodyEmpty {
+  padding: 48px;
+  text-align: center;
+}
+
+.dayGrid {
+  display: flex;
+  min-height: 600px;
+  position: relative;
+  z-index: 1;
+}
+
+.dayTimeColumn {
+  width: 80px;
+  flex-shrink: 0;
+  background: #fafafa;
+  border-right: 1px solid #f0f0f0;
+  position: sticky;
+  left: 0;
+  z-index: 3;
+}
+
+.dayTimeSlot {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 500;
+  color: #666;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafafa;
+}
+
+.dayContentColumn {
+  flex: 1;
+  background: white;
+  position: relative;
+  z-index: 1;
+  overflow: visible;
+}
+
+.dayContentSlot {
+  height: 60px;
+  border-bottom: 1px solid #f0f0f0;
+  position: relative;
+  background: white;
+  overflow: visible;
+}
+
+.dayLessonCard {
+  background: #e6f7ff;
+  border-left: 4px solid #1890ff;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  right: 4px;
+  z-index: 10;
+}
+
+.dayLessonCard:hover {
+  background: #bae7ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 20;
+}
+
+.dayLessonCard.cancelled {
+  background: #fff1f0;
+  border-left-color: #ff4d4f;
+  opacity: 0.8;
+}
+
+.dayLessonTitle {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dayLessonTime {
+  font-size: 11px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.dayLessonMeetLink {
+  font-size: 10px;
   color: #1890ff;
 }
 
-.editButton:hover {
-  color: #40a9ff;
+.dayLessonTeacher {
+  font-size: 11px;
+  color: #888;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.deleteButton {
-  color: #ff4d4f;
-}
-
-.deleteButton:hover {
-  color: #ff7875;
-}
-
-.modalForm :global(.ant-modal-header) {
-  border-bottom: 1px solid #f0f0f0;
-  margin-bottom: 24px;
-}
-
-.modalForm :global(.ant-modal-body) {
-  padding: 24px;
-}
-
-.modalFooter {
-  margin-bottom: 0;
-  margin-top: 24px;
-}
-
-.modalButtons {
-  width: 100%;
-  justify-content: flex-end;
-}
-
-.selectField,
-.timePicker,
-.inputField {
-  width: 100%;
-}
-
-.timePicker :global(.ant-picker-range) {
-  width: 100%;
-}
-
-.submitButton {
-  background-color: #52c41a;
-  border-color: #52c41a;
-}
-
-.submitButton:hover {
-  background-color: #73d13d !important;
-  border-color: #73d13d !important;
+/* ========== ТАБЛИЧНЫЙ ВИД ========== */
+.tableWrapper {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  position: relative;
+  z-index: 1;
 }
 
 .loadingContainer {
@@ -107,25 +337,68 @@
   min-height: 400px;
 }
 
+/* ========== МОДАЛЬНЫЕ ОКНА ========== */
+.lessonDetails {
+  padding: 8px 0;
+}
+
+.lessonDetails p {
+  margin-bottom: 12px;
+}
+
+/* ========== АДАПТИВНОСТЬ ========== */
 @media (max-width: 768px) {
   .header {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .title {
-    text-align: center;
+  .viewControls {
+    justify-content: center;
   }
 
-  .scheduleTable {
-    overflow-x: auto;
+  .timeColumnHeader,
+  .timeLabel,
+  .dayTimeColumn {
+    width: 60px;
   }
 
-  .scheduleTable :global(.ant-table-cell) {
-    white-space: nowrap;
+  .timeLabel,
+  .dayTimeSlot {
+    font-size: 11px;
   }
 
-  .modalForm :global(.ant-modal-body) {
-    padding: 16px;
+  .lessonTitle,
+  .dayLessonTitle {
+    font-size: 11px;
+    white-space: normal;
+    line-height: 1.3;
+  }
+
+  .lessonTime,
+  .dayLessonTime {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 576px) {
+  .weekDayHeader {
+    min-width: 70px;
+  }
+
+  .timeColumnHeader,
+  .timeLabel,
+  .dayTimeColumn {
+    width: 50px;
+  }
+
+  .weekLessonCard,
+  .dayLessonCard {
+    padding: 6px 8px;
+  }
+
+  .lessonTitle,
+  .dayLessonTitle {
+    font-size: 10px;
   }
 }

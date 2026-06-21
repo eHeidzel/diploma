@@ -4,58 +4,130 @@ import {
   Post,
   Body,
   Param,
-  Put,
   Delete,
+  Put,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
-import { ScheduleService } from '@services/schedule.service';
-import { Schedule } from '@entities/schedule.entity';
+import { ScheduleService } from '../services/schedule.service';
+import { ActivitiesService } from '../services/activities.service';
+import { Schedule } from '../entities/schedule.entity';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { RolesGuard } from '../guards/roles.guard';
+import { Roles } from '../decorators/roles.decorator';
+import { UserRole } from '@libs/shared';
 
 @Controller('schedule')
 export class ScheduleController {
-  constructor(private readonly scheduleService: ScheduleService) {}
+  constructor(
+    private readonly scheduleService: ScheduleService,
+    private readonly activitiesService: ActivitiesService,
+  ) {}
 
   @Post()
-  create(@Body() scheduleData: Partial<Schedule>): Promise<Schedule> {
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async create(@Body() scheduleData: Partial<Schedule>) {
     return this.scheduleService.create(scheduleData);
   }
 
   @Get()
-  findAll(): Promise<Schedule[]> {
+  @UseGuards(JwtAuthGuard)
+  async findAll() {
     return this.scheduleService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string): Promise<Schedule | null> {
-    return this.scheduleService.findOne(+id);
-  }
-
   @Get('teacher/:teacherId')
-  findByTeacher(@Param('teacherId') teacherId: string): Promise<Schedule[]> {
-    return this.scheduleService.findByTeacher(+teacherId);
+  @UseGuards(JwtAuthGuard)
+  async findByTeacher(@Param('teacherId') teacherId: number) {
+    return this.scheduleService.findByTeacher(teacherId);
   }
 
-  @Get('student/:studentId')
-  getStudentSchedule(
-    @Param('studentId') studentId: string,
-  ): Promise<Schedule[]> {
-    return this.scheduleService.getStudentSchedule(+studentId);
+  @Get('activity/:activityId')
+  @UseGuards(JwtAuthGuard)
+  async findByActivity(@Param('activityId') activityId: number) {
+    return this.scheduleService.findByActivity(activityId);
   }
 
-  @Get('subject/:subjectId')
-  findBySubject(@Param('subjectId') subjectId: string): Promise<Schedule[]> {
-    return this.scheduleService.findBySubject(+subjectId);
+  @Get('student/my')
+  @UseGuards(JwtAuthGuard)
+  async getMySchedule(@Request() req: any) {
+    const userId = req.user?.id;
+    if (!userId) {
+      return [];
+    }
+    return this.activitiesService.getUserSchedules(userId);
+  }
+
+  @Get('available/:activityId')
+  @UseGuards(JwtAuthGuard)
+  async getAvailableSchedules(@Param('activityId') activityId: number) {
+    return this.scheduleService.getAvailableSchedules(activityId);
+  }
+
+  @Post('enroll/:scheduleId')
+  @UseGuards(JwtAuthGuard)
+  async enroll(@Param('scheduleId') scheduleId: number, @Request() req: any) {
+    const userId = req.user?.id;
+    return this.scheduleService.enrollInSchedule(scheduleId, userId);
+  }
+
+  @Delete('cancel/:scheduleId')
+  @UseGuards(JwtAuthGuard)
+  async cancelEnrollment(
+    @Param('scheduleId') scheduleId: number,
+    @Request() req: any,
+  ) {
+    const userId = req.user?.id;
+    return this.activitiesService.cancelSchedule(scheduleId, userId);
+  }
+
+  @Post('cancel-all/:activityId')
+  @UseGuards(JwtAuthGuard)
+  async cancelAllSchedules(
+    @Param('activityId') activityId: number,
+    @Request() req: any,
+  ) {
+    const userId = req.user?.id;
+    return this.activitiesService.cancelAllSchedules(activityId, userId);
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  async findOne(@Param('id') id: number) {
+    return this.scheduleService.findOne(id);
   }
 
   @Put(':id')
-  update(
-    @Param('id') id: string,
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async update(
+    @Param('id') id: number,
     @Body() scheduleData: Partial<Schedule>,
-  ): Promise<Schedule | null> {
-    return this.scheduleService.update(+id, scheduleData);
+  ) {
+    return this.scheduleService.update(id, scheduleData);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string): Promise<void> {
-    return this.scheduleService.remove(+id);
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async remove(@Param('id') id: number) {
+    return this.scheduleService.remove(id);
+  }
+
+  @Get(':scheduleId/students')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.TEACHER)
+  async getEnrolledStudents(@Param('scheduleId') scheduleId: number) {
+    return this.scheduleService.getEnrolledStudents(scheduleId);
+  }
+
+  @Get('check-enrollment/:activityId')
+  @UseGuards(JwtAuthGuard)
+  async checkEnrollment(
+    @Param('activityId') activityId: number,
+    @Request() req: any,
+  ) {
+    return this.scheduleService.checkEnrollment(activityId, req.user.id);
   }
 }

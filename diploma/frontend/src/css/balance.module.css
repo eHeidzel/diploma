@@ -1,0 +1,12 @@
+.balanceModal :global(.ant-modal-body) {
+  padding: 24px;
+}
+
+.presetAmounts {
+  margin: 16px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}

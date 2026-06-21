@@ -1,36 +1,44 @@
-import { Controller, Post, Body, ConflictException } from '@nestjs/common';
-import { AuthService } from '@services/auth.service';
-import { I18n, I18nContext } from 'nestjs-i18n';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Request,
+  Get,
+} from '@nestjs/common';
+import { AuthService } from '../services/auth.service';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { User } from '@entities/user.entity';
+import { I18nContext } from 'nestjs-i18n';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  async register(
-    @Body()
-    body: {
-      name: string;
-      email: string;
-      password: string;
-      role: string;
-    },
-    @I18n() i18n: I18nContext,
-  ) {
-    try {
-      return await this.authService.register(body);
-    } catch (error: any) {
-      if (error.message === 'User already exists') {
-        throw new ConflictException(
-          i18n.t('auth.controller.register.conflict'),
-        );
-      }
-      throw error;
-    }
+  async register(@Body() body: User) {
+    return this.authService.register(
+      body.name,
+      body.email,
+      body.password,
+      body.birthDate,
+    );
   }
 
   @Post('login')
   async login(@Body() body: { email: string; password: string }) {
-    return await this.authService.login(body.email, body.password);
+    return this.authService.login(body.email, body.password);
+  }
+
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  async logout(@Request() req: any) {
+    return { message: 'Выход выполнен успешно' };
+  }
+
+  @Get('profile')
+  @UseGuards(JwtAuthGuard)
+  async getProfile(@Request() req: any) {
+    return this.authService.getProfile(req.user.id);
   }
 }
