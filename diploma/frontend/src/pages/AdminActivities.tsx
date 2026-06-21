@@ -1,4 +1,3 @@
-// pages/AdminActivities.tsx (обновленный - добавлено поле meetLink)
 import React, { useState, useEffect } from "react";
 import {
   Card,
@@ -39,6 +38,8 @@ import {
 import dayjs, { Dayjs } from "dayjs";
 import { adminApi } from "../services/api";
 import styles from "../css/admin.module.css";
+import { useTranslation } from "react-i18next";
+import { useAdaptiveLevel } from "../hooks/useAdaptiveLevel";
 
 const { Title } = Typography;
 const { TextArea } = Input;
@@ -65,41 +66,9 @@ const CATEGORIES = [
   { value: "security", label: "Security" },
 ];
 
-const ACTIVITY_TYPES = [
-  { value: "webinar", label: "Вебинар", icon: <VideoCameraOutlined /> },
-  { value: "masterclass", label: "Мастер-класс", icon: <TrophyOutlined /> },
-  { value: "individual", label: "Индивидуальное", icon: <UserOutlined /> },
-  { value: "group", label: "Групповое", icon: <TeamOutlined /> },
-  { value: "trial", label: "Пробное", icon: <GiftOutlined /> },
-];
-
-const DURATION_OPTIONS = [
-  { value: "30 мин", label: "30 минут" },
-  { value: "45 мин", label: "45 минут (академический час)" },
-  { value: "1 час", label: "1 час (астрономический час)" },
-  { value: "1.5 часа", label: "1.5 часа" },
-  { value: "2 часа", label: "2 часа" },
-  { value: "2.5 часа", label: "2.5 часа" },
-  { value: "3 часа", label: "3 часа" },
-];
-
-const AGE_RANGES = [
-  { value: "8-12", label: "8-12 лет" },
-  { value: "13-17", label: "13-17 лет" },
-  { value: "18-25", label: "18-25 лет" },
-  { value: "25-35", label: "25-35 лет" },
-  { value: "35+", label: "35+ лет" },
-  { value: "all", label: "Все возраста" },
-];
-
-const LEVELS = [
-  { value: "beginner", label: "Начинающий" },
-  { value: "intermediate", label: "Средний" },
-  { value: "advanced", label: "Продвинутый" },
-  { value: "all", label: "Любой уровень" },
-];
-
 const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
+  const { t } = useTranslation();
+  const { getTitleLevel } = useAdaptiveLevel();
   const [activities, setActivities] = useState<any[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -110,6 +79,40 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
   const [form] = Form.useForm();
 
   const watchType = Form.useWatch("type", form);
+
+  const ACTIVITY_TYPES = [
+    { value: "webinar", label: t("adminActivities.types.webinar"), icon: <VideoCameraOutlined /> },
+    { value: "masterclass", label: t("adminActivities.types.masterclass"), icon: <TrophyOutlined /> },
+    { value: "individual", label: t("adminActivities.types.individual"), icon: <UserOutlined /> },
+    { value: "group", label: t("adminActivities.types.group"), icon: <TeamOutlined /> },
+    { value: "trial", label: t("adminActivities.types.trial"), icon: <GiftOutlined /> },
+  ];
+
+  const DURATION_OPTIONS = [
+    { value: "30 мин", label: t("adminActivities.durationOptions.30 мин") },
+    { value: "45 мин", label: t("adminActivities.durationOptions.45 мин") },
+    { value: "1 час", label: t("adminActivities.durationOptions.1 час") },
+    { value: "1.5 часа", label: t("adminActivities.durationOptions.1.5 часа") },
+    { value: "2 часа", label: t("adminActivities.durationOptions.2 часа") },
+    { value: "2.5 часа", label: t("adminActivities.durationOptions.2.5 часа") },
+    { value: "3 часа", label: t("adminActivities.durationOptions.3 часа") },
+  ];
+
+  const AGE_RANGES = [
+    { value: "8-12", label: t("adminActivities.ageRanges.8-12") },
+    { value: "13-17", label: t("adminActivities.ageRanges.13-17") },
+    { value: "18-25", label: t("adminActivities.ageRanges.18-25") },
+    { value: "25-35", label: t("adminActivities.ageRanges.25-35") },
+    { value: "35+", label: t("adminActivities.ageRanges.35+") },
+    { value: "all", label: t("adminActivities.ageRanges.all") },
+  ];
+
+  const LEVELS = [
+    { value: "beginner", label: t("adminActivities.levels.beginner") },
+    { value: "intermediate", label: t("adminActivities.levels.intermediate") },
+    { value: "advanced", label: t("adminActivities.levels.advanced") },
+    { value: "all", label: t("adminActivities.levels.all") },
+  ];
 
   useEffect(() => {
     fetchActivities();
@@ -129,7 +132,7 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
       setActivities(response.data);
     } catch (error) {
       console.error("Error fetching activities:", error);
-      message.error("Ошибка загрузки активностей");
+      message.error(t("adminActivities.messages.loadError"));
     } finally {
       setLoading(false);
     }
@@ -183,13 +186,13 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
       let availableDates: AvailableDate[] = [];
       if (["webinar", "masterclass", "group"].includes(values.type)) {
         if (selectedDates.length === 0) {
-          throw new Error("Добавьте хотя бы одну дату для занятия");
+          throw new Error(t("adminActivities.messages.noDates"));
         }
         availableDates = selectedDates.filter(
           (d) => d.date && d.times.length > 0,
         );
         if (availableDates.length === 0) {
-          throw new Error("Заполните даты и время для занятия");
+          throw new Error(t("adminActivities.messages.addDate"));
         }
       }
 
@@ -215,18 +218,16 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
         groupShift:
           values.type === "group" ? values.groupShift || "утренняя" : null,
         learningPlan: values.learningPlan || [],
-        meetLink: values.meetLink || null, // Добавляем поле для ссылки
+        meetLink: values.meetLink || null,
         order: activities.length + 1,
       };
 
-      console.log("Submitting data:", JSON.stringify(submitData, null, 2));
-
       if (editingActivity) {
         await adminApi.updateActivity(editingActivity.id, submitData);
-        message.success("Активность обновлена");
+        message.success(t("adminActivities.messages.updateSuccess"));
       } else {
         await adminApi.createActivity(submitData);
-        message.success("Активность создана");
+        message.success(t("adminActivities.messages.createSuccess"));
       }
       setModalVisible(false);
       form.resetFields();
@@ -238,7 +239,7 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
       const errorMsg =
         error.response?.data?.message ||
         error.message ||
-        "Ошибка сохранения активности";
+        t("adminActivities.messages.saveError");
       setError(errorMsg);
       message.error(errorMsg);
     }
@@ -247,45 +248,45 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
   const handleDelete = async (id: number): Promise<void> => {
     try {
       await adminApi.deleteActivity(id);
-      message.success("Активность удалена");
+      message.success(t("adminActivities.messages.deleteSuccess"));
       fetchActivities();
     } catch (error) {
       console.error("Error deleting activity:", error);
-      message.error("Ошибка удаления активности");
+      message.error(t("adminActivities.messages.deleteError"));
     }
   };
 
   const getActivityTypeTag = (type: string) => {
     const config: any = {
-      webinar: { color: "blue", label: "Вебинар" },
-      masterclass: { color: "gold", label: "Мастер-класс" },
-      individual: { color: "green", label: "Индивидуальное" },
-      group: { color: "purple", label: "Групповое" },
-      trial: { color: "orange", label: "Пробное" },
+      webinar: { color: "blue", label: t("adminActivities.types.webinar") },
+      masterclass: { color: "gold", label: t("adminActivities.types.masterclass") },
+      individual: { color: "green", label: t("adminActivities.types.individual") },
+      group: { color: "purple", label: t("adminActivities.types.group") },
+      trial: { color: "orange", label: t("adminActivities.types.trial") },
     };
     return <Tag color={config[type]?.color}>{config[type]?.label}</Tag>;
   };
 
   const columns = [
     {
-      title: "ID",
+      title: t("adminActivities.table.id"),
       dataIndex: "id",
       key: "id",
       width: 60,
     },
     {
-      title: "Название",
+      title: t("adminActivities.table.title"),
       dataIndex: "title",
       key: "title",
     },
     {
-      title: "Тип",
+      title: t("adminActivities.table.type"),
       dataIndex: "type",
       key: "type",
       render: (type: string) => getActivityTypeTag(type),
     },
     {
-      title: "Категории",
+      title: t("adminActivities.table.categories"),
       dataIndex: "categories",
       key: "categories",
       render: (categories: string[]) => (
@@ -302,50 +303,52 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
       ),
     },
     {
-      title: "Цена",
+      title: t("adminActivities.table.price"),
       dataIndex: "price",
       key: "price",
-      render: (price: number) => (price === 0 ? "Бесплатно" : `${price} BYN`),
+      render: (price: number) =>
+        price === 0 ? t("adminActivities.table.free") : `${price} BYN`,
     },
     {
-      title: "Преподаватель",
+      title: t("adminActivities.table.teacher"),
       dataIndex: "teacher",
       key: "teacher",
-      render: (teacher: string) => teacher || "Не назначен",
+      render: (teacher: string) => teacher || t("adminActivities.table.notAssigned"),
     },
     {
-      title: "Длительность",
+      title: t("adminActivities.table.duration"),
       dataIndex: "duration",
       key: "duration",
     },
     {
-      title: "Ссылка на конференцию",
+      title: t("adminActivities.table.meetLink"),
       dataIndex: "meetLink",
       key: "meetLink",
-      render: (link: string) => (
+      render: (link: string) =>
         link ? (
           <a href={link} target="_blank" rel="noopener noreferrer">
-            <LinkOutlined /> Открыть
+            <LinkOutlined /> {t("adminActivities.table.openLink")}
           </a>
         ) : (
-          <Tag color="default">Не указана</Tag>
-        )
-      ),
+          <Tag color="default">{t("adminActivities.table.notSpecified")}</Tag>
+        ),
     },
     {
-      title: "Активна",
+      title: t("adminActivities.table.isActive"),
       dataIndex: "isActive",
       key: "isActive",
       render: (isActive: boolean) => (
-        <Tag color={isActive ? "green" : "red"}>{isActive ? "Да" : "Нет"}</Tag>
+        <Tag color={isActive ? "green" : "red"}>
+          {isActive ? t("adminActivities.table.active") : t("adminActivities.table.inactive")}
+        </Tag>
       ),
     },
     {
-      title: "Действия",
+      title: t("adminActivities.table.actions"),
       key: "actions",
       render: (_: any, record: any) => (
         <Space>
-          <Tooltip title="Редактировать">
+          <Tooltip title={t("adminActivities.editButton")}>
             <Button
               type="text"
               icon={<EditOutlined />}
@@ -367,13 +370,13 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
             />
           </Tooltip>
           <Popconfirm
-            title="Удаление активности"
-            description="Вы уверены, что хотите удалить эту активность?"
+            title={t("adminActivities.messages.deleteConfirmTitle")}
+            description={t("adminActivities.messages.deleteConfirm")}
             onConfirm={() => handleDelete(record.id)}
-            okText="Да"
-            cancelText="Нет"
+            okText={t("common.yes")}
+            cancelText={t("common.no")}
           >
-            <Tooltip title="Удалить">
+            <Tooltip title={t("adminActivities.deleteButton")}>
               <Button type="text" danger icon={<DeleteOutlined />} />
             </Tooltip>
           </Popconfirm>
@@ -389,7 +392,7 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <Title level={3}>Управление активностями</Title>
+        <Title level={getTitleLevel(3)}>{t("adminActivities.title")}</Title>
         <Button
           type="primary"
           icon={<PlusOutlined />}
@@ -410,7 +413,7 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
             setModalVisible(true);
           }}
         >
-          Создать активность
+          {t("adminActivities.createButton")}
         </Button>
       </div>
 
@@ -427,7 +430,9 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
 
       <Modal
         title={
-          editingActivity ? "Редактировать активность" : "Создать активность"
+          editingActivity
+            ? t("adminActivities.editTitle")
+            : t("adminActivities.createTitle")
         }
         open={modalVisible}
         onCancel={() => {
@@ -444,7 +449,7 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
       >
         {error && (
           <Alert
-            message="Ошибка"
+            message={t("common.error")}
             description={error}
             type="error"
             showIcon
@@ -459,17 +464,21 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
             <Col span={16}>
               <Form.Item
                 name="title"
-                label="Название"
-                rules={[{ required: true, message: "Введите название" }]}
+                label={t("adminActivities.fields.title")}
+                rules={[
+                  { required: true, message: t("adminActivities.validation.titleRequired") },
+                ]}
               >
-                <Input />
+                <Input placeholder={t("adminActivities.placeholders.title")} />
               </Form.Item>
             </Col>
             <Col span={8}>
               <Form.Item
                 name="type"
-                label="Тип занятия"
-                rules={[{ required: true, message: "Выберите тип" }]}
+                label={t("adminActivities.fields.type")}
+                rules={[
+                  { required: true, message: t("adminActivities.validation.typeRequired") },
+                ]}
               >
                 <Select>
                   {ACTIVITY_TYPES.map((type) => (
@@ -484,10 +493,12 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
 
           <Form.Item
             name="categories"
-            label="Категории"
-            rules={[{ required: true, message: "Выберите категории" }]}
+            label={t("adminActivities.fields.categories")}
+            rules={[
+              { required: true, message: t("adminActivities.validation.categoriesRequired") },
+            ]}
           >
-            <Select mode="multiple" placeholder="Выберите категории">
+            <Select mode="multiple" placeholder={t("adminActivities.fields.categories")}>
               {CATEGORIES.map((cat) => (
                 <Select.Option key={cat.value} value={cat.value}>
                   {cat.label}
@@ -498,21 +509,25 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
 
           <Form.Item
             name="description"
-            label="Описание"
-            rules={[{ required: true, message: "Введите описание" }]}
+            label={t("adminActivities.fields.description")}
+            rules={[
+              { required: true, message: t("adminActivities.validation.descriptionRequired") },
+            ]}
           >
-            <TextArea rows={3} />
+            <TextArea rows={3} placeholder={t("adminActivities.placeholders.description")} />
           </Form.Item>
 
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
                 name="teacherId"
-                label="Преподаватель"
-                rules={[{ required: true, message: "Выберите преподавателя" }]}
+                label={t("adminActivities.fields.teacher")}
+                rules={[
+                  { required: true, message: t("adminActivities.validation.teacherRequired") },
+                ]}
               >
                 <Select
-                  placeholder="Выберите преподавателя"
+                  placeholder={t("adminActivities.fields.teacher")}
                   showSearch
                   optionFilterProp="children"
                 >
@@ -534,20 +549,20 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
             <Col span={12}>
               <Form.Item
                 name="price"
-                label="Цена (BYN)"
+                label={t("adminActivities.fields.price")}
                 rules={[
-                  { required: true, message: "Введите цену" },
+                  { required: true, message: t("adminActivities.validation.priceRequired") },
                   {
                     type: "number",
                     min: 0,
-                    message: "Цена не может быть отрицательной",
+                    message: t("adminActivities.validation.priceMin"),
                   },
                 ]}
               >
                 <InputNumber
                   min={0}
                   style={{ width: "100%" }}
-                  placeholder="0 - бесплатно"
+                  placeholder={t("adminActivities.placeholders.price")}
                 />
               </Form.Item>
             </Col>
@@ -557,10 +572,12 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
             <Col span={12}>
               <Form.Item
                 name="duration"
-                label="Длительность"
-                rules={[{ required: true, message: "Выберите длительность" }]}
+                label={t("adminActivities.fields.duration")}
+                rules={[
+                  { required: true, message: t("adminActivities.validation.durationRequired") },
+                ]}
               >
-                <Select placeholder="Выберите длительность">
+                <Select placeholder={t("adminActivities.fields.duration")}>
                   {DURATION_OPTIONS.map((opt) => (
                     <Select.Option key={opt.value} value={opt.value}>
                       {opt.label}
@@ -572,12 +589,12 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
             <Col span={12}>
               <Form.Item
                 name="ageRange"
-                label="Возрастная группа"
+                label={t("adminActivities.fields.ageRange")}
                 rules={[
-                  { required: true, message: "Выберите возрастную группу" },
+                  { required: true, message: t("adminActivities.validation.ageRangeRequired") },
                 ]}
               >
-                <Select placeholder="Выберите возрастную группу">
+                <Select placeholder={t("adminActivities.fields.ageRange")}>
                   {AGE_RANGES.map((range) => (
                     <Select.Option key={range.value} value={range.value}>
                       {range.label}
@@ -592,10 +609,12 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
             <Col span={12}>
               <Form.Item
                 name="level"
-                label="Уровень"
-                rules={[{ required: true, message: "Выберите уровень" }]}
+                label={t("adminActivities.fields.level")}
+                rules={[
+                  { required: true, message: t("adminActivities.validation.levelRequired") },
+                ]}
               >
-                <Select placeholder="Выберите уровень">
+                <Select placeholder={t("adminActivities.fields.level")}>
                   {LEVELS.map((level) => (
                     <Select.Option key={level.value} value={level.value}>
                       {level.label}
@@ -609,25 +628,39 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
                 <Col span={6}>
                   <Form.Item
                     name="groupPeriod"
-                    label="Период"
-                    rules={[{ required: true, message: "Выберите период" }]}
+                    label={t("adminActivities.fields.groupPeriod")}
+                    rules={[
+                      { required: true, message: t("adminActivities.validation.groupPeriodRequired") },
+                    ]}
                   >
                     <Select>
-                      <Select.Option value="6 месяцев">6 месяцев</Select.Option>
-                      <Select.Option value="год">1 год</Select.Option>
+                      <Select.Option value="6 месяцев">
+                        {t("adminActivities.groupPeriods.6 месяцев")}
+                      </Select.Option>
+                      <Select.Option value="год">
+                        {t("adminActivities.groupPeriods.год")}
+                      </Select.Option>
                     </Select>
                   </Form.Item>
                 </Col>
                 <Col span={6}>
                   <Form.Item
                     name="groupShift"
-                    label="Смена"
-                    rules={[{ required: true, message: "Выберите смену" }]}
+                    label={t("adminActivities.fields.groupShift")}
+                    rules={[
+                      { required: true, message: t("adminActivities.validation.groupShiftRequired") },
+                    ]}
                   >
                     <Select>
-                      <Select.Option value="утренняя">Утренняя</Select.Option>
-                      <Select.Option value="дневная">Дневная</Select.Option>
-                      <Select.Option value="вечерняя">Вечерняя</Select.Option>
+                      <Select.Option value="утренняя">
+                        {t("adminActivities.groupShifts.утренняя")}
+                      </Select.Option>
+                      <Select.Option value="дневная">
+                        {t("adminActivities.groupShifts.дневная")}
+                      </Select.Option>
+                      <Select.Option value="вечерняя">
+                        {t("adminActivities.groupShifts.вечерняя")}
+                      </Select.Option>
                     </Select>
                   </Form.Item>
                 </Col>
@@ -635,14 +668,13 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
             )}
           </Row>
 
-          {/* Поле для ссылки на конференцию */}
           <Form.Item
             name="meetLink"
-            label="Ссылка на конференцию (опционально)"
-            extra="Общая ссылка для всех занятий этой активности"
+            label={t("adminActivities.fields.meetLink")}
+            extra={t("adminActivities.fields.meetLinkExtra")}
           >
             <Input
-              placeholder="https://meet.google.com/xxx-xxxx-xxx"
+              placeholder={t("adminActivities.fields.meetLinkPlaceholder")}
               prefix={<LinkOutlined />}
               allowClear
             />
@@ -652,7 +684,7 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
             <div className={styles.datesBlock}>
               <div className={styles.datesHeader}>
                 <span>
-                  <CalendarOutlined /> Даты и время проведения
+                  <CalendarOutlined /> {t("adminActivities.messages.selectDate")}
                 </span>
                 <Button
                   type="dashed"
@@ -660,14 +692,14 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
                   icon={<PlusCircleOutlined />}
                   onClick={handleAddDate}
                 >
-                  Добавить дату
+                  {t("adminActivities.messages.addDateButton")}
                 </Button>
               </div>
 
               {selectedDates.length === 0 && (
                 <Alert
-                  message="Добавьте даты для занятия"
-                  description="Для этого типа занятия необходимо указать конкретные даты и время проведения"
+                  message={t("adminActivities.messages.noDates")}
+                  description={t("adminActivities.messages.addDate")}
                   type="info"
                   showIcon
                   style={{ marginBottom: 16 }}
@@ -689,14 +721,14 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
                       disabledDate={(current) =>
                         current && current < dayjs().startOf("day")
                       }
-                      placeholder="Выберите дату"
+                      placeholder={t("adminActivities.messages.selectDate")}
                       style={{ width: "100%" }}
                     />
                   </div>
                   <div className={styles.timePicker}>
                     <Select
                       mode="multiple"
-                      placeholder="Выберите время"
+                      placeholder={t("adminActivities.messages.selectTime")}
                       value={item.times}
                       onChange={(values: string[]) =>
                         handleTimeChange(index, values)
@@ -741,11 +773,11 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
 
           {["individual", "trial"].includes(watchType) && (
             <Alert
-              message="Даты и время будут определяться автоматически"
+              message={t("adminActivities.messages.selectDate")}
               description={
                 watchType === "individual"
-                  ? "Пользователь выберет дни недели, а система проверит свободное время преподавателя с 8:00 до 20:00"
-                  : "Пользователь выберет дату, а система проверит свободное время преподавателя с 8:00 до 20:00"
+                  ? t("adminActivities.messages.dateInfoIndividual")
+                  : t("adminActivities.messages.dateInfoTrial")
               }
               type="info"
               showIcon
@@ -753,15 +785,24 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
             />
           )}
 
-          <Form.Item name="isActive" label="Активно" valuePropName="checked">
-            <Switch checkedChildren="Да" unCheckedChildren="Нет" />
+          <Form.Item
+            name="isActive"
+            label={t("adminActivities.fields.isActive")}
+            valuePropName="checked"
+          >
+            <Switch
+              checkedChildren={t("common.yes")}
+              unCheckedChildren={t("common.no")}
+            />
           </Form.Item>
 
           <Form.Item style={{ marginBottom: 0, textAlign: "right" }}>
             <Space>
-              <Button onClick={() => setModalVisible(false)}>Отмена</Button>
+              <Button onClick={() => setModalVisible(false)}>
+                {t("common.cancel")}
+              </Button>
               <Button type="primary" htmlType="submit">
-                {editingActivity ? "Сохранить" : "Создать"}
+                {editingActivity ? t("common.save") : t("common.create")}
               </Button>
             </Space>
           </Form.Item>

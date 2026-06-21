@@ -49,7 +49,6 @@ import ScheduleView from "./ScheduleView";
 import AdminActivities from "./AdminActivities";
 import AdminUsers from "./AdminUsers";
 import AdminSchedule from "./AdminSchedule";
-import Blacklist from "./Blacklist";
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -452,16 +451,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
               element={
                 isAdmin ? (
                   <AdminSchedule user={currentUser} />
-                ) : (
-                  <Navigate to="/dashboard/schedule" replace />
-                )
-              }
-            />
-            <Route
-              path="/blacklist"
-              element={
-                isAdmin ? (
-                  <Blacklist user={currentUser} />
                 ) : (
                   <Navigate to="/dashboard/schedule" replace />
                 )
