@@ -52,7 +52,13 @@ const CATEGORIES = [
   { value: "security", label: "Security" },
 ];
 
-const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
+const getFullAvatarUrl = (avatar: string) => {
+  if (!avatar) return null;
+  if (avatar.startsWith('http')) return avatar;
+  return `http://localhost:8080${avatar}`;
+};
+
+const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
   const { t } = useTranslation();
   const { getTitleLevel } = useAdaptiveLevel();
   const [users, setUsers] = useState<any[]>([]);
@@ -255,18 +261,29 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
     {
       title: t("adminUsers.table.user"),
       key: "user",
-      render: (_: any, record: any) => (
-        <Space>
-          <Avatar src={record.avatar} icon={<UserOutlined />} />
-          <div>
-            <Text strong>{record.name}</Text>
-            <br />
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              {record.email}
-            </Text>
-          </div>
-        </Space>
-      ),
+      render: (_: any, record: any) => {
+        const avatarUrl = record.avatar || record.avatarUrl || record.avatar_url;
+        const fullAvatarUrl = getFullAvatarUrl(avatarUrl);
+        
+        return (
+          <Space>
+            <Avatar 
+              src={fullAvatarUrl} 
+              icon={!fullAvatarUrl && <UserOutlined />}
+              size={40}
+              style={{ flexShrink: 0 }}
+              onError={() => false}
+            />
+            <div>
+              <Text strong>{record.name}</Text>
+              <br />
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                {record.email}
+              </Text>
+            </div>
+          </Space>
+        );
+      },
       sorter: (a: any, b: any) => (a.name || "").localeCompare(b.name || ""),
     },
     {
@@ -366,16 +383,25 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
     {
       title: t("adminUsers.requestColumns.teacher"),
       key: "user",
-      render: (_: any, record: any) => (
-        <Space>
-          <Avatar src={record.avatar} icon={<UserOutlined />} />
-          <div>
-            <Text strong>{record.name}</Text>
-            <br />
-            <Text type="secondary">{record.email}</Text>
-          </div>
-        </Space>
-      ),
+      render: (_: any, record: any) => {
+        const avatarUrl = record.avatar || record.avatarUrl || record.avatar_url;
+        const fullAvatarUrl = getFullAvatarUrl(avatarUrl);
+        
+        return (
+          <Space>
+            <Avatar 
+              src={fullAvatarUrl} 
+              icon={!fullAvatarUrl && <UserOutlined />}
+              onError={() => false}
+            />
+            <div>
+              <Text strong>{record.name}</Text>
+              <br />
+              <Text type="secondary">{record.email}</Text>
+            </div>
+          </Space>
+        );
+      },
     },
     {
       title: t("adminUsers.requestColumns.specialization"),
@@ -546,6 +572,14 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
         {selectedTeacher && (
           <>
             <Descriptions column={1} bordered>
+              <Descriptions.Item label={t("adminUsers.fields.avatar")}>
+                <Avatar 
+                  src={getFullAvatarUrl(selectedTeacher.avatar || selectedTeacher.avatarUrl || selectedTeacher.avatar_url)}
+                  size={64}
+                  icon={<UserOutlined />}
+                  onError={() => false}
+                />
+              </Descriptions.Item>
               <Descriptions.Item label={t("adminUsers.fields.name")}>
                 {selectedTeacher.name}
               </Descriptions.Item>
@@ -575,9 +609,21 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
 
             {selectedTeacher.role === "teacher" && (
               <>
-                <Title level={5} style={{ marginTop: 20 }}>
-                  {t("adminUsers.fields.googleDriveLink")}
-                </Title>
+                <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <Title level={5} style={{ margin: 0 }}>
+                    {t("adminUsers.fields.googleDriveLink")}
+                  </Title>
+                  <Button
+                    type="primary"
+                    size="small"
+                    icon={<PlusOutlined />}
+                    onClick={() => {
+                      setAccessModalVisible(true);
+                    }}
+                  >
+                    {t("adminUsers.table.grantAccess")}
+                  </Button>
+                </div>
                 {selectedTeacher.accesses &&
                 selectedTeacher.accesses.length > 0 ? (
                   <Table
@@ -586,9 +632,12 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
                     rowKey="id"
                     pagination={false}
                     size="small"
+                    style={{ marginTop: 10 }}
                   />
                 ) : (
-                  <Text type="secondary">{t("adminUsers.messages.noAccesses")}</Text>
+                  <Text type="secondary" style={{ display: "block", marginTop: 10 }}>
+                    {t("adminUsers.messages.noAccesses")}
+                  </Text>
                 )}
               </>
             )}
@@ -684,7 +733,6 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
         onCancel={() => {
           setAccessModalVisible(false);
           accessForm.resetFields();
-          setSelectedTeacher(null);
         }}
         footer={null}
         width={600}
@@ -722,7 +770,6 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
                 onClick={() => {
                   setAccessModalVisible(false);
                   accessForm.resetFields();
-                  setSelectedTeacher(null);
                 }}
               >
                 {t("common.cancel")}

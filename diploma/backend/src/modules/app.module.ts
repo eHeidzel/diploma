@@ -1,4 +1,3 @@
-
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -131,7 +130,11 @@ import { ScheduleRequestsService } from '@services/schedule-requests.service';
           ActivityReview,
           Material,
         ],
-        synchronize: process.env.NODE_ENV !== 'production',
+        // Блок SSL обязателен для безопасного подключения к облаку Layerbase
+        ssl: {
+          rejectUnauthorized: false,
+        },
+        synchronize: true,
         logging: true,
       }),
     }),

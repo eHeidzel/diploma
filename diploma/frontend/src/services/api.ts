@@ -113,8 +113,10 @@ export const profileApi = {
 
 export const settingsApi = {
   get: () => api.get("/settings"),
-  update: (data: any) => api.put("/settings", data),
-  updateNotifications: (data: any) => api.put("/settings/notifications", data),
+  update: (data: { language?: string; notificationsEnabled?: boolean }) =>
+    api.put("/settings", data),
+  updateNotifications: (data: { enabled: boolean }) =>
+    api.put("/settings/notifications", data),
   updatePrivacy: (data: any) => api.put("/settings/privacy", data),
 };
 
@@ -219,43 +221,31 @@ export const scheduleRequestsApi = {
 };
 
 export const adminApi = {
-  getActivities: () => api.get("/admin/activities"),
-  createActivity: (data: any) => api.post("/admin/activities", data),
-  updateActivity: (id: number, data: any) =>
-    api.put(`/admin/activities/${id}`, data),
-  deleteActivity: (id: number) => api.delete(`/admin/activities/${id}`),
-
   getUsers: () => api.get("/admin/users"),
   getTeachers: () => api.get("/admin/users/teachers"),
   createTeacher: (data: any) => api.post("/admin/users/teacher", data),
   updateUser: (id: number, data: any) => api.put(`/admin/users/${id}`, data),
   deleteUser: (id: number) => api.delete(`/admin/users/${id}`),
-  blockUser: (
-    id: number,
-    isBlocked: boolean,
-    reason?: string,
-    until?: string,
-  ) => api.patch(`/admin/users/${id}/block`, { isBlocked, reason, until }),
-
+  blockUser: (id: number, isBlocked: boolean, reason?: string, until?: string) =>
+    api.patch(`/admin/users/${id}/block`, { isBlocked, reason, until }),
   getBlacklist: () => api.get("/admin/blacklist"),
-
   getTeacherRequests: () => api.get("/admin/teacher-requests"),
   processTeacherRequest: (id: number, status: string) =>
     api.patch(`/admin/teacher-requests/${id}`, { status }),
-
   getSchedule: () => api.get("/admin/schedule"),
   createSchedule: (data: any) => api.post("/admin/schedule", data),
   updateSchedule: (id: number, data: any) =>
     api.put(`/admin/schedule/${id}`, data),
   deleteSchedule: (id: number) => api.delete(`/admin/schedule/${id}`),
-
   getTeacherAccesses: () => api.get("/admin/access"),
-  grantTeacherAccess: (data: {
-    teacherId: number;
-    category: string;
-    googleDriveLink: string;
-  }) => api.post("/admin/access", data),
+  grantTeacherAccess: (data: { teacherId: number; category: string; googleDriveLink: string }) =>
+    api.post("/admin/access", data),
   revokeTeacherAccess: (id: number) => api.delete(`/admin/access/${id}`),
+  getActivities: () => api.get("/admin/activities"),
+  createActivity: (data: any) => api.post("/admin/activities", data),
+  updateActivity: (id: number, data: any) =>
+    api.put(`/admin/activities/${id}`, data),
+  deleteActivity: (id: number) => api.delete(`/admin/activities/${id}`),
 };
 
 export const dashboardApi = {

@@ -406,11 +406,6 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
                 </div>
                 <div className={styles.teacherInfo}>
                   <Title level={4}>{teacher.name}</Title>
-                  <Text strong>{teacher.role}</Text>
-                  <br />
-                  <Text type="secondary">{teacher.company}</Text>
-                  <br />
-                  <Text type="secondary">{teacher.experience}</Text>
                   <div className={styles.teacherSkills}>
                     {teacher.skills?.map((skill: string) => (
                       <Tag key={skill} color="green">
@@ -455,9 +450,6 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
               />
             </div>
             <div className={styles.teacherModalInfo}>
-              <Text strong className={styles.teacherModalRole}>
-                {selectedTeacher.role}
-              </Text>
               <div className={styles.teacherModalDetails}>
                 <div className={styles.teacherModalRow}>
                   <Text type="secondary">{t("common.email")}:</Text>
@@ -468,16 +460,6 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
                   <Paragraph>
                     {selectedTeacher.bio || t("common.notSpecified")}
                   </Paragraph>
-                </div>
-                <div className={styles.teacherModalRow}>
-                  <Text type="secondary">{t("common.skills")}:</Text>
-                  <div className={styles.teacherModalSkills}>
-                    {selectedTeacher.skills?.map((skill: string) => (
-                      <Tag key={skill} color="green">
-                        {skill}
-                      </Tag>
-                    ))}
-                  </div>
                 </div>
                 <div className={styles.teacherModalContacts}>
                   <Button

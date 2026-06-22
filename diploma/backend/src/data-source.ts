@@ -34,7 +34,7 @@ export const AppDataSource = new DataSource({
   ],
   migrations: ['dist/migrations/*.js'],
   migrationsTableName: 'migrations',
-  synchronize: process.env.NODE_ENV !== 'production',
+  synchronize: true,
   logging: process.env.NODE_ENV !== 'production',
   // Для production (Vercel) добавьте SSL
   ...(process.env.NODE_ENV === 'production' && {

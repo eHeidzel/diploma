@@ -21,30 +21,33 @@ interface SettingsPageProps {
   user: any;
 }
 
-const Settings: React.FC<SettingsPageProps> = ({ }) => {
+const Settings: React.FC<SettingsPageProps> = ({ user }) => {
   const { t, i18n } = useTranslation();
   const { getTitleLevel } = useAdaptiveLevel();
-  const [setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
 
   useEffect(() => {
-    fetchSettings();
-  }, []);
+    if (user) {
+      fetchSettings();
+    }
+  }, [user]);
 
   const fetchSettings = async () => {
     setLoading(true);
     try {
       const response = await settingsApi.get();
-      setSettings(response.data);
       form.setFieldsValue({
-        language: response.data.language || i18n.language,
+        language: response.data.language || i18n.language || "ru",
         notificationsEnabled: response.data.notificationsEnabled !== false,
       });
     } catch (error) {
       console.error("Error fetching settings:", error);
-      message.error(t("settings.error"));
+      form.setFieldsValue({
+        language: i18n.language || "ru",
+        notificationsEnabled: true,
+      });
     } finally {
       setLoading(false);
     }
@@ -59,11 +62,11 @@ const Settings: React.FC<SettingsPageProps> = ({ }) => {
       });
 
       if (values.language && values.language !== i18n.language) {
-        i18n.changeLanguage(values.language);
+        await i18n.changeLanguage(values.language);
+        localStorage.setItem("language", values.language);
       }
 
       message.success(t("settings.success"));
-      fetchSettings();
     } catch (error) {
       console.error("Error saving settings:", error);
       message.error(t("settings.error"));
@@ -83,7 +86,7 @@ const Settings: React.FC<SettingsPageProps> = ({ }) => {
         layout="vertical"
         onFinish={handleSaveAll}
         initialValues={{
-          language: "ru",
+          language: i18n.language || "ru",
           notificationsEnabled: true,
         }}
       >

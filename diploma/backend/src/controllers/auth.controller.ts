@@ -16,7 +16,8 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  async register(@Body() body: User) {
+  // Изменили тип "body: User" на "body: any", чтобы NestJS не фильтровал ваши поля
+  async register(@Body() body: any) {
     return this.authService.register(
       body.name,
       body.email,

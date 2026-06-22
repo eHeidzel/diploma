@@ -7,7 +7,7 @@ module.exports = {
   database: process.env.DB_NAME || 'diploma_db',
   entities: ['dist/**/*.entity.js'],
   migrations: ['dist/migrations/*.js'],
-  synchronize: false,
+  synchronize: true,
   logging: false,
   ssl: process.env.NODE_ENV === 'production' ? {
     rejectUnauthorized: false
