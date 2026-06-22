@@ -5,16 +5,16 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "diploma/backend/dist/main.js"
+      "dest": "/api/index.js"
     },
     {
       "src": "/(.*)",
-      "dest": "diploma/frontend/dist/index.html"
+      "dest": "/diploma/frontend/dist/index.html"
     }
   ],
   "builds": [
     {
-      "src": "diploma/backend/dist/main.js",
+      "src": "api/index.js",
       "use": "@vercel/node"
     },
     {

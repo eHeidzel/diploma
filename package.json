@@ -9,7 +9,6 @@
     "clean": "rm -rf libs/shared/dist diploma/backend/dist diploma/frontend/dist"
   },
   "dependencies": {
-    "@nestjs/cli": "^11.0.23",
     "@nestjs/config": "^4.0.4",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-socket.io": "^11.1.26",
