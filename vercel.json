@@ -1,25 +1,5 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "diploma/backend/dist/main.js",
-      "use": "@vercel/node",
-      "config": {
-        "maxDuration": 10,
-        "memory": 1024,
-        "includeFiles": [
-          "diploma/backend/dist/**",
-          "diploma/backend/node_modules/**",
-          "libs/shared/dist/**",
-          "libs/shared/node_modules/**"
-        ]
-      }
-    },
-    {
-      "src": "diploma/frontend/dist/**",
-      "use": "@vercel/static"
-    }
-  ],
   "routes": [
     {
       "src": "/api/(.*)",
