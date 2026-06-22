@@ -1,20 +1,24 @@
 {
   "compilerOptions": {
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "target": "ES2020",
+    "module": "commonjs",
+    "lib": ["ES2020"],
     "declaration": true,
-    "rootDir": "./src",
+    "declarationMap": true,
+    "sourceMap": true,
     "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "composite": true,
     "baseUrl": ".",
     "paths": {
       "@interfaces/*": ["./src/interfaces/*"]
-    },
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "target": "ES2020"
+    }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]
+  "exclude": ["node_modules", "dist", "**/*.test.ts"]
 }

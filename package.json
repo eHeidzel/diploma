@@ -2,10 +2,12 @@
   "name": "diploma",
   "version": "1.0.0",
   "scripts": {
-    "build": "npm run build:backend && npm run build:frontend",
+    "build": "npm run build:shared && npm run build:backend && npm run build:frontend",
+    "build:shared": "cd diploma/libs/shared && npm install && npm run build",
     "build:backend": "cd diploma/backend && npm install && npm run build",
     "build:frontend": "cd diploma/frontend && npm install && npm run build",
-    "start": "node diploma/backend/dist/main.js"
+    "start": "node diploma/backend/dist/main.js",
+    "clean": "rm -rf libs/shared/dist diploma/backend/dist diploma/frontend/dist"
   },
   "dependencies": {
     "@nestjs/config": "^4.0.4",

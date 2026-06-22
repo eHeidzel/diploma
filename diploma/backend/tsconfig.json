@@ -6,26 +6,36 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "target": "ES2023",
+    "target": "ES2020",
     "sourceMap": true,
     "outDir": "./dist",
-    "rootDir": "./src",
-    "noEmit": false,
-    "incremental": false,
+    "baseUrl": "./",
+    "incremental": true,
     "skipLibCheck": true,
-    "strictNullChecks": true,
+    "strictNullChecks": false,
     "noImplicitAny": false,
     "strictBindCallApply": false,
-    "forceConsistentCasingInFileNames": true,
+    "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@services/*": ["./src/services/*"],
+      "@libs/shared": ["../libs/shared/src"],
+      "@libs/shared/*": ["../libs/shared/src/*"],
       "@controllers/*": ["./src/controllers/*"],
+      "@services/*": ["./src/services/*"],
       "@entities/*": ["./src/entities/*"],
-      "@dto/*": ["./src/dtos/*"],
-      "@strategies/*": ["./src/strategies/*"]
+      "@interfaces/*": ["./src/interfaces/*"],
+      "@modules/*": ["./src/modules/*"],
+      "@strategies/*": ["./src/strategies/*"],
+      "@guards/*": ["./src/guards/*"],
+      "@decorators/*": ["./src/decorators/*"],
+      "@utils/*": ["./src/utils/*"],
+      "@config/*": ["./src/config/*"],
+      "@migrations/*": ["./src/migrations/*"]
     }
   },
+  "references": [
+    { "path": "../libs/shared" }
+  ],
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
 }

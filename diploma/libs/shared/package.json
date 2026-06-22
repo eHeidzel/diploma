@@ -3,15 +3,15 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "default": "./dist/index.js"
-    }
-  },
   "scripts": {
-    "build": "tsc --build tsconfig.json",
-    "clean": "tsc --build --clean tsconfig.json"
-  }
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublish": "npm run build"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2"
+  },
+  "files": [
+    "dist/**/*"
+  ]
 }

@@ -57,7 +57,7 @@ export class AdminService {
     });
 
     const saved = await this.userRepo.save(user);
-    const teacher = saved[0] || saved;
+    const teacher: User = Array.isArray(saved) ? saved[0] : saved;
 
     const balance = this.balanceRepo.create({
       userId: teacher.id,
