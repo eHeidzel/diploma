@@ -16,11 +16,14 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/api"
+      "dest": "diploma/backend"
+    },
+    {
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",
-      "dest": "/"
+      "dest": "diploma/frontend"
     }
   ]
 }
