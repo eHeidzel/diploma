@@ -58,7 +58,7 @@ const getFullAvatarUrl = (avatar: string) => {
   return `http://localhost:8080${avatar}`;
 };
 
-const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
+const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
   const { t } = useTranslation();
   const { getTitleLevel } = useAdaptiveLevel();
   const [users, setUsers] = useState<any[]>([]);
