@@ -10,7 +10,22 @@
     },
     "backend": {
       "root": "diploma/backend",
-      "routePrefix": "/api"
+      "routePrefix": "/api",
+      "runtime": "@vercel/node",
+      "entrypoint": "src/main.ts"
     }
-  }
+  },
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "diploma/backend"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "diploma/frontend"
+    }
+  ]
 }
