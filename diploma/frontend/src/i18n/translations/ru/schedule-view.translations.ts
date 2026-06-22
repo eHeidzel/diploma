@@ -52,4 +52,12 @@ export const scheduleView: IScheduleViewTranslations = {
     available: "Есть ссылка",
     hasLink: "Есть ссылка",
   },
+  table: {
+    date: "Дата",
+    time: "Время",
+    activity: "Занятие",
+    teacher: "Преподаватель",
+    students: "Ученики",
+    actions: "Действия",
+  },
 };

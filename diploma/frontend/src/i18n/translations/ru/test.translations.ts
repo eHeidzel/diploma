@@ -1,6 +1,6 @@
 import { ITestTranslations } from "@interfaces/test.interface";
 
-export const test: ITestTranslations = {
+export const test = {
   title: "Кто вы в IT?",
   subtitle:
     "Пройдите тест и узнайте, какое направление в IT вам подходит больше всего",
@@ -29,5 +29,8 @@ export const test: ITestTranslations = {
   results: {
     allDirections: "Все возможные направления",
     recommendations: "Рекомендации для старта",
+    salary: "Заработок",
+    goToLearning: "Перейти к обучению по направлению {{name}}",
+    chooseDirection: "Выбрать направление",
   },
 };

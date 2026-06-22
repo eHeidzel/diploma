@@ -1,6 +1,6 @@
 import { IRegisterTranslations } from "@interfaces/register.interface";
 
-export const register: IRegisterTranslations = {
+export const register = {
   title: "Registration",
   subtitle: "Create a new account",
   nameLabel: "Name",
@@ -25,4 +25,14 @@ export const register: IRegisterTranslations = {
   emailConflict: "User with this email already exists",
   registerError: "Registration failed",
   schoolTitle: "Online School",
+    passwordHasLetter: "Password must contain at least one letter",
+  passwordHasDigit: "Password must contain at least one digit",
+  birthDateRequired: "Please enter your date of birth",
+  birthDateTooltip: "Enter your date of birth",
+  birthDatePlaceholder: "Date of birth",
+  confirmPasswordRequired: "Please confirm your password",
+  confirmPasswordPlaceholder: "Confirm password",
+  passwordsDoNotMatch: "Passwords do not match",
+  loading: "Registering...",
+  guestLink: "Login as guest",
 };

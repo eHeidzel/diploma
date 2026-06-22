@@ -1,4 +1,3 @@
-// pages/MyStudents.tsx
 import React, { useState, useEffect } from "react";
 import {
   Card,
@@ -25,6 +24,8 @@ import {
 } from "@ant-design/icons";
 import { teacherApi } from "../services/api";
 import styles from "../css/myStudents.module.css";
+import { useTranslation } from "react-i18next";
+import { useAdaptiveLevel } from "../hooks/useAdaptiveLevel";
 
 const { Title, Text } = Typography;
 const { Search } = Input;
@@ -48,6 +49,8 @@ interface Student {
 }
 
 const MyStudents: React.FC<MyStudentsProps> = ({ user }) => {
+  const { t } = useTranslation();
+  const { getTitleLevel } = useAdaptiveLevel();
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
@@ -56,7 +59,6 @@ const MyStudents: React.FC<MyStudentsProps> = ({ user }) => {
   const [filterGroup, setFilterGroup] = useState<string>("all");
   const [groups, setGroups] = useState<string[]>([]);
 
-  // Функция для формирования полного URL аватара
   const getFullAvatarUrl = (avatar: string | null | undefined): string | undefined => {
     if (!avatar) return undefined;
     if (avatar.startsWith("http")) return avatar;
@@ -73,17 +75,17 @@ const MyStudents: React.FC<MyStudentsProps> = ({ user }) => {
     try {
       const response = await teacherApi.getStudents();
       const studentsData = response.data || [];
-      
+
       const formattedStudents = studentsData.map((student: any) => ({
         ...student,
         avatar: getFullAvatarUrl(student.avatar),
-        group: student.group || student.course || "Индивидуально",
+        group: student.group || student.course || t("myStudents.profile.individual"),
       }));
-      
+
       setStudents(formattedStudents);
     } catch (error) {
       console.error("Error fetching students:", error);
-      message.error("Ошибка загрузки учеников");
+      message.error(t("myStudents.loading"));
     } finally {
       setLoading(false);
     }
@@ -109,7 +111,7 @@ const MyStudents: React.FC<MyStudentsProps> = ({ user }) => {
       setSelectedStudent(profileData);
     } catch (error) {
       console.error("Error fetching student profile:", error);
-      message.error("Ошибка загрузки профиля ученика");
+      message.error(t("myStudents.loading"));
       setSelectedStudent({
         ...student,
         avatar: getFullAvatarUrl(student.avatar),
@@ -119,7 +121,6 @@ const MyStudents: React.FC<MyStudentsProps> = ({ user }) => {
     }
   };
 
-  // Получаем уникальные группы из данных студентов
   const uniqueGroups = Array.from(
     new Set(students.map((s) => s.group).filter(Boolean))
   ) as string[];
@@ -134,47 +135,47 @@ const MyStudents: React.FC<MyStudentsProps> = ({ user }) => {
 
   const columns = [
     {
-      title: "Ученик",
+      title: t("myStudents.table.student"),
       key: "student",
       render: (_: any, record: Student) => (
         <Space>
-          <Avatar 
-            src={record.avatar} 
-            icon={<UserOutlined />} 
+          <Avatar
+            src={record.avatar}
+            icon={<UserOutlined />}
           />
           <div>
-            <Text strong>{record.name || "Не указано"}</Text>
+            <Text strong>{record.name || t("common.notSpecified")}</Text>
             <br />
             <Text type="secondary" style={{ fontSize: 12 }}>
-              {record.email || "Не указан"}
+              {record.email || t("common.notSpecified")}
             </Text>
           </div>
         </Space>
       ),
-      sorter: (a: Student, b: Student) => 
+      sorter: (a: Student, b: Student) =>
         (a.name || "").localeCompare(b.name || ""),
     },
     {
-      title: "Группа",
+      title: t("myStudents.table.group"),
       dataIndex: "group",
       key: "group",
       render: (group: string) => (
-        <Tag color={group && group !== "Индивидуально" ? "blue" : "default"}>
-          {group || "Индивидуально"}
+        <Tag color={group && group !== t("myStudents.profile.individual") ? "blue" : "default"}>
+          {group || t("myStudents.noGroup")}
         </Tag>
       ),
       filters: uniqueGroups.map((g) => ({
-        text: g || "Без группы",
+        text: g || t("myStudents.noGroup"),
         value: g,
       })),
       onFilter: (value: any, record: Student) => record.group === value,
     },
     {
-      title: "Действия",
+      title: t("myStudents.table.actions"),
       key: "actions",
       render: (_: any, record: Student) => (
         <Button type="link" onClick={() => handleViewProfile(record)}>
-          Профиль
+          {t("myStudents.table.viewProfile")}
         </Button>
       ),
     },
@@ -182,12 +183,12 @@ const MyStudents: React.FC<MyStudentsProps> = ({ user }) => {
 
   return (
     <div className={styles.container}>
-      <Title level={3}>Мои ученики</Title>
+      <Title level={getTitleLevel(3)}>{t("myStudents.title")}</Title>
 
       <Card className={styles.filtersCard}>
         <Space wrap size="middle" style={{ width: "100%" }}>
           <Search
-            placeholder="Поиск по имени или email"
+            placeholder={t("myStudents.searchPlaceholder")}
             allowClear
             style={{ width: 250 }}
             onSearch={setSearchText}
@@ -196,15 +197,15 @@ const MyStudents: React.FC<MyStudentsProps> = ({ user }) => {
           />
 
           <Select
-            placeholder="Фильтр по группе"
+            placeholder={t("myStudents.filterGroup")}
             style={{ width: 180 }}
             value={filterGroup}
             onChange={setFilterGroup}
             options={[
-              { value: "all", label: "Все группы" },
+              { value: "all", label: t("myStudents.allGroups") },
               ...uniqueGroups.map((g) => ({
                 value: g,
-                label: g || "Без группы",
+                label: g || t("myStudents.noGroup"),
               })),
             ]}
             allowClear
@@ -220,12 +221,12 @@ const MyStudents: React.FC<MyStudentsProps> = ({ user }) => {
         pagination={{ pageSize: 10 }}
         className={styles.table}
         locale={{
-          emptyText: <Empty description="Нет учеников" />,
+          emptyText: <Empty description={t("myStudents.noStudents")} />,
         }}
       />
 
       <Modal
-        title="Профиль ученика"
+        title={t("myStudents.profile.title")}
         open={!!selectedStudent}
         onCancel={() => {
           setSelectedStudent(null);
@@ -239,7 +240,7 @@ const MyStudents: React.FC<MyStudentsProps> = ({ user }) => {
         {studentLoading ? (
           <div className={styles.loadingContainer}>
             <Spin size="large" />
-            <p style={{ marginTop: 16 }}>Загрузка профиля...</p>
+            <p style={{ marginTop: 16 }}>{t("myStudents.profile.loading")}</p>
           </div>
         ) : (
           selectedStudent && (
@@ -252,10 +253,10 @@ const MyStudents: React.FC<MyStudentsProps> = ({ user }) => {
                 />
                 <div className={styles.profileInfo}>
                   <Title level={4} style={{ margin: 0 }}>
-                    {selectedStudent.name || "Не указано"}
+                    {selectedStudent.name || t("common.notSpecified")}
                   </Title>
                   <Text type="secondary">
-                    {selectedStudent.email || "Не указан"}
+                    {selectedStudent.email || t("common.notSpecified")}
                   </Text>
                 </div>
               </div>
@@ -269,37 +270,37 @@ const MyStudents: React.FC<MyStudentsProps> = ({ user }) => {
                 <Descriptions.Item
                   label={
                     <>
-                      <PhoneOutlined /> Телефон
+                      <PhoneOutlined /> {t("myStudents.profile.phone")}
                     </>
                   }
                 >
-                  {selectedStudent.phone || "Не указан"}
+                  {selectedStudent.phone || t("common.notSpecified")}
                 </Descriptions.Item>
                 <Descriptions.Item
                   label={
                     <>
-                      <TeamOutlined /> Группа
+                      <TeamOutlined /> {t("myStudents.profile.group")}
                     </>
                   }
                 >
-                  <Tag color={selectedStudent.group && selectedStudent.group !== "Индивидуально" ? "blue" : "default"}>
-                    {selectedStudent.group || "Индивидуально"}
+                  <Tag color={selectedStudent.group && selectedStudent.group !== t("myStudents.profile.individual") ? "blue" : "default"}>
+                    {selectedStudent.group || t("myStudents.profile.individual")}
                   </Tag>
                 </Descriptions.Item>
                 {selectedStudent.progress !== undefined && (
-                  <Descriptions.Item label="Прогресс">
+                  <Descriptions.Item label={t("myStudents.profile.progress")}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div style={{ 
-                        width: '100%', 
-                        maxWidth: 150, 
-                        height: 8, 
-                        background: '#f0f0f0', 
+                      <div style={{
+                        width: '100%',
+                        maxWidth: 150,
+                        height: 8,
+                        background: '#f0f0f0',
                         borderRadius: 4,
                         overflow: 'hidden'
                       }}>
-                        <div style={{ 
-                          width: `${selectedStudent.progress || 0}%`, 
-                          height: '100%', 
+                        <div style={{
+                          width: `${selectedStudent.progress || 0}%`,
+                          height: '100%',
                           background: '#52c41a',
                           borderRadius: 4
                         }} />
@@ -309,13 +310,13 @@ const MyStudents: React.FC<MyStudentsProps> = ({ user }) => {
                   </Descriptions.Item>
                 )}
                 {selectedStudent.completedLessons !== undefined && (
-                  <Descriptions.Item label="Завершено занятий">
+                  <Descriptions.Item label={t("myStudents.profile.completedLessons")}>
                     {selectedStudent.completedLessons || 0}
                   </Descriptions.Item>
                 )}
                 {selectedStudent.averageRating !== undefined && (
-                  <Descriptions.Item label="Средняя оценка">
-                    {selectedStudent.averageRating || "Нет оценок"}
+                  <Descriptions.Item label={t("myStudents.profile.averageRating")}>
+                    {selectedStudent.averageRating || t("myStudents.profile.noRating")}
                   </Descriptions.Item>
                 )}
               </Descriptions>

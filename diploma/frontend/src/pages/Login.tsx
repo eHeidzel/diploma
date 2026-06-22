@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Form, Input, Button, Card, message, Typography, Alert } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
@@ -16,6 +15,7 @@ interface LoginProps {
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
+  const { t } = useTranslation();
   const { getTitleLevel } = useAdaptiveLevel();
   const [loading, setLoading] = useState(false);
   const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
@@ -23,19 +23,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const location = useLocation();
-  const { t } = useTranslation();
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get("blocked") === "true") {
-      setBlockedMessage(
-        "Ваш аккаунт был заблокирован. Обратитесь к администратору для получения дополнительной информации.",
-      );
+      setBlockedMessage(t("login.blockedMessage"));
     }
-
-    
     localStorage.removeItem("isGuest");
-  }, [location]);
+  }, [location, t]);
 
   const onFinish = async (values: { email: string; password: string }) => {
     setLoading(true);
@@ -46,16 +41,15 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       const response = await authApi.login(values.email, values.password);
       const { user, token } = response.data;
 
-      
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
-      localStorage.removeItem("isGuest"); 
+      localStorage.removeItem("isGuest");
 
       onLogin(user);
-      message.success(`Добро пожаловать, ${user.name}!`);
+      message.success(t("login.loginSuccess").replace("{{name}}", user.name));
       navigate("/dashboard");
     } catch (error: any) {
-      const errorMsg = error.response?.data?.message || "Ошибка входа";
+      const errorMsg = error.response?.data?.message || t("login.loginError");
 
       if (
         errorMsg.toLowerCase().includes("заблокирован") ||
@@ -76,27 +70,22 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     e.preventDefault();
     e.stopPropagation();
 
-    console.log("Гостевой вход - JWT strategy bypass");
-
-    
     localStorage.removeItem("token");
 
     const guestUser = {
       id: "guest_" + Date.now(),
-      name: "Гость",
+      name: t("common.guest"),
       email: "guest@example.com",
       role: "guest",
       isGuest: true,
     };
 
-    
     localStorage.setItem("user", JSON.stringify(guestUser));
     localStorage.setItem("isGuest", "true");
 
     onLogin(guestUser);
-    message.success("Добро пожаловать в гостевой режим!");
+    message.success(t("login.guestSuccess"));
 
-    
     navigate("/dashboard", { replace: true });
   };
 
@@ -120,19 +109,18 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
       <Card className={styles.card}>
         <div className={styles.title}>
-          <Title level={getTitleLevel(2)}>Вход в CodeZone</Title>
-          <Text type="secondary">Войдите в свой аккаунт</Text>
+          <Title level={getTitleLevel(2)}>{t("login.title")}</Title>
+          <Text type="secondary">{t("login.subtitle")}</Text>
         </div>
 
         {blockedMessage && (
           <Alert
-            message="Доступ запрещен"
+            message={t("login.blockedTitle")}
             description={
               <div>
                 <p>{blockedMessage}</p>
                 <p style={{ marginTop: 8, fontSize: 12, color: "#666" }}>
-                  Если вы считаете, что это ошибка, пожалуйста, обратитесь к
-                  администратору.
+                  {t("login.blockedContact")}
                 </p>
               </div>
             }
@@ -146,7 +134,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
         {errorMessage && (
           <Alert
-            message="Ошибка входа"
+            message={t("login.loginError")}
             description={errorMessage}
             type="warning"
             showIcon
@@ -169,13 +157,13 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             name="email"
             preserve={true}
             rules={[
-              { required: true, message: "Введите email" },
-              { type: "email", message: "Введите корректный email" },
+              { required: true, message: t("login.emailRequired") },
+              { type: "email", message: t("login.emailInvalid") },
             ]}
           >
             <Input
               prefix={<UserOutlined />}
-              placeholder="Email"
+              placeholder={t("login.emailPlaceholder")}
               disabled={loading}
             />
           </Form.Item>
@@ -183,11 +171,11 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           <Form.Item
             name="password"
             preserve={true}
-            rules={[{ required: true, message: "Введите пароль" }]}
+            rules={[{ required: true, message: t("login.passwordRequired") }]}
           >
             <Input.Password
               prefix={<LockOutlined />}
-              placeholder="Пароль"
+              placeholder={t("login.passwordPlaceholder")}
               disabled={loading}
             />
           </Form.Item>
@@ -200,21 +188,22 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               block
               className={styles.submitButton}
             >
-              {loading ? "Вход..." : "Войти"}
+              {loading ? t("login.loading") : t("login.loginButton")}
             </Button>
           </Form.Item>
         </Form>
 
         <div className={styles.registerLink}>
           <Text type="secondary">
-            Нет аккаунта? <Link to="/register">Зарегистрироваться</Link>
+            {t("login.noAccount")}{" "}
+            <Link to="/register">{t("login.registerLink")}</Link>
             <br />
             <Link
               to="#"
               onClick={handleGuestLogin}
               style={{ color: "#1890ff" }}
             >
-              Войти как гость
+              {t("login.guestLink")}
             </Link>
           </Text>
         </div>

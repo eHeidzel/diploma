@@ -15,6 +15,8 @@ import { workload } from "../translations/en/workload.translations";
 import { myStudents } from "../translations/en/my-students.translations";
 import { scheduleView } from "../translations/en/schedule-view.translations";
 import { common } from "../translations/en/common.translations";
+import { balanceModal } from "../translations/en/balanceModal.translations";
+import { dashboardHome } from "../translations/en/dashboardHome.translations";
 
 export const en = {
   dashboard: dashboard,
@@ -33,4 +35,6 @@ export const en = {
   myStudents: myStudents,
   scheduleView: scheduleView,
   common: common,
+  balanceModal: balanceModal,
+  dashboardHome: dashboardHome,
 };

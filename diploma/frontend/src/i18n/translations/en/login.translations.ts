@@ -1,6 +1,6 @@
 import { ILoginTranslations } from "@interfaces/login.interface";
 
-export const login: ILoginTranslations = {
+export const login = {
   title: "Login",
   welcome: "Welcome back!",
   subtitle: "Login to your account",
@@ -17,4 +17,10 @@ export const login: ILoginTranslations = {
   loginSuccess: "Welcome, {{name}}!",
   loginError: "Login failed",
   invalidCredentials: "Invalid email or password",
+    blockedMessage: "Your account has been blocked. Please contact the administrator for more information.",
+  blockedTitle: "Access Denied",
+  blockedContact: "If you believe this is a mistake, please contact the administrator.",
+  guestSuccess: "Welcome to guest mode!",
+  guestLink: "Login as guest",
+  loading: "Logging in...",
 };

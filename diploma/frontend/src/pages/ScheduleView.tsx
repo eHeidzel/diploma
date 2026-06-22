@@ -1,4 +1,3 @@
-// pages/ScheduleView.tsx
 import React, { useState, useEffect } from "react";
 import {
   Button,
@@ -28,11 +27,11 @@ import {
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import "dayjs/locale/ru";
+import "dayjs/locale/en";
 import { scheduleApi, scheduleRequestsApi } from "../services/api";
 import styles from "../css/scheduleView.module.css";
+import { useTranslation } from "react-i18next";
 import { useAdaptiveLevel } from "../hooks/useAdaptiveLevel";
-
-dayjs.locale("ru");
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -42,6 +41,7 @@ interface ScheduleViewProps {
 }
 
 const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
+  const { t, i18n } = useTranslation();
   const { getTitleLevel } = useAdaptiveLevel();
   const [schedule, setSchedule] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,6 +61,13 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
   const isTeacher = user?.role === "teacher";
   const isStudent = user?.role === "student";
 
+  // Эффект для смены локали dayjs при смене языка (БЕЗ СБРОСА ДАТ)
+  useEffect(() => {
+    const locale = i18n.language === "ru" ? "ru" : "en";
+    dayjs.locale(locale);
+    // НЕ сбрасываем даты, просто меняем локаль
+  }, [i18n.language]);
+
   useEffect(() => {
     fetchSchedule();
   }, []);
@@ -79,7 +86,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
       setSchedule(response.data);
     } catch (error) {
       console.error("Error fetching schedule:", error);
-      message.error("Ошибка загрузки расписания");
+      message.error(t("scheduleView.loading"));
     } finally {
       setLoading(false);
     }
@@ -97,7 +104,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
       setStudentsModalVisible(true);
     } catch (error) {
       console.error("Error fetching students:", error);
-      message.error("Ошибка загрузки списка учеников");
+      message.error(t("scheduleView.students.noStudents"));
     }
   };
 
@@ -111,12 +118,12 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
       };
 
       await scheduleRequestsApi.create(data);
-      message.success("Запрос отправлен администратору");
+      message.success(t("scheduleView.request.success"));
       setRequestModalVisible(false);
       requestForm.resetFields();
     } catch (error: any) {
       console.error("Error sending request:", error);
-      message.error(error.response?.data?.message || "Ошибка отправки запроса");
+      message.error(error.response?.data?.message || t("scheduleView.request.error"));
     } finally {
       setSubmitting(false);
     }
@@ -136,18 +143,14 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
   };
 
   const getStatusTag = (status: string) => {
-    switch (status) {
-      case "planned":
-        return <Tag color="green">Запланировано</Tag>;
-      case "in_progress":
-        return <Tag color="blue">В процессе</Tag>;
-      case "completed":
-        return <Tag color="default">Завершено</Tag>;
-      case "cancelled":
-        return <Tag color="red">Отменено</Tag>;
-      default:
-        return <Tag>Неизвестно</Tag>;
-    }
+    const statusMap: Record<string, { color: string; label: string }> = {
+      planned: { color: "green", label: t("scheduleView.statuses.planned") },
+      in_progress: { color: "blue", label: t("scheduleView.statuses.in_progress") },
+      completed: { color: "default", label: t("scheduleView.statuses.completed") },
+      cancelled: { color: "red", label: t("scheduleView.statuses.cancelled") },
+    };
+    const config = statusMap[status] || { color: "default", label: status };
+    return <Tag color={config.color}>{config.label}</Tag>;
   };
 
   const getWeekDays = () => {
@@ -216,130 +219,124 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
     setSelectedDate(dayjs());
   };
 
- const renderWeekView = () => {
-  const weekDays = getWeekDays();
-  const timeSlots = getTimeSlots();
-  const weekLessons = getWeekLessons();
-  
-  // Группируем занятия по дням
-  const lessonsByDay = new Map();
-  weekDays.forEach(day => {
-    const dateStr = day.format("YYYY-MM-DD");
-    const dayLessons = weekLessons.filter(lesson => lesson.date === dateStr);
-    lessonsByDay.set(dateStr, dayLessons);
-  });
+  const renderWeekView = () => {
+    const weekDays = getWeekDays();
+    const timeSlots = getTimeSlots();
+    const weekLessons = getWeekLessons();
 
-  // Словарь для отслеживания занятых слотов
-  const occupiedSlots = new Map();
+    const lessonsByDay = new Map();
+    weekDays.forEach(day => {
+      const dateStr = day.format("YYYY-MM-DD");
+      const dayLessons = weekLessons.filter(lesson => lesson.date === dateStr);
+      lessonsByDay.set(dateStr, dayLessons);
+    });
 
-  return (
-    <div className={styles.weekView}>
-      <div className={styles.weekHeader}>
-        <div className={styles.weekTimeHeader}>Время</div>
-        {weekDays.map((day) => (
-          <div
-            key={day.format("YYYY-MM-DD")}
-            className={`${styles.weekDayHeader} ${
-              day.isSame(dayjs(), "day") ? styles.today : ""
-            }`}
-            onClick={() => {
-              setSelectedDate(day);
-              setViewMode("day");
-            }}
-          >
-            <div className={styles.weekDayName}>{day.format("dddd")}</div>
-            <div className={styles.weekDayDate}>{day.format("DD MMM")}</div>
-          </div>
-        ))}
-      </div>
+    const occupiedSlots = new Map();
 
-      <div className={styles.weekBody}>
-        {timeSlots.map((timeSlot, slotIndex) => {
-          const slotMinutes = getMinutesFromStart(timeSlot);
-          
-          return (
-            <div key={timeSlot} className={styles.weekTimeRow}>
-              <div className={styles.weekTimeLabel}>{timeSlot.slice(0, 5)}</div>
-              {weekDays.map((day) => {
-                const dateStr = day.format("YYYY-MM-DD");
-                
-                // Проверяем, занят ли этот слот для данного дня
-                if (occupiedSlots.get(dateStr)?.has(slotIndex)) {
-                  return <div key={dateStr} className={styles.weekTimeCell} />;
-                }
-                
-                const dayLessons = lessonsByDay.get(dateStr) || [];
-                
-                // Находим занятие, которое начинается в этом слоте
-                const lessonAtSlot = dayLessons.find(
-                  (lesson: any) => getMinutesFromStart(lesson.startTime) === slotMinutes
-                );
-
-                if (lessonAtSlot) {
-                  // ТОЧНЫЙ РАСЧЕТ ВЫСОТЫ
-                  const startMinutes = getMinutesFromStart(lessonAtSlot.startTime);
-                  const endMinutes = getMinutesFromStart(lessonAtSlot.endTime);
-                  const durationMinutes = endMinutes - startMinutes;
-                  
-                  const slotDuration = 30; // длительность слота в минутах
-                  const slotHeight = 60; // высота слота в пикселях
-                  const heightInPixels = (durationMinutes / slotDuration) * slotHeight;
-                  
-                  // Отмечаем занятые слоты для этого дня
-                  const slotCount = Math.ceil(durationMinutes / slotDuration);
-                  if (!occupiedSlots.has(dateStr)) {
-                    occupiedSlots.set(dateStr, new Set());
-                  }
-                  for (let i = 0; i < slotCount; i++) {
-                    occupiedSlots.get(dateStr)!.add(slotIndex + i);
-                  }
-
-                  return (
-                    <div key={dateStr} className={styles.weekTimeCell}>
-                      <div
-                        className={`${styles.weekLessonCard} ${
-                          lessonAtSlot.status === "cancelled" ? styles.cancelled : ""
-                        }`}
-                        style={{
-                          height: `${Math.max(heightInPixels - 4, 56)}px`,
-                          top: `2px`,
-                          bottom: `auto`,
-                        }}
-                        onClick={() => {
-                          setSelectedLesson(lessonAtSlot);
-                          setIsDetailsModalOpen(true);
-                        }}
-                      >
-                        <div className={styles.weekLessonTitle}>
-                          {getActivityTypeIcon(lessonAtSlot.activity?.type)} {lessonAtSlot.activity?.title}
-                        </div>
-                        <div className={styles.weekLessonTime}>
-                          {lessonAtSlot.startTime.slice(0, 5)} - {lessonAtSlot.endTime.slice(0, 5)}
-                        </div>
-                        {lessonAtSlot.meetLink && (
-                          <div className={styles.weekLessonMeetLink}>
-                            <VideoCameraOutlined /> Есть ссылка
-                          </div>
-                        )}
-                        {isTeacher && (
-                          <div className={styles.weekLessonStudents}>
-                            <TeamOutlined /> {lessonAtSlot.enrolledCount || 0}/{lessonAtSlot.maxStudents}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                }
-
-                return <div key={dateStr} className={styles.weekTimeCell} />;
-              })}
+    return (
+      <div className={styles.weekView}>
+        <div className={styles.weekHeader}>
+          <div className={styles.weekTimeHeader}>{t("scheduleView.table.time")}</div>
+          {weekDays.map((day) => (
+            <div
+              key={day.format("YYYY-MM-DD")}
+              className={`${styles.weekDayHeader} ${
+                day.isSame(dayjs(), "day") ? styles.today : ""
+              }`}
+              onClick={() => {
+                setSelectedDate(day);
+                setViewMode("day");
+              }}
+            >
+              <div className={styles.weekDayName}>{day.format("dddd")}</div>
+              <div className={styles.weekDayDate}>{day.format("DD MMM")}</div>
             </div>
-          );
-        })}
+          ))}
+        </div>
+
+        <div className={styles.weekBody}>
+          {timeSlots.map((timeSlot, slotIndex) => {
+            const slotMinutes = getMinutesFromStart(timeSlot);
+
+            return (
+              <div key={timeSlot} className={styles.weekTimeRow}>
+                <div className={styles.weekTimeLabel}>{timeSlot.slice(0, 5)}</div>
+                {weekDays.map((day) => {
+                  const dateStr = day.format("YYYY-MM-DD");
+
+                  if (occupiedSlots.get(dateStr)?.has(slotIndex)) {
+                    return <div key={dateStr} className={styles.weekTimeCell} />;
+                  }
+
+                  const dayLessons = lessonsByDay.get(dateStr) || [];
+
+                  const lessonAtSlot = dayLessons.find(
+                    (lesson: any) => getMinutesFromStart(lesson.startTime) === slotMinutes
+                  );
+
+                  if (lessonAtSlot) {
+                    const startMinutes = getMinutesFromStart(lessonAtSlot.startTime);
+                    const endMinutes = getMinutesFromStart(lessonAtSlot.endTime);
+                    const durationMinutes = endMinutes - startMinutes;
+
+                    const slotDuration = 30;
+                    const slotHeight = 60;
+                    const heightInPixels = (durationMinutes / slotDuration) * slotHeight;
+
+                    const slotCount = Math.ceil(durationMinutes / slotDuration);
+                    if (!occupiedSlots.has(dateStr)) {
+                      occupiedSlots.set(dateStr, new Set());
+                    }
+                    for (let i = 0; i < slotCount; i++) {
+                      occupiedSlots.get(dateStr)!.add(slotIndex + i);
+                    }
+
+                    return (
+                      <div key={dateStr} className={styles.weekTimeCell}>
+                        <div
+                          className={`${styles.weekLessonCard} ${
+                            lessonAtSlot.status === "cancelled" ? styles.cancelled : ""
+                          }`}
+                          style={{
+                            height: `${Math.max(heightInPixels - 4, 56)}px`,
+                            top: `2px`,
+                            bottom: `auto`,
+                          }}
+                          onClick={() => {
+                            setSelectedLesson(lessonAtSlot);
+                            setIsDetailsModalOpen(true);
+                          }}
+                        >
+                          <div className={styles.weekLessonTitle}>
+                            {getActivityTypeIcon(lessonAtSlot.activity?.type)} {lessonAtSlot.activity?.title}
+                          </div>
+                          <div className={styles.weekLessonTime}>
+                            {lessonAtSlot.startTime.slice(0, 5)} - {lessonAtSlot.endTime.slice(0, 5)}
+                          </div>
+                          {lessonAtSlot.meetLink && (
+                            <div className={styles.weekLessonMeetLink}>
+                              <VideoCameraOutlined /> {t("scheduleView.meetLink.hasLink")}
+                            </div>
+                          )}
+                          {isTeacher && (
+                            <div className={styles.weekLessonStudents}>
+                              <TeamOutlined /> {lessonAtSlot.enrolledCount || 0}/{lessonAtSlot.maxStudents}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  return <div key={dateStr} className={styles.weekTimeCell} />;
+                })}
+              </div>
+            );
+          })}
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
   const renderDayView = () => {
     const dayLessons = getDayLessons();
@@ -353,7 +350,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
             <Title level={4}>{selectedDate.format("dddd, DD MMMM YYYY")}</Title>
           </div>
           <div className={styles.dayBodyEmpty}>
-            <Empty description="Нет занятий на выбранную дату" />
+            <Empty description={t("scheduleView.noLessons")} />
           </div>
         </div>
       );
@@ -376,13 +373,11 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
           <div className={styles.dayContentColumn}>
             {timeSlots.map((timeSlot, slotIndex) => {
               const slotMinutes = getMinutesFromStart(timeSlot);
-              
-              // Проверяем, занят ли этот слот
+
               if (occupiedSlots.has(slotIndex)) {
                 return <div key={timeSlot} className={styles.dayContentSlot} />;
               }
 
-              // Находим занятие, которое начинается в этом слоте
               const lessonAtSlot = dayLessons.find(
                 (lesson) => getMinutesFromStart(lesson.startTime) === slotMinutes
               );
@@ -391,16 +386,14 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
                 return <div key={timeSlot} className={styles.dayContentSlot} />;
               }
 
-              // ТОЧНЫЙ РАСЧЕТ ВЫСОТЫ
               const startMinutes = getMinutesFromStart(lessonAtSlot.startTime);
               const endMinutes = getMinutesFromStart(lessonAtSlot.endTime);
               const durationMinutes = endMinutes - startMinutes;
-              
-              const slotDuration = 30; // длительность слота в минутах
-              const slotHeight = 60; // высота слота в пикселях
+
+              const slotDuration = 30;
+              const slotHeight = 60;
               const totalHeight = (durationMinutes / slotDuration) * slotHeight;
 
-              // Отмечаем занятые слоты
               const slotCount = Math.ceil(durationMinutes / slotDuration);
               for (let i = 0; i < slotCount; i++) {
                 occupiedSlots.add(slotIndex + i);
@@ -437,7 +430,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
                     </div>
                     {lessonAtSlot.meetLink && (
                       <div className={styles.dayLessonMeetLink}>
-                        <VideoCameraOutlined /> Есть ссылка
+                        <VideoCameraOutlined /> {t("scheduleView.meetLink.hasLink")}
                       </div>
                     )}
                     {lessonAtSlot.teacher && (
@@ -454,7 +447,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
                           fetchStudentsForLesson(lessonAtSlot.id);
                         }}
                       >
-                        <TeamOutlined /> Список учеников
+                        <TeamOutlined /> {t("scheduleView.details.viewStudents")}
                       </Button>
                     )}
                   </div>
@@ -469,19 +462,19 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
 
   const columns = [
     {
-      title: "Дата",
+      title: t("scheduleView.table.date"),
       key: "date",
       render: (_: any, record: any) => dayjs(record.date).format("DD.MM.YYYY"),
       sorter: (a: any, b: any) => dayjs(a.date).unix() - dayjs(b.date).unix(),
     },
     {
-      title: "Время",
+      title: t("scheduleView.table.time"),
       key: "time",
       render: (_: any, record: any) =>
         `${record.startTime.slice(0, 5)} - ${record.endTime.slice(0, 5)}`,
     },
     {
-      title: "Занятие",
+      title: t("scheduleView.table.activity"),
       key: "activity",
       render: (_: any, record: any) => (
         <Space>
@@ -492,7 +485,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
       ),
     },
     {
-      title: isTeacher ? "Ученики" : "Преподаватель",
+      title: isTeacher ? t("scheduleView.table.students") : t("scheduleView.table.teacher"),
       key: isTeacher ? "students" : "teacher",
       render: (_: any, record: any) => {
         if (isTeacher) {
@@ -506,16 +499,16 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
             </Button>
           );
         }
-        return record.teacher?.name || "Не назначен";
+        return record.teacher?.name || t("common.notSpecified");
       },
     },
     {
-      title: "Действия",
+      title: t("scheduleView.table.actions"),
       key: "actions",
       render: (_: any, record: any) => (
         <Space>
           {record.meetLink && record.status === "planned" && (
-            <Tooltip title="Подключиться">
+            <Tooltip title={t("scheduleView.details.connect")}>
               <Button
                 type="text"
                 size="small"
@@ -524,7 +517,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
               />
             </Tooltip>
           )}
-          <Tooltip title="Детали">
+          <Tooltip title={t("scheduleView.details.title")}>
             <Button
               type="text"
               size="small"
@@ -543,7 +536,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
   if (loading) {
     return (
       <div className={styles.loadingContainer}>
-        <Spin size="large" tip="Загрузка расписания..." />
+        <Spin size="large" tip={t("scheduleView.loading")} />
       </div>
     );
   }
@@ -552,7 +545,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
     <div className={styles.container}>
       <div className={styles.header}>
         <Title level={getTitleLevel(3)} className={styles.title}>
-          {isTeacher ? "Мои занятия" : "Расписание занятий"}
+          {isTeacher ? t("scheduleView.teacherTitle") : t("scheduleView.title")}
         </Title>
         <div className={styles.viewControls}>
           <Button.Group>
@@ -560,23 +553,23 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
               type={viewMode === "week" ? "primary" : "default"}
               onClick={() => setViewMode("week")}
             >
-              Неделя
+              {t("scheduleView.views.week")}
             </Button>
             <Button
               type={viewMode === "day" ? "primary" : "default"}
               onClick={() => setViewMode("day")}
             >
-              День
+              {t("scheduleView.views.day")}
             </Button>
             <Button
               type={viewMode === "table" ? "primary" : "default"}
               onClick={() => setViewMode("table")}
             >
-              Список
+              {t("scheduleView.views.list")}
             </Button>
           </Button.Group>
           {isTeacher && (
-            <Tooltip title="Запрос администратору">
+            <Tooltip title={t("scheduleView.request.title")}>
               <Button
                 type="primary"
                 icon={<SendOutlined />}
@@ -596,7 +589,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
             <Button icon={<LeftOutlined />} onClick={goToPreviousWeek} />
             <Button icon={<RightOutlined />} onClick={goToNextWeek} />
             <Button icon={<HomeOutlined />} onClick={goToTodayWeek}>
-              Сегодня
+              {t("scheduleView.navigation.today")}
             </Button>
             <span className={styles.weekRange}>
               {currentWeekStart.format("DD MMM")} -{" "}
@@ -612,7 +605,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
             <Button icon={<LeftOutlined />} onClick={goToPreviousDay} />
             <Button icon={<RightOutlined />} onClick={goToNextDay} />
             <Button icon={<HomeOutlined />} onClick={goToTodayDay}>
-              Сегодня
+              {t("scheduleView.navigation.today")}
             </Button>
             <span className={styles.weekRange}>
               {selectedDate.format("DD MMMM YYYY")}
@@ -635,7 +628,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
       )}
 
       <Modal
-        title="Детали занятия"
+        title={t("scheduleView.details.title")}
         open={isDetailsModalOpen}
         onCancel={() => {
           setIsDetailsModalOpen(false);
@@ -648,49 +641,49 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
         {selectedLesson && (
           <div className={styles.lessonDetails}>
             <p>
-              <strong>Занятие:</strong> {selectedLesson.activity?.title}
+              <strong>{t("scheduleView.details.activity")}:</strong> {selectedLesson.activity?.title}
             </p>
             <p>
-              <strong>Дата:</strong>{" "}
+              <strong>{t("scheduleView.details.date")}:</strong>{" "}
               {dayjs(selectedLesson.date).format("DD.MM.YYYY")}
             </p>
             <p>
-              <strong>Время:</strong> {selectedLesson.startTime.slice(0, 5)} -{" "}
+              <strong>{t("scheduleView.details.time")}:</strong> {selectedLesson.startTime.slice(0, 5)} -{" "}
               {selectedLesson.endTime.slice(0, 5)}
             </p>
             {selectedLesson.teacher && !isTeacher && (
               <p>
-                <strong>Преподаватель:</strong> {selectedLesson.teacher.name}
+                <strong>{t("scheduleView.details.teacher")}:</strong> {selectedLesson.teacher.name}
               </p>
             )}
             {selectedLesson.room && (
               <p>
-                <strong>Аудитория:</strong> {selectedLesson.room}
+                <strong>{t("scheduleView.details.room")}:</strong> {selectedLesson.room}
               </p>
             )}
             {selectedLesson.meetLink && (
               <p>
-                <strong>Ссылка:</strong>{" "}
+                <strong>{t("scheduleView.details.meetLink")}:</strong>{" "}
                 <a
                   href={selectedLesson.meetLink}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Подключиться
+                  {t("scheduleView.details.connect")}
                 </a>
               </p>
             )}
             {isTeacher && (
               <>
                 <p>
-                  <strong>Записано учеников:</strong>{" "}
+                  <strong>{t("scheduleView.details.enrolled")}:</strong>{" "}
                   {selectedLesson.enrolledCount} / {selectedLesson.maxStudents}
                 </p>
                 <Button
                   type="primary"
                   onClick={() => fetchStudentsForLesson(selectedLesson.id)}
                 >
-                  <TeamOutlined /> Посмотреть список учеников
+                  <TeamOutlined /> {t("scheduleView.details.viewStudents")}
                 </Button>
               </>
             )}
@@ -699,7 +692,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
       </Modal>
 
       <Modal
-        title="Запрос администратору"
+        title={t("scheduleView.request.title")}
         open={requestModalVisible}
         onCancel={() => {
           setRequestModalVisible(false);
@@ -713,16 +706,16 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
         <Form form={requestForm} layout="vertical" onFinish={handleSendRequest}>
           <Form.Item
             name="reason"
-            label="Текст запроса"
+            label={t("scheduleView.request.label")}
             rules={[
-              { required: true, message: "Напишите текст запроса" },
-              { min: 10, message: "Текст должен содержать минимум 10 символов" },
-              { max: 500, message: "Текст не должен превышать 500 символов" },
+              { required: true, message: t("scheduleView.request.label") },
+              { min: 10, message: t("scheduleView.request.minLength") },
+              { max: 500, message: t("scheduleView.request.maxLength") },
             ]}
           >
             <TextArea
               rows={4}
-              placeholder="Опишите причину запроса (минимум 10 символов)"
+              placeholder={t("scheduleView.request.placeholder")}
               maxLength={500}
               showCount
             />
@@ -736,10 +729,10 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
                   requestForm.resetFields();
                 }}
               >
-                Отмена
+                {t("scheduleView.request.cancel")}
               </Button>
               <Button type="primary" htmlType="submit" loading={submitting}>
-                Отправить запрос
+                {t("scheduleView.request.send")}
               </Button>
             </Space>
           </Form.Item>
@@ -747,7 +740,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
       </Modal>
 
       <Modal
-        title="Список учеников"
+        title={t("scheduleView.students.title")}
         open={studentsModalVisible}
         onCancel={() => setStudentsModalVisible(false)}
         footer={null}
@@ -766,7 +759,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
             </List.Item>
           )}
           locale={{
-            emptyText: <Empty description="Нет записанных учеников" />,
+            emptyText: <Empty description={t("scheduleView.students.noStudents")} />,
           }}
         />
       </Modal>

@@ -1,4 +1,3 @@
-// components/DashboardHome.tsx
 import React, { useState, useEffect } from "react";
 import {
   Card,
@@ -36,16 +35,17 @@ import {
 } from "@ant-design/icons";
 import api, { dashboardApi, schoolReviewsApi } from "../services/api";
 import styles from "../css/dashboard.module.css";
+import { useTranslation } from "react-i18next";
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 
 interface DashboardHomeProps {
   user: any;
-  t: any;
 }
 
 const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
+  const { t } = useTranslation();
   const [selectedTeacher, setSelectedTeacher] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("projects");
   const [reviews, setReviews] = useState<any[]>([]);
@@ -62,11 +62,23 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
   const isStudent = user?.role === "student";
   const currentUserId = user?.id;
 
-  // Функция для формирования полного URL аватара
   const getFullAvatarUrl = (avatar: string) => {
     if (!avatar) return null;
     if (avatar.startsWith("http")) return avatar;
     return `http://localhost:8080${avatar}`;
+  };
+
+  // Функция для перевода заголовков статистики
+  const getStatTitle = (title: string) => {
+    const statMap: Record<string, string> = {
+      "Студентов": t("dashboardHome.stats.students"),
+      "Преподавателей": t("dashboardHome.stats.teachers"),
+      "Проектов": t("dashboardHome.stats.projects"),
+      "Students": t("dashboardHome.stats.students"),
+      "Teachers": t("dashboardHome.stats.teachers"),
+      "Projects": t("dashboardHome.stats.projects"),
+    };
+    return statMap[title] || title;
   };
 
   useEffect(() => {
@@ -94,10 +106,10 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
         ? teachersRes.data.map((teacher: any) => ({
             id: teacher.id,
             name: teacher.name,
-            role: "Преподаватель",
+            role: t("profile.roles.teacher"),
             experience:
-              teacher.bio?.match(/\d+\s*лет/)?.[0] || "Опыт не указан",
-            company: teacher.city || "Компания не указана",
+              teacher.bio?.match(/\d+\s*лет/)?.[0] || t("common.notSpecified"),
+            company: teacher.city || t("common.notSpecified"),
             avatar: getFullAvatarUrl(teacher.avatar),
             bio: teacher.bio || "",
             skills: [],
@@ -112,7 +124,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
       setStatistics(Array.isArray(statsRes.data) ? statsRes.data : []);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
-      message.error("Ошибка загрузки данных");
+      message.error(t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -155,7 +167,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
     text: string;
   }) => {
     if (!isAuthenticated || !isStudent) {
-      message.warning("Только авторизованные ученики могут оставлять отзывы");
+      message.warning(t("dashboardHome.reviews.authRequired"));
       return;
     }
 
@@ -163,10 +175,10 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
     try {
       if (editingReview) {
         await schoolReviewsApi.update(editingReview.id, values);
-        message.success("Отзыв обновлен");
+        message.success(t("dashboardHome.reviews.updateSuccess"));
       } else {
         await schoolReviewsApi.create(values);
-        message.success("Спасибо за ваш отзыв!");
+        message.success(t("dashboardHome.reviews.createSuccess"));
       }
       form.resetFields();
       setReviewModalVisible(false);
@@ -176,7 +188,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
     } catch (error: any) {
       console.error("Error submitting review:", error);
       message.error(
-        error.response?.data?.message || "Ошибка при отправке отзыва",
+        error.response?.data?.message || t("dashboardHome.reviews.error"),
       );
     } finally {
       setSubmitting(false);
@@ -186,7 +198,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
   const handleDeleteReview = async (reviewId: number) => {
     try {
       await schoolReviewsApi.delete(reviewId);
-      message.success("Отзыв удален");
+      message.success(t("dashboardHome.reviews.deleteSuccess"));
       if (editingReview?.id === reviewId) {
         setEditingReview(null);
       }
@@ -194,14 +206,15 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
       checkUserReview();
     } catch (error) {
       console.error("Error deleting review:", error);
-      message.error("Ошибка при удалении отзыва");
+      message.error(t("dashboardHome.reviews.deleteError"));
     }
   };
 
   const getStatIcon = (title: string) => {
-    if (title?.includes("студентов")) return <SmileOutlined />;
-    if (title?.includes("преподавател")) return <TrophyOutlined />;
-    if (title?.includes("проект")) return <RocketOutlined />;
+    const translatedTitle = getStatTitle(title);
+    if (translatedTitle === t("dashboardHome.stats.students")) return <SmileOutlined />;
+    if (translatedTitle === t("dashboardHome.stats.teachers")) return <TrophyOutlined />;
+    if (translatedTitle === t("dashboardHome.stats.projects")) return <RocketOutlined />;
     return <UserOutlined />;
   };
 
@@ -214,8 +227,8 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
       <div className={styles.sectionContainer}>
         <div className={styles.sectionHeader}>
           <MessageOutlined className={styles.sectionIcon} />
-          <Title level={3}>Отзывы наших студентов</Title>
-          <Text type="secondary">Реальные отзывы о нашей школе</Text>
+          <Title level={3}>{t("dashboardHome.reviews.title")}</Title>
+          <Text type="secondary">{t("dashboardHome.reviews.subtitle")}</Text>
           {canCreate && (
             <Button
               type="primary"
@@ -223,7 +236,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
               onClick={handleOpenCreateModal}
               style={{ marginTop: 16 }}
             >
-              Оставить отзыв
+              {t("dashboardHome.reviews.create")}
             </Button>
           )}
         </div>
@@ -257,13 +270,13 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
                             <Text strong>{review.name}</Text>
                             <br />
                             <Text type="secondary">
-                              {review.role} в {review.company}
+                              {review.role} {t("common.in")} {review.company}
                             </Text>
                           </div>
                         </Space>
                         {isOwnReview && (
                           <Space>
-                            <Tooltip title="Редактировать">
+                            <Tooltip title={t("common.edit")}>
                               <Button
                                 type="text"
                                 icon={<EditOutlined />}
@@ -271,13 +284,13 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
                               />
                             </Tooltip>
                             <Popconfirm
-                              title="Удалить отзыв"
-                              description="Вы уверены, что хотите удалить свой отзыв?"
+                              title={t("dashboardHome.reviews.deleteConfirm")}
+                              description={t("dashboardHome.reviews.deleteDescription")}
                               onConfirm={() => handleDeleteReview(review.id)}
-                              okText="Да"
-                              cancelText="Нет"
+                              okText={t("common.yes")}
+                              cancelText={t("common.no")}
                             >
-                              <Tooltip title="Удалить">
+                              <Tooltip title={t("common.delete")}>
                                 <Button
                                   type="text"
                                   danger
@@ -296,7 +309,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
                         ellipsis={{
                           rows: 3,
                           expandable: true,
-                          symbol: "Читать далее",
+                          symbol: t("common.readMore"),
                         }}
                       >
                         {review.text}
@@ -308,14 +321,16 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
             })
           ) : (
             <Col span={24}>
-              <Empty description="Пока нет отзывов. Будьте первым!" />
+              <Empty description={t("dashboardHome.reviews.noReviews")} />
             </Col>
           )}
         </Row>
 
         <Modal
           title={
-            editingReview ? "Редактировать отзыв" : "Оставить отзыв о школе"
+            editingReview
+              ? t("dashboardHome.reviews.editTitle")
+              : t("dashboardHome.reviews.createTitle")
           }
           open={reviewModalVisible}
           onCancel={handleCancelModal}
@@ -327,38 +342,40 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
           <Form form={form} layout="vertical" onFinish={handleSubmitReview}>
             <Form.Item
               name="rating"
-              label="Оценка"
-              rules={[{ required: true, message: "Поставьте оценку" }]}
+              label={t("dashboardHome.reviews.rating")}
+              rules={[{ required: true, message: t("dashboardHome.reviews.ratingRequired") }]}
             >
               <Rate />
             </Form.Item>
             <Form.Item
               name="text"
-              label="Ваш отзыв"
+              label={t("dashboardHome.reviews.text")}
               rules={[
-                { required: true, message: "Напишите отзыв" },
+                { required: true, message: t("dashboardHome.reviews.textRequired") },
                 {
                   min: 10,
-                  message: "Отзыв должен содержать минимум 10 символов",
+                  message: t("dashboardHome.reviews.textMin"),
                 },
                 {
                   max: 1000,
-                  message: "Отзыв не должен превышать 1000 символов",
+                  message: t("dashboardHome.reviews.textMax"),
                 },
               ]}
             >
               <TextArea
                 rows={4}
-                placeholder="Поделитесь впечатлениями о школе..."
+                placeholder={t("dashboardHome.reviews.textPlaceholder")}
                 showCount
                 maxLength={1000}
               />
             </Form.Item>
             <Form.Item style={{ marginBottom: 0, textAlign: "right" }}>
               <Space>
-                <Button onClick={handleCancelModal}>Отмена</Button>
+                <Button onClick={handleCancelModal}>{t("common.cancel")}</Button>
                 <Button type="primary" htmlType="submit" loading={submitting}>
-                  {editingReview ? "Сохранить изменения" : "Отправить отзыв"}
+                  {editingReview
+                    ? t("common.save")
+                    : t("dashboardHome.reviews.submit")}
                 </Button>
               </Space>
             </Form.Item>
@@ -372,8 +389,8 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
     <div className={styles.sectionContainer}>
       <div className={styles.sectionHeader}>
         <TeamOutlined className={styles.sectionIcon} />
-        <Title level={3}>Наши преподаватели</Title>
-        <Text type="secondary">Опытные практики из ведущих IT-компаний</Text>
+        <Title level={3}>{t("dashboardHome.teachers.title")}</Title>
+        <Text type="secondary">{t("dashboardHome.teachers.subtitle")}</Text>
       </div>
       <Row gutter={[16, 16]}>
         {teachers.length > 0 ? (
@@ -406,7 +423,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
                     onClick={() => setSelectedTeacher(teacher)}
                     className={styles.moreButton}
                   >
-                    Подробнее о преподавателе
+                    {t("dashboardHome.teachers.more")}
                   </Button>
                 </div>
               </Card>
@@ -414,7 +431,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
           ))
         ) : (
           <Col span={24}>
-            <Empty description="Нет преподавателей" />
+            <Empty description={t("dashboardHome.teachers.noTeachers")} />
           </Col>
         )}
       </Row>
@@ -443,17 +460,17 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
               </Text>
               <div className={styles.teacherModalDetails}>
                 <div className={styles.teacherModalRow}>
-                  <Text type="secondary">Email:</Text>
+                  <Text type="secondary">{t("common.email")}:</Text>
                   <Text>{selectedTeacher.contacts?.email}</Text>
                 </div>
                 <div className={styles.teacherModalRow}>
-                  <Text type="secondary">О себе:</Text>
+                  <Text type="secondary">{t("common.about")}:</Text>
                   <Paragraph>
-                    {selectedTeacher.bio || "Информация не указана"}
+                    {selectedTeacher.bio || t("common.notSpecified")}
                   </Paragraph>
                 </div>
                 <div className={styles.teacherModalRow}>
-                  <Text type="secondary">Навыки:</Text>
+                  <Text type="secondary">{t("common.skills")}:</Text>
                   <div className={styles.teacherModalSkills}>
                     {selectedTeacher.skills?.map((skill: string) => (
                       <Tag key={skill} color="green">
@@ -467,7 +484,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
                     icon={<MailOutlined />}
                     href={`mailto:${selectedTeacher.contacts?.email}`}
                   >
-                    Email
+                    {t("common.email")}
                   </Button>
                 </div>
               </div>
@@ -482,8 +499,8 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
     <div className={styles.sectionContainer}>
       <div className={styles.sectionHeader}>
         <ProjectOutlined className={styles.sectionIcon} />
-        <Title level={3}>Проекты учеников</Title>
-        <Text type="secondary">Реальные проекты наших выпускников</Text>
+        <Title level={3}>{t("dashboardHome.projects.title")}</Title>
+        <Text type="secondary">{t("dashboardHome.projects.subtitle")}</Text>
       </div>
       <Row gutter={[16, 16]}>
         {projects.length > 0 ? (
@@ -516,7 +533,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
                     target="_blank"
                     style={{ color: "#1890ff" }}
                   >
-                    Демо
+                    {t("dashboardHome.projects.demo")}
                   </Button>,
                 ]}
               >
@@ -544,7 +561,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
           ))
         ) : (
           <Col span={24}>
-            <Empty description="Нет проектов" />
+            <Empty description={t("dashboardHome.projects.noProjects")} />
           </Col>
         )}
       </Row>
@@ -555,7 +572,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
     return (
       <div className={styles.loadingContainer}>
         <div className={styles.spinner} />
-        <Text>Загрузка...</Text>
+        <Text>{t("common.loading")}</Text>
       </div>
     );
   }
@@ -569,7 +586,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
               <Statistic
                 title={
                   <span>
-                    {getStatIcon(stat.title)} {stat.title}
+                    {getStatIcon(stat.title)} {getStatTitle(stat.title)}
                   </span>
                 }
                 value={stat.value}
@@ -589,7 +606,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
             key: "projects",
             label: (
               <span>
-                <ProjectOutlined /> Проекты
+                <ProjectOutlined /> {t("dashboardHome.projects.title")}
               </span>
             ),
             children: renderProjects(),
@@ -598,7 +615,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
             key: "teachers",
             label: (
               <span>
-                <TeamOutlined /> Преподаватели
+                <TeamOutlined /> {t("dashboardHome.teachers.title")}
               </span>
             ),
             children: renderTeachers(),
@@ -607,7 +624,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
             key: "reviews",
             label: (
               <span>
-                <MessageOutlined /> Отзывы
+                <MessageOutlined /> {t("dashboardHome.reviews.title")}
               </span>
             ),
             children: renderReviews(),

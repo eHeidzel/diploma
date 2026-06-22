@@ -1,6 +1,6 @@
 import { ITestTranslations } from "@interfaces/test.interface";
 
-export const test: ITestTranslations = {
+export const test = {
   title: "Who are you in IT?",
   subtitle: "Take the test to find out which IT direction suits you best",
   loading: "Loading questions...",
@@ -28,5 +28,8 @@ export const test: ITestTranslations = {
   results: {
     allDirections: "All possible directions",
     recommendations: "Getting started recommendations",
+    salary: "Earnings",
+    goToLearning: "Go to learning in {{name}}",
+    chooseDirection: "Choose direction",
   },
 };

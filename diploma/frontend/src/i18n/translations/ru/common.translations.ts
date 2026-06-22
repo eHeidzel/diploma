@@ -1,6 +1,6 @@
 import { ICommonTranslations } from "../en/common.translations";
 
-export const common: ICommonTranslations = {
+export const common = {
   yes: "Да",
   no: "Нет",
   ok: "ОК",
@@ -43,4 +43,13 @@ export const common: ICommonTranslations = {
     november: "Ноябрь",
     december: "Декабрь",
   },
+ details: "Подробнее",
+  for: "За",
+  modules: "модулей",
+  in: "в",
+  about: "О себе",
+  skills: "Навыки",
+  email: "Email",
+  readMore: "Читать далее",
+  guest: "Гость",
 };

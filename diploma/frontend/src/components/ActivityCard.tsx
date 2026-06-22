@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   Card,
@@ -25,6 +24,7 @@ import {
   MessageOutlined,
 } from "@ant-design/icons";
 import styles from "@styles/learning.module.css";
+import { useTranslation } from "react-i18next";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -66,6 +66,8 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
   onBookingClick,
   onViewReviews,
 }) => {
+  const { t } = useTranslation();
+
   const isFree =
     activity.price === 0 ||
     activity.price === null ||
@@ -93,20 +95,14 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
   };
 
   const getActivityTypeName = (type: ActivityType) => {
-    switch (type) {
-      case "webinar":
-        return "Вебинар";
-      case "masterclass":
-        return "Мастер-класс";
-      case "individual":
-        return "Индивидуальное";
-      case "group":
-        return "Групповое";
-      case "trial":
-        return "Пробное";
-      default:
-        return "";
-    }
+    const typeMap: Record<ActivityType, string> = {
+      webinar: t("adminActivities.types.webinar"),
+      masterclass: t("adminActivities.types.masterclass"),
+      individual: t("adminActivities.types.individual"),
+      group: t("adminActivities.types.group"),
+      trial: t("adminActivities.types.trial"),
+    };
+    return typeMap[type] || "";
   };
 
   const actions = [
@@ -119,16 +115,16 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
       icon={isTeacher ? <EyeOutlined /> : undefined}
     >
       {isTeacher
-        ? "Подробнее"
+        ? t("common.details")
         : isFree
-          ? "Бесплатно"
-          : `За ${displayPrice} BYN`}
+          ? t("learning.booking.free")
+          : `${t("common.for")} ${displayPrice} BYN`}
     </Button>,
   ];
 
   if (onViewReviews) {
     actions.push(
-      <Tooltip key="reviews" title="Отзывы">
+      <Tooltip key="reviews" title={t("learning.reviews.title")}>
         <Button
           type="text"
           size="small"
@@ -179,13 +175,12 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
               className={styles.hourTypeTag}
             >
               {activity.hourType === "academic"
-                ? "🎓 Академический час"
-                : "⭐ Астрономический час"}
+                ? t("workload.table.academic")
+                : t("workload.table.astronomical")}
             </Tag>
           </div>
         )}
 
-      {/* ВОЗВРАЩЕН СТИЛЬ НАПРАВЛЕНИЙ КАК БЫЛ - С ТЕГАМИ */}
       <div className={styles.categoriesRow}>
         {activity.categories.map((cat: string) => {
           const category = CATEGORIES.find((c) => c.value === cat);
@@ -216,16 +211,6 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
         </Space>
       </div>
 
-      {/* УБРАН БЛОК targetAudience - возраст и уровень */}
-      {/* <div className={styles.targetAudience}>
-        <div className={styles.audienceBadge}>
-          <UserOutlined /> {activity.targetAudience?.ageRange || "Не указано"} лет
-        </div>
-        <div className={styles.audienceBadge}>
-          <ExperimentOutlined /> {activity.targetAudience?.level || "Любой"}
-        </div>
-      </div> */}
-
       <div className={styles.cardDetails}>
         <Space split={<Divider type="vertical" />}>
           <span>
@@ -237,7 +222,7 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
       {activity.type === "group" && activity.learningPlan && (
         <div className={styles.planPreview}>
           <Text type="secondary">
-            📚 {activity.learningPlan.length} модулей
+            📚 {activity.learningPlan.length} {t("common.modules")}
           </Text>
         </div>
       )}

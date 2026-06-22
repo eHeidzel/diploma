@@ -1,6 +1,6 @@
 import { IRegisterTranslations } from "@interfaces/register.interface";
 
-export const register: IRegisterTranslations = {
+export const register = {
   title: "Регистрация",
   subtitle: "Создайте новый аккаунт",
   nameLabel: "Имя",
@@ -25,4 +25,14 @@ export const register: IRegisterTranslations = {
   emailConflict: "Пользователь с таким email уже существует",
   registerError: "Ошибка регистрации",
   schoolTitle: "Онлайн Школа",
+    passwordHasLetter: "Пароль должен содержать хотя бы одну букву",
+  passwordHasDigit: "Пароль должен содержать хотя бы одну цифру",
+  birthDateRequired: "Введите дату рождения",
+  birthDateTooltip: "Укажите вашу дату рождения",
+  birthDatePlaceholder: "Дата рождения",
+  confirmPasswordRequired: "Подтвердите пароль",
+  confirmPasswordPlaceholder: "Подтвердите пароль",
+  passwordsDoNotMatch: "Пароли не совпадают",
+  loading: "Регистрация...",
+  guestLink: "Войти как гость",
 };

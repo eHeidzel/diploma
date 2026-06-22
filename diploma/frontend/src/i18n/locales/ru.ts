@@ -5,7 +5,6 @@ import { register } from "../translations/ru/register.translations";
 import { schedule } from "../translations/ru/schedule.translations";
 import { subjects } from "../translations/ru/subjects.translations";
 import { test } from "../translations/ru/test.translations";
-import { adminActivities } from "../translations/ru/admin-activities.translations";
 import { adminUsers } from "../translations/ru/admin-users.translations";
 import { adminSchedule } from "../translations/ru/admin-schedule.translations";
 import { learning } from "../translations/ru/learning.translations";
@@ -15,6 +14,9 @@ import { workload } from "../translations/ru/workload.translations";
 import { myStudents } from "../translations/ru/my-students.translations";
 import { scheduleView } from "../translations/ru/schedule-view.translations";
 import { common } from "../translations/ru/common.translations";
+import { balanceModal } from "../translations/ru/balanceModal.translations";
+import { dashboardHome } from "../translations/ru/dashboardHome.translations";
+import { adminActivities } from "../translations/ru/admin-activities.translations";
 
 export const ru = {
   dashboard: dashboard,
@@ -33,4 +35,6 @@ export const ru = {
   myStudents: myStudents,
   scheduleView: scheduleView,
   common: common,
+  balanceModal: balanceModal,
+  dashboardHome: dashboardHome,
 };

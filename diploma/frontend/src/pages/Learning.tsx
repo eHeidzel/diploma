@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import {
   message,
@@ -122,7 +121,7 @@ const Learning: React.FC<LearningProps> = ({ user }) => {
       setActivities(response.data);
     } catch (error) {
       console.error("Error fetching activities:", error);
-      message.error("Ошибка загрузки активностей");
+      message.error(t("adminActivities.messages.loadError"));
     } finally {
       setLoading(false);
     }
@@ -142,7 +141,7 @@ const Learning: React.FC<LearningProps> = ({ user }) => {
         if (categoryExists) {
           setSelectedCategories([categoryParam]);
           message.info(
-            `Показаны занятия по направлению: ${CATEGORIES.find((c) => c.value === categoryParam)?.label}`,
+            `${t("learning.filters.categories")}: ${CATEGORIES.find((c) => c.value === categoryParam)?.label}`,
           );
         }
       }
@@ -162,11 +161,10 @@ const Learning: React.FC<LearningProps> = ({ user }) => {
   const handleBookingClick = (activity: any) => {
     if (isGuest) {
       Modal.confirm({
-        title: "Требуется регистрация",
-        content:
-          "Для записи на занятия необходимо зарегистрироваться. Перейти на страницу регистрации?",
-        okText: "Зарегистрироваться",
-        cancelText: "Отмена",
+        title: t("learning.guestModal.title"),
+        content: t("learning.guestModal.content"),
+        okText: t("learning.guestModal.register"),
+        cancelText: t("learning.guestModal.cancel"),
         centered: true,
         onOk: () => navigate("/register"),
       });
@@ -182,20 +180,21 @@ const Learning: React.FC<LearningProps> = ({ user }) => {
     if (activity.price && activity.price > 0) {
       if (!isAuthenticated) {
         Modal.confirm({
-          title: "Требуется регистрация",
-          content:
-            "Для записи на платное занятие необходимо зарегистрироваться. Перейти на страницу регистрации?",
-          okText: "Зарегистрироваться",
-          cancelText: "Отмена",
+          title: t("learning.guestModal.title"),
+          content: t("learning.guestModal.content"),
+          okText: t("learning.guestModal.register"),
+          cancelText: t("learning.guestModal.cancel"),
           centered: true,
           onOk: () => navigate("/register"),
         });
       } else if (userBalance < activity.price) {
         Modal.confirm({
-          title: "Недостаточно средств",
-          content: `На вашем балансе ${userBalance} BYN. Стоимость занятия ${activity.price} BYN. Пополнить баланс?`,
-          okText: "Пополнить",
-          cancelText: "Отмена",
+          title: t("learning.balanceModal.insufficientFunds"),
+          content: t("learning.balanceModal.insufficientFunds")
+            .replace("{{balance}}", userBalance.toString())
+            .replace("{{price}}", activity.price.toString()),
+          okText: t("learning.balanceModal.topUp"),
+          cancelText: t("learning.balanceModal.cancel"),
           centered: true,
           onOk: () => setBalanceModalVisible(true),
         });
@@ -214,7 +213,9 @@ const Learning: React.FC<LearningProps> = ({ user }) => {
   const handleSubmitBooking = async (values: any) => {
     try {
       await activitiesApi.book(selectedActivity?.id, values);
-      message.success(`Вы успешно записаны на "${selectedActivity?.title}"!`);
+      message.success(
+        t("learning.booking.success").replace("{{title}}", selectedActivity?.title || ""),
+      );
       handleCloseBookingModal();
       if (isStudent && selectedActivity?.price > 0) {
         fetchBalance();
@@ -222,7 +223,7 @@ const Learning: React.FC<LearningProps> = ({ user }) => {
       await fetchActivities();
     } catch (error: any) {
       console.error("Booking error:", error);
-      message.error(error.response?.data?.message || "Ошибка при записи");
+      message.error(error.response?.data?.message || t("learning.booking.error"));
     }
   };
 
@@ -289,7 +290,7 @@ const Learning: React.FC<LearningProps> = ({ user }) => {
       <div className={styles.container}>
         <div className={styles.loadingContainer}>
           <div className={styles.spinner} />
-          <Text>Загрузка...</Text>
+          <Text>{t("learning.loading")}</Text>
         </div>
       </div>
     );
@@ -298,16 +299,13 @@ const Learning: React.FC<LearningProps> = ({ user }) => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <Title level={getTitleLevel(3)}>Образовательные активности</Title>
-        <Text type="secondary">
-          Пробные занятия, вебинары, мастер-классы, индивидуальные и групповые
-          занятия
-        </Text>
+        <Title level={getTitleLevel(3)}>{t("learning.title")}</Title>
+        <Text type="secondary">{t("learning.subtitle")}</Text>
       </div>
 
       <div className={styles.searchSection}>
         <Search
-          placeholder="Поиск по названию, описанию или преподавателю..."
+          placeholder={t("learning.searchPlaceholder")}
           allowClear
           enterButton={<SearchOutlined />}
           size="large"
@@ -393,7 +391,7 @@ const Learning: React.FC<LearningProps> = ({ user }) => {
           </div>
         </>
       ) : (
-        <Empty description="Нет активностей по выбранным критериям" />
+        <Empty description={t("learning.noActivities")} />
       )}
 
       {selectedActivity?.type === "individual" && (

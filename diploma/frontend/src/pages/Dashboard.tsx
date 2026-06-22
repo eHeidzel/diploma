@@ -1,4 +1,3 @@
-// pages/Dashboard.tsx
 import React, { useState, useEffect } from "react";
 import {
   Layout,
@@ -18,7 +17,6 @@ import {
   LogoutOutlined,
   SettingOutlined,
   DollarOutlined,
-  FileTextOutlined,
   ClockCircleOutlined,
 } from "@ant-design/icons";
 import {
@@ -38,7 +36,6 @@ import Profile from "./Profile";
 import Settings from "./Settings";
 import MyStudents from "./MyStudents";
 import Workload from "./Workload";
-import Materials from "./Materials";
 import BalanceModal from "../components/BalanceModal";
 import styles from "../css/dashboard.module.css";
 import { useAdaptiveLevel } from "../hooks/useAdaptiveLevel";
@@ -106,15 +103,15 @@ const RoleRoute: React.FC<{
 };
 
 const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
+  const { t } = useTranslation();
+  const { getTitleLevel } = useAdaptiveLevel();
   const [collapsed, setCollapsed] = useState(false);
   const [balanceModalVisible, setBalanceModalVisible] = useState(false);
   const [userBalance, setUserBalance] = useState(0);
   const [currentUser, setCurrentUser] = useState(user);
-  const [avatarKey, setAvatarKey] = useState(Date.now()); // Для принудительного обновления
-  const { getTitleLevel } = useAdaptiveLevel();
+  const [avatarKey, setAvatarKey] = useState(Date.now());
   const navigate = useNavigate();
   const location = useLocation();
-  const { t } = useTranslation();
 
   const isGuest = user?.isGuest || user?.role === "guest";
   const isStudent = user?.role === UserRole.STUDENT;
@@ -127,7 +124,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
     }
   }, [isStudent, isGuest, user?.id]);
 
-  // Обновляем currentUser при изменении user
   useEffect(() => {
     setCurrentUser(user);
   }, [user]);
@@ -145,7 +141,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
     if (updatedUser) {
       const mergedUser = { ...currentUser, ...updatedUser };
       setCurrentUser(mergedUser);
-      setAvatarKey(Date.now()); // Принудительно обновляем аватар
+      setAvatarKey(Date.now());
       localStorage.setItem("user", JSON.stringify(mergedUser));
     }
   };
@@ -173,22 +169,22 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
     {
       key: "dashboard",
       icon: <DashboardOutlined />,
-      label: <Link to="/dashboard/home">Главная</Link>,
+      label: <Link to="/dashboard/home">{t("dashboard.menu.main")}</Link>,
     },
     {
       key: "learning",
       icon: <BookOutlined />,
-      label: <Link to="/dashboard/learning">Обучение</Link>,
+      label: <Link to="/dashboard/learning">{t("dashboard.menu.learning")}</Link>,
     },
     {
       key: "schedule",
       icon: <CalendarOutlined />,
-      label: <Link to="/dashboard/schedule">Расписание</Link>,
+      label: <Link to="/dashboard/schedule">{t("dashboard.menu.schedule")}</Link>,
     },
     {
       key: "test",
       icon: <UserOutlined />,
-      label: <Link to="/dashboard/test">Тест</Link>,
+      label: <Link to="/dashboard/test">{t("dashboard.menu.test")}</Link>,
     },
   ];
 
@@ -196,17 +192,17 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
     {
       key: "schedule",
       icon: <CalendarOutlined />,
-      label: <Link to="/dashboard/schedule">Расписание</Link>,
+      label: <Link to="/dashboard/schedule">{t("dashboard.menu.schedule")}</Link>,
     },
     {
       key: "students",
       icon: <TeamOutlined />,
-      label: <Link to="/dashboard/students">Ученики</Link>,
+      label: <Link to="/dashboard/students">{t("dashboard.menu.students")}</Link>,
     },
     {
       key: "workload",
       icon: <ClockCircleOutlined />,
-      label: <Link to="/dashboard/workload">Нагрузка</Link>,
+      label: <Link to="/dashboard/workload">{t("dashboard.menu.workload")}</Link>,
     },
   ];
 
@@ -214,19 +210,17 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
     {
       key: "admin-activities",
       icon: <BookOutlined />,
-      label: (
-        <Link to="/dashboard/admin-activities">Управление активностями</Link>
-      ),
+      label: <Link to="/dashboard/admin-activities">{t("adminActivities.title")}</Link>,
     },
     {
       key: "admin-users",
       icon: <TeamOutlined />,
-      label: <Link to="/dashboard/admin-users">Управление пользователями</Link>,
+      label: <Link to="/dashboard/admin-users">{t("adminUsers.title")}</Link>,
     },
     {
       key: "admin-schedule",
       icon: <CalendarOutlined />,
-      label: <Link to="/dashboard/admin-schedule">Управление расписанием</Link>,
+      label: <Link to="/dashboard/admin-schedule">{t("adminSchedule.title")}</Link>,
     },
   ];
 
@@ -234,17 +228,17 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
     {
       key: "dashboard",
       icon: <DashboardOutlined />,
-      label: <Link to="/dashboard/home">Главная</Link>,
+      label: <Link to="/dashboard/home">{t("dashboard.menu.main")}</Link>,
     },
     {
       key: "learning",
       icon: <BookOutlined />,
-      label: <Link to="/dashboard/learning">Обучение</Link>,
+      label: <Link to="/dashboard/learning">{t("dashboard.menu.learning")}</Link>,
     },
     {
       key: "test",
       icon: <UserOutlined />,
-      label: <Link to="/dashboard/test">Тест</Link>,
+      label: <Link to="/dashboard/test">{t("dashboard.menu.test")}</Link>,
     },
   ];
 
@@ -261,17 +255,17 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
     {
       key: "profile",
       icon: <UserOutlined />,
-      label: <Link to="/dashboard/profile">Профиль</Link>,
+      label: <Link to="/dashboard/profile">{t("profile.title")}</Link>,
     },
     {
       key: "settings",
       icon: <SettingOutlined />,
-      label: <Link to="/dashboard/settings">Настройки</Link>,
+      label: <Link to="/dashboard/settings">{t("settings.title")}</Link>,
     },
     {
       key: "logout",
       icon: <LogoutOutlined />,
-      label: "Выйти",
+      label: t("dashboard.menu.logout"),
       onClick: () => {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
@@ -283,18 +277,17 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
   ];
 
   const getDisplayRole = () => {
-    if (!currentUser) return "Гость";
-    if (isTeacher) return "Преподаватель";
-    if (isAdmin) return "Администратор";
-    if (isGuest) return "Гость";
-    return "Ученик";
+    if (!currentUser) return t("common.guest");
+    if (isTeacher) return t("profile.roles.teacher");
+    if (isAdmin) return t("profile.roles.admin");
+    if (isGuest) return t("common.guest");
+    return t("profile.roles.student");
   };
 
   const canSeeHome = () => {
     return isStudent || isGuest || !currentUser;
   };
 
-  // Формируем URL аватара с ключом для принудительного обновления
   const avatarUrl = currentUser?.avatar
     ? currentUser.avatar.startsWith("http")
       ? currentUser.avatar
@@ -352,7 +345,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
               <Space className={styles.userAvatar}>
                 <Avatar src={avatarUrl} icon={<UserOutlined />} key={avatarKey} />
                 <span className={styles.userName}>
-                  {currentUser?.name || "Гость"} ({getDisplayRole()})
+                  {currentUser?.name || t("common.guest")} ({getDisplayRole()})
                 </span>
               </Space>
             </Dropdown>
@@ -370,7 +363,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
             {canSeeHome() ? (
               <Route
                 path="/home"
-                element={<DashboardHome user={currentUser} t={t} />}
+                element={<DashboardHome user={currentUser} />}
               />
             ) : (
               <Route
@@ -423,8 +416,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
                 )
               }
             />
-
-            <Route path="/materials" element={<Materials user={currentUser} />} />
 
             <Route
               path="/admin-activities"

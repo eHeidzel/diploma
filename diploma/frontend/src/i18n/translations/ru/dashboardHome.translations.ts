@@ -1,0 +1,45 @@
+import { IDashboardHomeTranslations } from "../en/dashboardHome.translations";
+
+export const dashboardHome: IDashboardHomeTranslations = {
+  stats: {
+    students: "Студентов",
+    teachers: "Преподавателей",
+    projects: "Проектов",
+  },
+  projects: {
+    title: "Проекты учеников",
+    subtitle: "Реальные проекты наших выпускников",
+    noProjects: "Нет проектов",
+    demo: "Демо",
+  },
+  teachers: {
+    title: "Наши преподаватели",
+    subtitle: "Опытные практики из ведущих IT-компаний",
+    noTeachers: "Нет преподавателей",
+    more: "Подробнее о преподавателе",
+  },
+  reviews: {
+    title: "Отзывы наших студентов",
+    subtitle: "Реальные отзывы о нашей школе",
+    noReviews: "Пока нет отзывов. Будьте первым!",
+    create: "Оставить отзыв",
+    createTitle: "Оставить отзыв о школе",
+    editTitle: "Редактировать отзыв",
+    rating: "Оценка",
+    ratingRequired: "Поставьте оценку",
+    text: "Ваш отзыв",
+    textRequired: "Напишите отзыв",
+    textPlaceholder: "Поделитесь впечатлениями о школе...",
+    textMin: "Отзыв должен содержать минимум 10 символов",
+    textMax: "Отзыв не должен превышать 1000 символов",
+    submit: "Отправить отзыв",
+    authRequired: "Только авторизованные ученики могут оставлять отзывы",
+    createSuccess: "Спасибо за ваш отзыв!",
+    updateSuccess: "Отзыв обновлен",
+    deleteSuccess: "Отзыв удален",
+    error: "Ошибка при отправке отзыва",
+    deleteError: "Ошибка при удалении отзыва",
+    deleteConfirm: "Удалить отзыв",
+    deleteDescription: "Вы уверены, что хотите удалить свой отзыв?",
+  },
+};

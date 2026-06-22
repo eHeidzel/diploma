@@ -60,15 +60,15 @@ interface TestResult {
 }
 
 const Test: React.FC = () => {
+  const { t, i18n } = useTranslation();
+  const { getTitleLevel } = useAdaptiveLevel();
+  const navigate = useNavigate();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Map<number, number[]>>(new Map());
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<TestResult | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
-  const { t, i18n } = useTranslation();
-  const { getTitleLevel } = useAdaptiveLevel();
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetchQuestions();
@@ -83,9 +83,7 @@ const Test: React.FC = () => {
       setQuestions(response.data);
     } catch (error) {
       console.error("Error fetching questions:", error);
-      message.error(
-        t("test.errors.loadQuestions") || "Ошибка загрузки вопросов",
-      );
+      message.error(t("test.errors.loadQuestions"));
     } finally {
       setLoading(false);
     }
@@ -122,9 +120,7 @@ const Test: React.FC = () => {
   const handleNext = () => {
     const answer = getCurrentAnswer();
     if (answer.length === 0) {
-      message.warning(
-        t("test.errors.answerRequired") || "Пожалуйста, ответьте на вопрос",
-      );
+      message.warning(t("test.errors.answerRequired"));
       return;
     }
 
@@ -150,7 +146,9 @@ const Test: React.FC = () => {
     });
 
     if (unanswered.length > 0) {
-      message.warning(`Вы не ответили на ${unanswered.length} вопрос(ов)`);
+      message.warning(
+        t("test.errors.unansweredQuestions").replace("{{count}}", String(unanswered.length))
+      );
       return;
     }
 
@@ -169,12 +167,12 @@ const Test: React.FC = () => {
       });
 
       setResult(response.data);
-      message.success("Результаты готовы!");
+      message.success(t("test.success.resultsReady"));
       window.scrollTo(0, 0);
     } catch (error: any) {
       console.error("Error calculating results:", error);
       message.error(
-        error.response?.data?.message || "Ошибка при обработке результатов",
+        error.response?.data?.message || t("test.errors.calculationError"),
       );
     } finally {
       setSubmitting(false);
@@ -233,6 +231,9 @@ const Test: React.FC = () => {
                 {option.text}
               </Checkbox>
             ))}
+            <Text type="secondary" className={styles.hint}>
+              {t("test.hints.multipleChoice")}
+            </Text>
           </Space>
         );
 
@@ -257,7 +258,7 @@ const Test: React.FC = () => {
             {result.topDirection.description}
           </Text>
           <Tag color={result.topDirection.color} className={styles.salaryTag}>
-            Заработок {result.topDirection.salary}
+            {t("test.results.salary")} {result.topDirection.salary}
           </Tag>
           <Button
             type="primary"
@@ -265,12 +266,12 @@ const Test: React.FC = () => {
             onClick={() => handleCategoryClick(result.topDirection.direction)}
             style={{ marginTop: 16 }}
           >
-            Перейти к обучению по направлению {result.topDirection.name}
+            {t("test.results.goToLearning").replace("{{name}}", result.topDirection.name)}
           </Button>
         </div>
 
         <Divider orientation="center" className={styles.sectionDivider}>
-          Все возможные направления
+          {t("test.results.allDirections")}
         </Divider>
 
         <Row gutter={[16, 16]} className={styles.directionsGrid}>
@@ -313,7 +314,7 @@ const Test: React.FC = () => {
                     handleCategoryClick(direction.direction);
                   }}
                 >
-                  Выбрать направление
+                  {t("test.results.chooseDirection")}
                 </Button>
               </Card>
             </Col>
@@ -321,7 +322,7 @@ const Test: React.FC = () => {
         </Row>
 
         <Divider orientation="center" className={styles.sectionDivider}>
-          Рекомендации для старта
+          {t("test.results.recommendations")}
         </Divider>
 
         <Card className={styles.recommendationsCard}>
@@ -342,7 +343,7 @@ const Test: React.FC = () => {
           onClick={handleRestart}
           className={styles.restartButton}
         >
-          Пройти тест заново
+          {t("test.buttons.restart")}
         </Button>
       </div>
     );
@@ -354,7 +355,7 @@ const Test: React.FC = () => {
         <Card className={styles.testCard}>
           <div className={styles.loadingContainer}>
             <div className={styles.spinner} />
-            <Text>Загрузка вопросов...</Text>
+            <Text>{t("test.loading")}</Text>
           </div>
         </Card>
       </div>
@@ -373,15 +374,16 @@ const Test: React.FC = () => {
     <div className={styles.container}>
       <Card className={styles.testCard} bodyStyle={{ padding: 0 }}>
         <div className={styles.header}>
-          <Title level={getTitleLevel(2)}>Кто вы в IT?</Title>
+          <Title level={getTitleLevel(2)}>{t("test.title")}</Title>
           <Text type="secondary" className={styles.subtitle}>
-            Пройдите тест и узнайте, какое направление в IT вам подходит больше
-            всего
+            {t("test.subtitle")}
           </Text>
           <div className={styles.progressInfo}>
             <ClockCircleOutlined />
             <Text>
-              Вопрос {currentQuestion + 1} из {questions.length}
+              {t("test.progress.question")
+                .replace("{{current}}", String(currentQuestion + 1))
+                .replace("{{total}}", String(questions.length))}
             </Text>
           </div>
           <Progress
@@ -395,11 +397,6 @@ const Test: React.FC = () => {
           <Title level={getTitleLevel(3)} className={styles.questionText}>
             {currentQ.text}
           </Title>
-          {currentQ.type === "multiple" && (
-            <Text type="secondary" className={styles.hint}>
-              Можно выбрать несколько вариантов ответа
-            </Text>
-          )}
           {renderQuestion()}
         </div>
       </Card>
@@ -412,7 +409,7 @@ const Test: React.FC = () => {
             icon={<ArrowLeftOutlined />}
             size="large"
           >
-            Назад
+            {t("test.buttons.previous")}
           </Button>
           <Button
             type="primary"
@@ -421,7 +418,9 @@ const Test: React.FC = () => {
             loading={submitting}
             size="large"
           >
-            {currentQuestion < questions.length - 1 ? "Далее" : "Завершить"}
+            {currentQuestion < questions.length - 1
+              ? t("test.buttons.next")
+              : t("test.buttons.finish")}
           </Button>
         </Space>
       </div>

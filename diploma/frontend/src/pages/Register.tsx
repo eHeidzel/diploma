@@ -24,43 +24,37 @@ interface RegisterProps {
 }
 
 const Register: React.FC<RegisterProps> = ({ onRegister }) => {
+  const { t } = useTranslation();
   const { getTitleLevel } = useAdaptiveLevel();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { t } = useTranslation();
 
   const validatePassword = (_: any, value: string) => {
     if (!value) {
-      return Promise.reject(new Error("Введите пароль"));
+      return Promise.reject(new Error(t("register.passwordRequired")));
     }
     if (value.length < 6) {
-      return Promise.reject(
-        new Error("Пароль должен содержать минимум 6 символов"),
-      );
+      return Promise.reject(new Error(t("register.passwordMinLength")));
     }
     if (!/[a-zA-Z]/.test(value)) {
-      return Promise.reject(
-        new Error("Пароль должен содержать хотя бы одну букву"),
-      );
+      return Promise.reject(new Error(t("register.passwordHasLetter")));
     }
     if (!/\d/.test(value)) {
-      return Promise.reject(
-        new Error("Пароль должен содержать хотя бы одну цифру"),
-      );
+      return Promise.reject(new Error(t("register.passwordHasDigit")));
     }
     return Promise.resolve();
   };
 
   const validateAge = (_: any, value: dayjs.Dayjs) => {
     if (!value) {
-      return Promise.reject(new Error("Введите дату рождения"));
+      return Promise.reject(new Error(t("register.birthDateRequired")));
     }
     const age = dayjs().diff(value, "year");
     if (age < 8) {
-      return Promise.reject(new Error("Возраст должен быть не менее 8 лет"));
+      return Promise.reject(new Error(t("register.ageMin")));
     }
     if (age > 100) {
-      return Promise.reject(new Error("Некорректная дата рождения"));
+      return Promise.reject(new Error(t("register.ageMax")));
     }
     return Promise.resolve();
   };
@@ -83,13 +77,13 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
       localStorage.setItem("user", JSON.stringify(user));
 
       onRegister(user);
-      message.success("Регистрация прошла успешно!");
+      message.success(t("register.registerSuccess"));
       navigate("/dashboard");
     } catch (error: any) {
       if (error.response?.status === 409) {
-        message.error("Пользователь с таким email уже существует");
+        message.error(t("register.emailConflict"));
       } else {
-        message.error(error.response?.data?.message || "Ошибка регистрации");
+        message.error(error.response?.data?.message || t("register.registerError"));
       }
     } finally {
       setLoading(false);
@@ -108,7 +102,8 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
 
       <Card className={styles.card}>
         <div className={styles.header}>
-          <Title level={getTitleLevel(2)}>Регистрация в CodeZone</Title>
+          <Title level={getTitleLevel(2)}>{t("register.title")}</Title>
+          <Text type="secondary">{t("register.subtitle")}</Text>
         </div>
 
         <Form
@@ -120,28 +115,28 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
         >
           <Form.Item
             name="name"
-            rules={[{ required: true, message: "Введите имя" }]}
+            rules={[{ required: true, message: t("register.nameRequired") }]}
           >
-            <Input prefix={<UserOutlined />} placeholder="Имя" />
+            <Input prefix={<UserOutlined />} placeholder={t("register.namePlaceholder")} />
           </Form.Item>
 
           <Form.Item
             name="email"
             rules={[
-              { required: true, message: "Введите email" },
-              { type: "email", message: "Введите корректный email" },
+              { required: true, message: t("register.emailRequired") },
+              { type: "email", message: t("register.emailInvalid") },
             ]}
           >
-            <Input prefix={<MailOutlined />} placeholder="Email" />
+            <Input prefix={<MailOutlined />} placeholder={t("register.emailPlaceholder")} />
           </Form.Item>
 
           <Form.Item
             name="birthDate"
             rules={[{ validator: validateAge }]}
-            tooltip="Укажите вашу дату рождения"
+            tooltip={t("register.birthDateTooltip")}
           >
             <DatePicker
-              placeholder="Дата рождения"
+              placeholder={t("register.birthDatePlaceholder")}
               style={{ width: "100%" }}
               format="DD.MM.YYYY"
               disabledDate={disabledDate}
@@ -153,27 +148,27 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
             rules={[{ validator: validatePassword }]}
             validateTrigger="onBlur"
           >
-            <Input.Password prefix={<LockOutlined />} placeholder="Пароль" />
+            <Input.Password prefix={<LockOutlined />} placeholder={t("register.passwordPlaceholder")} />
           </Form.Item>
 
           <Form.Item
             name="confirmPassword"
             dependencies={["password"]}
             rules={[
-              { required: true, message: "Подтвердите пароль" },
+              { required: true, message: t("register.confirmPasswordRequired") },
               ({ getFieldValue }) => ({
                 validator(_, value) {
                   if (!value || getFieldValue("password") === value) {
                     return Promise.resolve();
                   }
-                  return Promise.reject(new Error("Пароли не совпадают"));
+                  return Promise.reject(new Error(t("register.passwordsDoNotMatch")));
                 },
               }),
             ]}
           >
             <Input.Password
               prefix={<LockOutlined />}
-              placeholder="Подтвердите пароль"
+              placeholder={t("register.confirmPasswordPlaceholder")}
             />
           </Form.Item>
 
@@ -185,27 +180,28 @@ const Register: React.FC<RegisterProps> = ({ onRegister }) => {
               block
               className={styles.submitButton}
             >
-              Зарегистрироваться
+              {loading ? t("register.loading") : t("register.registerButton")}
             </Button>
           </Form.Item>
 
           <div className={styles.loginLink}>
             <Text type="secondary">
-              Уже есть аккаунт? <Link to="/login">Войти</Link>
+              {t("register.alreadyHaveAccount")}{" "}
+              <Link to="/login">{t("register.loginLink")}</Link>
               <br />
               <Link
                 to="/dashboard"
                 onClick={() => {
                   const guestUser = {
                     id: "guest",
-                    name: "Гость",
+                    name: t("common.guest"),
                     role: "guest",
                     isGuest: true,
                   };
                   onRegister(guestUser);
                 }}
               >
-                Войти как гость
+                {t("register.guestLink")}
               </Link>
             </Text>
           </div>

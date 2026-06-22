@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   Modal,
@@ -13,6 +12,7 @@ import {
 import { CreditCardOutlined } from "@ant-design/icons";
 import { balanceApi } from "../services/api";
 import styles from "../css/balance.module.css";
+import { useTranslation } from "react-i18next";
 
 const { Text } = Typography;
 
@@ -27,13 +27,14 @@ const BalanceModal: React.FC<BalanceModalProps> = ({
   onCancel,
   onSuccess,
 }) => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
 
   const handleSubmit = async (values: { amount: number }) => {
     const amount = Number(values.amount);
     if (isNaN(amount) || amount <= 0) {
-      message.error("Введите корректную сумму (больше 0)");
+      message.error(t("balanceModal.invalidAmount"));
       return;
     }
 
@@ -42,7 +43,7 @@ const BalanceModal: React.FC<BalanceModalProps> = ({
       console.log("Sending topup request:", { amount, paymentMethod: "card" });
       const response = await balanceApi.topUp(amount, "card");
       console.log("Topup response:", response.data);
-      message.success(`Баланс пополнен на ${amount} BYN`);
+      message.success(t("balanceModal.success").replace("{{amount}}", String(amount)));
       form.resetFields();
       onSuccess();
       onCancel();
@@ -50,7 +51,7 @@ const BalanceModal: React.FC<BalanceModalProps> = ({
       console.error("Error topping up balance:", error);
       console.error("Error response:", error.response?.data);
       message.error(
-        error.response?.data?.message || "Ошибка при пополнении баланса",
+        error.response?.data?.message || t("balanceModal.error"),
       );
     } finally {
       setLoading(false);
@@ -69,7 +70,7 @@ const BalanceModal: React.FC<BalanceModalProps> = ({
 
   return (
     <Modal
-      title="Пополнение баланса"
+      title={t("balanceModal.title")}
       open={visible}
       onCancel={onCancel}
       footer={null}
@@ -79,8 +80,8 @@ const BalanceModal: React.FC<BalanceModalProps> = ({
       destroyOnClose
     >
       <Alert
-        message="Информация"
-        description="Средства будут зачислены на ваш счет после успешной оплаты."
+        message={t("balanceModal.infoTitle")}
+        description={t("balanceModal.infoDescription")}
         type="info"
         showIcon
         style={{ marginBottom: 16 }}
@@ -94,20 +95,20 @@ const BalanceModal: React.FC<BalanceModalProps> = ({
       >
         <Form.Item
           name="amount"
-          label="Сумма пополнения (BYN)"
+          label={t("balanceModal.amountLabel")}
           rules={[
-            { required: true, message: "Введите сумму пополнения" },
+            { required: true, message: t("balanceModal.amountRequired") },
             {
               pattern: /^\d+$/,
-              message: "Введите целое положительное число",
+              message: t("balanceModal.amountInteger"),
             },
             {
               validator: (_, value) => {
                 if (value && Number(value) < 1) {
-                  return Promise.reject("Минимальная сумма 1 BYN");
+                  return Promise.reject(t("balanceModal.amountMin"));
                 }
                 if (value && Number(value) > 10000) {
-                  return Promise.reject("Максимальная сумма 10000 BYN");
+                  return Promise.reject(t("balanceModal.amountMax"));
                 }
                 return Promise.resolve();
               },
@@ -117,7 +118,7 @@ const BalanceModal: React.FC<BalanceModalProps> = ({
         >
           <Input
             type="number"
-            placeholder="Введите сумму в BYN"
+            placeholder={t("balanceModal.amountPlaceholder")}
             prefix={<CreditCardOutlined />}
             suffix="BYN"
             size="large"
@@ -132,7 +133,7 @@ const BalanceModal: React.FC<BalanceModalProps> = ({
         </Form.Item>
 
         <div className={styles.presetAmounts}>
-          <Text type="secondary">Быстрые суммы:</Text>
+          <Text type="secondary">{t("balanceModal.presetAmounts")}:</Text>
           <Space wrap>
             {[50, 100, 200, 500].map((amount) => (
               <Button
@@ -148,9 +149,9 @@ const BalanceModal: React.FC<BalanceModalProps> = ({
 
         <Form.Item style={{ marginBottom: 0, textAlign: "right" }}>
           <Space>
-            <Button onClick={onCancel}>Отмена</Button>
+            <Button onClick={onCancel}>{t("common.cancel")}</Button>
             <Button type="primary" htmlType="submit" loading={loading}>
-              Оплатить
+              {t("balanceModal.pay")}
             </Button>
           </Space>
         </Form.Item>

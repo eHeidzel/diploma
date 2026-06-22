@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   Card,
@@ -31,6 +30,8 @@ import {
 } from "@ant-design/icons";
 import { adminApi } from "../services/api";
 import styles from "../css/admin.module.css";
+import { useTranslation } from "react-i18next";
+import { useAdaptiveLevel } from "../hooks/useAdaptiveLevel";
 
 const { Title, Text } = Typography;
 const { Search } = Input;
@@ -53,6 +54,8 @@ const CATEGORIES = [
 ];
 
 const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
+  const { t } = useTranslation();
+  const { getTitleLevel } = useAdaptiveLevel();
   const [users, setUsers] = useState<any[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
   const [teacherAccesses, setTeacherAccesses] = useState<any[]>([]);
@@ -80,7 +83,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
       setUsers(response.data);
     } catch (error) {
       console.error("Error fetching users:", error);
-      message.error("Ошибка загрузки пользователей");
+      message.error(t("adminUsers.messages.loadError"));
     } finally {
       setLoading(false);
     }
@@ -108,7 +111,6 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
     setSelectedTeacher(record);
     if (record.role === "teacher") {
       try {
-        
         const response = await adminApi.getTeacherAccesses();
         const teacherAccesses = response.data.filter(
           (access: any) => access.teacherId === record.id,
@@ -132,10 +134,10 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
     try {
       if (editingUser) {
         await adminApi.updateUser(editingUser.id, values);
-        message.success("Пользователь обновлен");
+        message.success(t("adminUsers.messages.updateSuccess"));
       } else {
         await adminApi.createTeacher(values);
-        message.success("Преподаватель создан");
+        message.success(t("adminUsers.messages.createSuccess"));
       }
       setModalVisible(false);
       form.resetFields();
@@ -143,18 +145,18 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
       fetchUsers();
     } catch (error) {
       console.error("Error saving user:", error);
-      message.error("Ошибка сохранения пользователя");
+      message.error(t("adminUsers.messages.saveError"));
     }
   };
 
   const handleDelete = async (id: number) => {
     try {
       await adminApi.deleteUser(id);
-      message.success("Пользователь удален");
+      message.success(t("adminUsers.messages.deleteSuccess"));
       fetchUsers();
     } catch (error) {
       console.error("Error deleting user:", error);
-      message.error("Ошибка удаления пользователя");
+      message.error(t("adminUsers.messages.deleteError"));
     }
   };
 
@@ -162,12 +164,12 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
     try {
       await adminApi.blockUser(id, isBlocked);
       message.success(
-        isBlocked ? "Пользователь заблокирован" : "Пользователь разблокирован",
+        isBlocked ? t("adminUsers.messages.blockSuccess") : t("adminUsers.messages.unblockSuccess"),
       );
       fetchUsers();
     } catch (error) {
       console.error("Error blocking user:", error);
-      message.error("Ошибка изменения статуса");
+      message.error(t("adminUsers.messages.blockError"));
     }
   };
 
@@ -175,13 +177,15 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
     try {
       await adminApi.processTeacherRequest(requestId, status);
       message.success(
-        `Заявка ${status === "approved" ? "одобрена" : "отклонена"}`,
+        status === "approved"
+          ? t("adminUsers.messages.requestApproved")
+          : t("adminUsers.messages.requestRejected"),
       );
       fetchTeacherRequests();
       fetchUsers();
     } catch (error) {
       console.error("Error processing request:", error);
-      message.error("Ошибка обработки заявки");
+      message.error(t("adminUsers.messages.requestProcessError"));
     }
   };
 
@@ -194,12 +198,11 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
       };
 
       await adminApi.grantTeacherAccess(accessData);
-      message.success("Доступ успешно выдан");
+      message.success(t("adminUsers.messages.grantAccessSuccess"));
       setAccessModalVisible(false);
       accessForm.resetFields();
       fetchTeacherAccesses();
 
-      
       if (selectedTeacher) {
         const response = await adminApi.getTeacherAccesses();
         const teacherAccesses = response.data.filter(
@@ -212,17 +215,16 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
       }
     } catch (error) {
       console.error("Error granting access:", error);
-      message.error("Ошибка выдачи доступа");
+      message.error(t("adminUsers.messages.grantAccessError"));
     }
   };
 
   const handleRevokeAccess = async (accessId: number) => {
     try {
       await adminApi.revokeTeacherAccess(accessId);
-      message.success("Доступ отозван");
+      message.success(t("adminUsers.messages.revokeAccessSuccess"));
       fetchTeacherAccesses();
 
-      
       if (selectedTeacher) {
         const response = await adminApi.getTeacherAccesses();
         const teacherAccesses = response.data.filter(
@@ -235,7 +237,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
       }
     } catch (error) {
       console.error("Error revoking access:", error);
-      message.error("Ошибка отзыва доступа");
+      message.error(t("adminUsers.messages.revokeAccessError"));
     }
   };
 
@@ -250,9 +252,9 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
 
   const getRoleLabel = (role: string) => {
     const labels: any = {
-      admin: "Администратор",
-      teacher: "Преподаватель",
-      student: "Ученик",
+      admin: t("adminUsers.roles.admin"),
+      teacher: t("adminUsers.roles.teacher"),
+      student: t("adminUsers.roles.student"),
     };
     return labels[role] || role;
   };
@@ -265,7 +267,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
 
   const columns = [
     {
-      title: "Пользователь",
+      title: t("adminUsers.table.user"),
       key: "user",
       render: (_: any, record: any) => (
         <Space>
@@ -282,32 +284,32 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
       sorter: (a: any, b: any) => (a.name || "").localeCompare(b.name || ""),
     },
     {
-      title: "Роль",
+      title: t("adminUsers.table.role"),
       dataIndex: "role",
       key: "role",
       render: (role: string) => (
         <Tag color={getRoleColor(role)}>{getRoleLabel(role)}</Tag>
       ),
       filters: [
-        { text: "Ученик", value: "student" },
-        { text: "Преподаватель", value: "teacher" },
-        { text: "Администратор", value: "admin" },
+        { text: t("adminUsers.roles.student"), value: "student" },
+        { text: t("adminUsers.roles.teacher"), value: "teacher" },
+        { text: t("adminUsers.roles.admin"), value: "admin" },
       ],
       onFilter: (value: any, record: any) => record.role === value,
     },
     {
-      title: "Статус",
+      title: t("adminUsers.table.status"),
       dataIndex: "isBlocked",
       key: "isBlocked",
       render: (isBlocked: boolean) => (
         <Badge
           status={isBlocked ? "error" : "success"}
-          text={isBlocked ? "Заблокирован" : "Активен"}
+          text={isBlocked ? t("adminUsers.statuses.blocked") : t("adminUsers.statuses.active")}
         />
       ),
     },
     {
-      title: "Дата регистрации",
+      title: t("adminUsers.table.registrationDate"),
       dataIndex: "createdAt",
       key: "createdAt",
       render: (date: string) => new Date(date).toLocaleDateString(),
@@ -315,11 +317,11 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
         new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
     },
     {
-      title: "Действия",
+      title: t("adminUsers.table.actions"),
       key: "actions",
       render: (_: any, record: any) => (
         <Space>
-          <Tooltip title="Просмотр">
+          <Tooltip title={t("adminUsers.table.view")}>
             <Button
               type="text"
               icon={<EyeOutlined />}
@@ -333,7 +335,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
               }}
             />
           </Tooltip>
-          <Tooltip title="Редактировать">
+          <Tooltip title={t("adminUsers.table.edit")}>
             <Button
               type="text"
               icon={<EditOutlined />}
@@ -344,22 +346,10 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
               }}
             />
           </Tooltip>
-          {record.role === "teacher" && (
-            <Tooltip title="Выдать доступ к материалам">
-              <Button
-                type="text"
-                icon={<FolderOpenOutlined />}
-                onClick={() => {
-                  setSelectedTeacher(record);
-                  setAccessModalVisible(true);
-                }}
-              />
-            </Tooltip>
-          )}
           {record.role !== "admin" && (
             <>
               <Tooltip
-                title={record.isBlocked ? "Разблокировать" : "Заблокировать"}
+                title={record.isBlocked ? t("adminUsers.table.unblock") : t("adminUsers.table.block")}
               >
                 <Button
                   type="text"
@@ -369,13 +359,13 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
                 />
               </Tooltip>
               <Popconfirm
-                title="Удаление пользователя"
-                description="Вы уверены, что хотите удалить этого пользователя?"
+                title={t("adminUsers.messages.deleteConfirmTitle")}
+                description={t("adminUsers.messages.deleteConfirm")}
                 onConfirm={() => handleDelete(record.id)}
-                okText="Да"
-                cancelText="Нет"
+                okText={t("common.yes")}
+                cancelText={t("common.no")}
               >
-                <Tooltip title="Удалить">
+                <Tooltip title={t("adminUsers.table.delete")}>
                   <Button type="text" danger icon={<DeleteOutlined />} />
                 </Tooltip>
               </Popconfirm>
@@ -388,7 +378,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
 
   const requestColumns = [
     {
-      title: "Преподаватель",
+      title: t("adminUsers.requestColumns.teacher"),
       key: "user",
       render: (_: any, record: any) => (
         <Space>
@@ -402,17 +392,17 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
       ),
     },
     {
-      title: "Специализация",
+      title: t("adminUsers.requestColumns.specialization"),
       dataIndex: "specialization",
       key: "specialization",
     },
     {
-      title: "Опыт",
+      title: t("adminUsers.requestColumns.experience"),
       dataIndex: "experience",
       key: "experience",
     },
     {
-      title: "Статус",
+      title: t("adminUsers.requestColumns.status"),
       dataIndex: "status",
       key: "status",
       render: (status: string) => (
@@ -426,15 +416,15 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
           }
         >
           {status === "pending"
-            ? "На рассмотрении"
+            ? t("adminUsers.requestStatuses.pending")
             : status === "approved"
-              ? "Одобрена"
-              : "Отклонена"}
+              ? t("adminUsers.requestStatuses.approved")
+              : t("adminUsers.requestStatuses.rejected")}
         </Tag>
       ),
     },
     {
-      title: "Действия",
+      title: t("adminUsers.requestColumns.actions"),
       key: "actions",
       render: (_: any, record: any) =>
         record.status === "pending" && (
@@ -445,7 +435,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
               icon={<CheckCircleOutlined />}
               onClick={() => handleTeacherRequest(record.id, "approved")}
             >
-              Одобрить
+              {t("adminUsers.modals.approve")}
             </Button>
             <Button
               danger
@@ -453,17 +443,16 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
               icon={<BlockOutlined />}
               onClick={() => handleTeacherRequest(record.id, "rejected")}
             >
-              Отклонить
+              {t("adminUsers.modals.reject")}
             </Button>
           </Space>
         ),
     },
   ];
 
-  
   const accessColumns = [
     {
-      title: "Категория",
+      title: t("adminUsers.fields.category"),
       dataIndex: "category",
       key: "category",
       render: (category: string) => {
@@ -472,33 +461,33 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
       },
     },
     {
-      title: "Ссылка на материалы",
+      title: t("adminUsers.fields.googleDriveLink"),
       dataIndex: "googleDriveLink",
       key: "googleDriveLink",
       render: (link: string) => (
         <a href={link} target="_blank" rel="noopener noreferrer">
-          Открыть
+          {t("adminUsers.table.openMaterials")}
         </a>
       ),
     },
     {
-      title: "Дата выдачи",
+      title: t("adminUsers.table.grantedDate"),
       dataIndex: "createdAt",
       key: "createdAt",
       render: (date: string) => new Date(date).toLocaleDateString(),
     },
     {
-      title: "Действия",
+      title: t("adminUsers.table.actions"),
       key: "actions",
       render: (_: any, record: any) => (
         <Popconfirm
-          title="Отозвать доступ"
-          description="Вы уверены, что хотите отозвать этот доступ?"
+          title={t("adminUsers.table.revokeAccess")}
+          description={t("adminUsers.messages.deleteConfirm")}
           onConfirm={() => handleRevokeAccess(record.id)}
-          okText="Да"
-          cancelText="Нет"
+          okText={t("common.yes")}
+          cancelText={t("common.no")}
         >
-          <Tooltip title="Отозвать доступ">
+          <Tooltip title={t("adminUsers.table.revokeAccess")}>
             <Button type="text" danger icon={<DeleteOutlined />} />
           </Tooltip>
         </Popconfirm>
@@ -509,10 +498,10 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <Title level={3}>Управление пользователями</Title>
+        <Title level={getTitleLevel(3)}>{t("adminUsers.title")}</Title>
         <Space wrap>
           <Search
-            placeholder="Поиск по имени или email"
+            placeholder={t("adminUsers.searchPlaceholder")}
             allowClear
             style={{ width: 250 }}
             onSearch={setSearchText}
@@ -520,7 +509,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
             prefix={<SearchOutlined />}
           />
           <Button onClick={() => setTeacherRequestsVisible(true)}>
-            Заявки преподавателей (
+            {t("adminUsers.teacherRequestsButton")} (
             {teachers.filter((t) => t.status === "pending").length})
           </Button>
           <Button
@@ -532,7 +521,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
               setModalVisible(true);
             }}
           >
-            Добавить преподавателя
+            {t("adminUsers.addTeacherButton")}
           </Button>
         </Space>
       </div>
@@ -548,9 +537,8 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
         />
       </Card>
 
-      {/* Модальное окно просмотра */}
       <Modal
-        title="Просмотр пользователя"
+        title={t("adminUsers.modals.viewTitle")}
         open={viewModalVisible}
         onCancel={() => {
           setViewModalVisible(false);
@@ -563,7 +551,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
               setSelectedTeacher(null);
             }}
           >
-            Закрыть
+            {t("adminUsers.modals.close")}
           </Button>
         }
         width={700}
@@ -572,25 +560,29 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
         {selectedTeacher && (
           <>
             <Descriptions column={1} bordered>
-              <Descriptions.Item label="Имя">
+              <Descriptions.Item label={t("adminUsers.fields.name")}>
                 {selectedTeacher.name}
               </Descriptions.Item>
-              <Descriptions.Item label="Email">
+              <Descriptions.Item label={t("adminUsers.fields.email")}>
                 {selectedTeacher.email}
               </Descriptions.Item>
-              <Descriptions.Item label="Телефон">
-                {selectedTeacher.phone || "Не указан"}
+              <Descriptions.Item label={t("adminUsers.fields.phone")}>
+                {selectedTeacher.phone || t("common.notSpecified")}
               </Descriptions.Item>
-              <Descriptions.Item label="Роль">
+              <Descriptions.Item label={t("adminUsers.table.role")}>
                 {getRoleLabel(selectedTeacher.role)}
               </Descriptions.Item>
-              <Descriptions.Item label="Статус">
+              <Descriptions.Item label={t("adminUsers.table.status")}>
                 <Badge
                   status={selectedTeacher.isBlocked ? "error" : "success"}
-                  text={selectedTeacher.isBlocked ? "Заблокирован" : "Активен"}
+                  text={
+                    selectedTeacher.isBlocked
+                      ? t("adminUsers.statuses.blocked")
+                      : t("adminUsers.statuses.active")
+                  }
                 />
               </Descriptions.Item>
-              <Descriptions.Item label="Дата регистрации">
+              <Descriptions.Item label={t("adminUsers.table.registrationDate")}>
                 {new Date(selectedTeacher.createdAt).toLocaleDateString()}
               </Descriptions.Item>
             </Descriptions>
@@ -598,7 +590,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
             {selectedTeacher.role === "teacher" && (
               <>
                 <Title level={5} style={{ marginTop: 20 }}>
-                  Доступ к материалам
+                  {t("adminUsers.fields.googleDriveLink")}
                 </Title>
                 {selectedTeacher.accesses &&
                 selectedTeacher.accesses.length > 0 ? (
@@ -610,7 +602,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
                     size="small"
                   />
                 ) : (
-                  <Text type="secondary">Нет выданных доступов</Text>
+                  <Text type="secondary">{t("adminUsers.messages.noAccesses")}</Text>
                 )}
               </>
             )}
@@ -618,10 +610,11 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
         )}
       </Modal>
 
-      {/* Модальное окно создания/редактирования */}
       <Modal
         title={
-          editingUser ? "Редактировать пользователя" : "Создать преподавателя"
+          editingUser
+            ? t("adminUsers.modals.editTitle")
+            : t("adminUsers.modals.createTitle")
         }
         open={modalVisible}
         onCancel={() => {
@@ -634,51 +627,73 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
         destroyOnClose
       >
         <Form form={form} layout="vertical" onFinish={handleSubmit}>
-          <Form.Item name="name" label="Имя" rules={[{ required: true }]}>
-            <Input />
+          <Form.Item
+            name="name"
+            label={t("adminUsers.fields.name")}
+            rules={[{ required: true, message: t("adminUsers.validation.nameRequired") }]}
+          >
+            <Input placeholder={t("adminUsers.placeholders.name")} />
           </Form.Item>
           <Form.Item
             name="email"
-            label="Email"
-            rules={[{ required: true, type: "email" }]}
+            label={t("adminUsers.fields.email")}
+            rules={[
+              { required: true, message: t("adminUsers.validation.emailRequired") },
+              { type: "email", message: t("adminUsers.validation.emailInvalid") },
+            ]}
           >
-            <Input />
+            <Input placeholder={t("adminUsers.placeholders.email")} />
           </Form.Item>
-          <Form.Item name="phone" label="Телефон">
-            <Input />
+          <Form.Item
+            name="phone"
+            label={t("adminUsers.fields.phone")}
+            rules={[
+              {
+                pattern: /^(\+375|80)?(29|33|44|25)\d{7}$/,
+                message: t("adminUsers.validation.phoneInvalid"),
+              },
+            ]}
+          >
+            <Input placeholder={t("adminUsers.placeholders.phone")} />
           </Form.Item>
           {!editingUser && (
             <Form.Item
               name="password"
-              label="Пароль"
-              rules={[{ required: true, min: 6 }]}
+              label={t("adminUsers.fields.password")}
+              rules={[
+                { required: true, message: t("adminUsers.validation.passwordRequired") },
+                { min: 6, message: t("adminUsers.validation.passwordMin") },
+              ]}
             >
-              <Input.Password />
+              <Input.Password placeholder={t("adminUsers.placeholders.password")} />
             </Form.Item>
           )}
-          <Form.Item name="specialization" label="Специализация">
-            <Input />
+          <Form.Item name="specialization" label={t("adminUsers.fields.specialization")}>
+            <Input placeholder={t("adminUsers.placeholders.specialization")} />
           </Form.Item>
-          <Form.Item name="experience" label="Опыт">
-            <Input placeholder="например: 5 лет" />
+          <Form.Item name="experience" label={t("adminUsers.fields.experience")}>
+            <Input placeholder={t("adminUsers.placeholders.experience")} />
           </Form.Item>
-          <Form.Item name="bio" label="О себе">
-            <Input.TextArea rows={3} />
+          <Form.Item name="bio" label={t("adminUsers.fields.bio")}>
+            <Input.TextArea rows={3} placeholder={t("adminUsers.placeholders.bio")} />
           </Form.Item>
           <Form.Item style={{ marginBottom: 0, textAlign: "right" }}>
             <Space>
-              <Button onClick={() => setModalVisible(false)}>Отмена</Button>
+              <Button onClick={() => setModalVisible(false)}>
+                {t("common.cancel")}
+              </Button>
               <Button type="primary" htmlType="submit">
-                {editingUser ? "Сохранить" : "Создать"}
+                {editingUser ? t("common.save") : t("common.create")}
               </Button>
             </Space>
           </Form.Item>
         </Form>
       </Modal>
 
-      {/* Модальное окно выдачи доступа (только для преподавателей) */}
       <Modal
-        title={`Выдача доступа к материалам для преподавателя: ${selectedTeacher?.name}`}
+        title={t("adminUsers.modals.grantAccessTitle", {
+          name: selectedTeacher?.name || "",
+        })}
         open={accessModalVisible}
         onCancel={() => {
           setAccessModalVisible(false);
@@ -692,11 +707,13 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
         <Form form={accessForm} layout="vertical" onFinish={handleGrantAccess}>
           <Form.Item
             name="category"
-            label="Категория материалов"
-            rules={[{ required: true, message: "Выберите категорию" }]}
+            label={t("adminUsers.fields.category")}
+            rules={[
+              { required: true, message: t("adminUsers.validation.categoryRequired") },
+            ]}
           >
             <Select
-              placeholder="Выберите категорию"
+              placeholder={t("adminUsers.fields.category")}
               options={CATEGORIES}
               showSearch
               optionFilterProp="label"
@@ -705,10 +722,12 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
 
           <Form.Item
             name="googleDriveLink"
-            label="Ссылка на Google Диск с материалами"
-            rules={[{ required: true, message: "Введите ссылку" }]}
+            label={t("adminUsers.fields.googleDriveLink")}
+            rules={[
+              { required: true, message: t("adminUsers.validation.googleDriveLinkRequired") },
+            ]}
           >
-            <Input placeholder="https://drive.google.com/..." />
+            <Input placeholder={t("adminUsers.placeholders.googleDriveLink")} />
           </Form.Item>
 
           <Form.Item style={{ marginBottom: 0, textAlign: "right" }}>
@@ -720,19 +739,18 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
                   setSelectedTeacher(null);
                 }}
               >
-                Отмена
+                {t("common.cancel")}
               </Button>
               <Button type="primary" htmlType="submit">
-                Выдать доступ
+                {t("adminUsers.table.grantAccess")}
               </Button>
             </Space>
           </Form.Item>
         </Form>
       </Modal>
 
-      {/* Модальное окно заявок преподавателей */}
       <Modal
-        title="Заявки преподавателей"
+        title={t("adminUsers.modals.requestsTitle")}
         open={teacherRequestsVisible}
         onCancel={() => setTeacherRequestsVisible(false)}
         footer={null}

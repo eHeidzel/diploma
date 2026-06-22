@@ -1,4 +1,3 @@
-// pages/Settings.tsx
 import React, { useState, useEffect } from "react";
 import {
   Card,
@@ -14,6 +13,7 @@ import { BellOutlined, GlobalOutlined } from "@ant-design/icons";
 import { settingsApi } from "../services/api";
 import { useTranslation } from "react-i18next";
 import styles from "../css/settings.module.css";
+import { useAdaptiveLevel } from "../hooks/useAdaptiveLevel";
 
 const { Title } = Typography;
 
@@ -22,7 +22,8 @@ interface SettingsPageProps {
 }
 
 const Settings: React.FC<SettingsPageProps> = ({ user }) => {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { getTitleLevel } = useAdaptiveLevel();
   const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -43,7 +44,7 @@ const Settings: React.FC<SettingsPageProps> = ({ user }) => {
       });
     } catch (error) {
       console.error("Error fetching settings:", error);
-      message.error("Ошибка загрузки настроек");
+      message.error(t("settings.error"));
     } finally {
       setLoading(false);
     }
@@ -61,21 +62,21 @@ const Settings: React.FC<SettingsPageProps> = ({ user }) => {
         i18n.changeLanguage(values.language);
       }
 
-      message.success("Настройки сохранены");
+      message.success(t("settings.success"));
       fetchSettings();
     } catch (error) {
       console.error("Error saving settings:", error);
-      message.error("Ошибка сохранения настроек");
+      message.error(t("settings.error"));
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <div className={styles.loading}>Загрузка...</div>;
+  if (loading) return <div className={styles.loading}>{t("settings.loading")}</div>;
 
   return (
     <div className={styles.container}>
-      <Title level={3}>Настройки</Title>
+      <Title level={getTitleLevel(3)}>{t("settings.title")}</Title>
 
       <Form
         form={form}
@@ -89,15 +90,15 @@ const Settings: React.FC<SettingsPageProps> = ({ user }) => {
         <Card
           title={
             <Space>
-              <GlobalOutlined /> Язык
+              <GlobalOutlined /> {t("settings.language.title")}
             </Space>
           }
           className={styles.card}
         >
-          <Form.Item name="language" label="Язык интерфейса">
+          <Form.Item name="language" label={t("settings.language.label")}>
             <Select>
-              <Select.Option value="ru">Русский</Select.Option>
-              <Select.Option value="en">English</Select.Option>
+              <Select.Option value="ru">{t("settings.language.ru")}</Select.Option>
+              <Select.Option value="en">{t("settings.language.en")}</Select.Option>
             </Select>
           </Form.Item>
         </Card>
@@ -105,17 +106,20 @@ const Settings: React.FC<SettingsPageProps> = ({ user }) => {
         <Card
           title={
             <Space>
-              <BellOutlined /> Уведомления
+              <BellOutlined /> {t("settings.notifications.title")}
             </Space>
           }
           className={styles.card}
         >
           <Form.Item
             name="notificationsEnabled"
-            label="Включить уведомления"
+            label={t("settings.notifications.label")}
             valuePropName="checked"
           >
-            <Switch checkedChildren="Вкл" unCheckedChildren="Выкл" />
+            <Switch
+              checkedChildren={t("settings.notifications.enabled")}
+              unCheckedChildren={t("settings.notifications.disabled")}
+            />
           </Form.Item>
         </Card>
 
@@ -126,7 +130,7 @@ const Settings: React.FC<SettingsPageProps> = ({ user }) => {
             loading={saving}
             size="large"
           >
-            Сохранить настройки
+            {saving ? t("settings.saving") : t("settings.save")}
           </Button>
         </Form.Item>
       </Form>

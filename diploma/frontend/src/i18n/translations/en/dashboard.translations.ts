@@ -1,6 +1,6 @@
 import { IDashboardTranslations } from "@interfaces/dashboard.interface";
 
-export const dashboard: IDashboardTranslations = {
+export const dashboard = {
   title: "Schedule Management",
   welcome: "Welcome, {{name}}!",
   teacherText: "Manage schedule and subjects",
@@ -15,6 +15,7 @@ export const dashboard: IDashboardTranslations = {
     students: "Students",
     logout: "Logout",
     test: "Test",
+    workload: "Time tracking",
   },
   roles: {
     teacher: "Teacher",

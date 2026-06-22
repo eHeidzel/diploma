@@ -50,6 +50,14 @@ export interface IScheduleViewTranslations {
     available: string;
     hasLink: string;
   };
+  table: {
+    date: string;
+    time: string;
+    activity: string;
+    teacher: string;
+    students: string;
+    actions: string;
+  };
 }
 
 export const scheduleView: IScheduleViewTranslations = {
@@ -103,5 +111,13 @@ export const scheduleView: IScheduleViewTranslations = {
   meetLink: {
     available: "Link available",
     hasLink: "Has link",
+  },
+  table: {
+    date: "Date",
+    time: "Time",
+    activity: "Activity",
+    teacher: "Teacher",
+    students: "Students",
+    actions: "Actions",
   },
 };

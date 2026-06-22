@@ -1,4 +1,3 @@
-// pages/Profile.tsx
 import React, { useState, useEffect } from "react";
 import {
   Card,
@@ -29,16 +28,20 @@ import {
 import type { UploadProps } from "antd";
 import { profileApi } from "../services/api";
 import styles from "../css/profile.module.css";
+import { useTranslation } from "react-i18next";
+import { useAdaptiveLevel } from "../hooks/useAdaptiveLevel";
 
 const { Text } = Typography;
 const { TextArea } = Input;
 
 interface ProfilePageProps {
   user: any;
-  onUserUpdate?: (updatedUser: any) => void; // Добавляем опциональный пропс
+  onUserUpdate?: (updatedUser: any) => void;
 }
 
 const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
+  const { t } = useTranslation();
+  const { getTitleLevel } = useAdaptiveLevel();
   const [profile, setProfile] = useState<any>(null);
   const [balance, setBalance] = useState<number>(0);
   const [loading, setLoading] = useState(false);
@@ -69,13 +72,12 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
         bio: response.data.bio,
       });
 
-      // Обновляем аватар в родительском компоненте
       if (onUserUpdate && response.data.avatar) {
         onUserUpdate({ avatar: response.data.avatar });
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
-      message.error("Ошибка загрузки профиля");
+      message.error(t("profile.loading"));
     } finally {
       setLoading(false);
     }
@@ -93,10 +95,9 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
   const handleUpdateProfile = async (values: any) => {
     try {
       const response = await profileApi.update(values);
-      message.success("Профиль успешно обновлен");
+      message.success(t("profile.info.save"));
       setEditMode(false);
 
-      // Обновляем данные в родительском компоненте
       if (onUserUpdate) {
         onUserUpdate({
           name: values.name,
@@ -109,7 +110,7 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
       fetchProfile();
     } catch (error) {
       console.error("Error updating profile:", error);
-      message.error("Ошибка обновления профиля");
+      message.error(t("profile.loading"));
     }
   };
 
@@ -119,12 +120,12 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
         values.currentPassword,
         values.newPassword,
       );
-      message.success("Пароль успешно изменен");
+      message.success(t("profile.password.success"));
       setChangePasswordVisible(false);
       passwordForm.resetFields();
     } catch (error: any) {
       console.error("Error changing password:", error);
-      message.error(error.response?.data?.message || "Ошибка изменения пароля");
+      message.error(error.response?.data?.message || t("profile.password.error"));
     }
   };
 
@@ -138,39 +139,32 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
 
       setProfile((prev: any) => ({ ...prev, avatar: newAvatarUrl }));
 
-      // Обновляем аватар в родительском компоненте
       if (onUserUpdate) {
         onUserUpdate({ avatar: newAvatarUrl });
       }
 
-      message.success("Аватар успешно обновлен");
+      message.success(t("profile.avatar.success"));
       onSuccess?.(response.data);
     } catch (error) {
       console.error("Error uploading avatar:", error);
-      message.error("Ошибка загрузки аватара");
+      message.error(t("profile.avatar.error"));
       onError?.(error as Error);
     } finally {
       setUploading(false);
     }
   };
 
-  // Функция валидации телефона
   const validatePhone = (_: any, value: string) => {
     if (!value) return Promise.resolve();
     const phoneRegex = /^(\+375|80)?(29|33|44|25)\d{7}$/;
     if (!phoneRegex.test(value)) {
-      return Promise.reject(
-        new Error(
-          "Введите корректный номер телефона (например, +375291234567)",
-        ),
-      );
+      return Promise.reject(new Error(t("profile.validation.phoneInvalid")));
     }
     return Promise.resolve();
   };
 
-  // Форматирование телефона для отображения
   const formatPhone = (phone: string) => {
-    if (!phone) return "Не указан";
+    if (!phone) return t("profile.info.notSpecified");
     if (phone.startsWith("+375")) {
       return phone.replace(
         /(\+375)(\d{2})(\d{3})(\d{2})(\d{2})/,
@@ -183,23 +177,18 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
     return phone;
   };
 
-  // Валидация био
   const validateBio = (_: any, value: string) => {
     if (!value) return Promise.resolve();
     if (value.length < 10) {
-      return Promise.reject(
-        new Error("Описание должно содержать минимум 10 символов"),
-      );
+      return Promise.reject(new Error(t("profile.validation.bioMin")));
     }
     if (value.length > 500) {
-      return Promise.reject(
-        new Error("Описание не должно превышать 500 символов"),
-      );
+      return Promise.reject(new Error(t("profile.validation.bioMax")));
     }
     return Promise.resolve();
   };
 
-  if (!profile) return <div className={styles.loading}>Загрузка...</div>;
+  if (!profile) return <div className={styles.loading}>{t("profile.loading")}</div>;
 
   const avatarUrl = profile.avatar
     ? profile.avatar.startsWith("http")
@@ -225,7 +214,7 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
                   loading={uploading}
                   className={styles.uploadBtn}
                 >
-                  Загрузить фото
+                  {uploading ? t("profile.avatar.uploading") : t("profile.avatar.upload")}
                 </Button>
               </Upload>
             </div>
@@ -235,10 +224,10 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
               size="small"
               className={styles.descriptions}
             >
-              <Descriptions.Item label="Email">
+              <Descriptions.Item label={t("profile.info.email")}>
                 {profile.email}
               </Descriptions.Item>
-              <Descriptions.Item label="Роль">
+              <Descriptions.Item label={t("profile.info.role")}>
                 <Tag
                   color={
                     profile.role === "teacher"
@@ -249,20 +238,20 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
                   }
                 >
                   {profile.role === "teacher"
-                    ? "Преподаватель"
+                    ? t("profile.roles.teacher")
                     : profile.role === "admin"
-                      ? "Администратор"
-                      : "Ученик"}
+                      ? t("profile.roles.admin")
+                      : t("profile.roles.student")}
                 </Tag>
               </Descriptions.Item>
               {profile.role === "student" && (
-                <Descriptions.Item label="Баланс">
+                <Descriptions.Item label={t("profile.info.balance")}>
                   <Text strong style={{ color: "#52c41a", fontSize: 18 }}>
                     {balance} BYN
                   </Text>
                 </Descriptions.Item>
               )}
-              <Descriptions.Item label="Дата регистрации">
+              <Descriptions.Item label={t("profile.info.registrationDate")}>
                 {new Date(profile.createdAt).toLocaleDateString()}
               </Descriptions.Item>
             </Descriptions>
@@ -274,7 +263,7 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
             title={
               <Space>
                 <UserOutlined />
-                <span>Личная информация</span>
+                <span>{t("profile.info.personal")}</span>
               </Space>
             }
             extra={
@@ -283,13 +272,15 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
                   icon={<EditOutlined />}
                   onClick={() => setEditMode(true)}
                 >
-                  Редактировать
+                  {t("profile.info.edit")}
                 </Button>
               ) : (
                 <Space>
-                  <Button onClick={() => setEditMode(false)}>Отмена</Button>
+                  <Button onClick={() => setEditMode(false)}>
+                    {t("profile.info.cancel")}
+                  </Button>
                   <Button type="primary" onClick={() => form.submit()}>
-                    Сохранить
+                    {t("profile.info.save")}
                   </Button>
                 </Space>
               )
@@ -297,17 +288,17 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
           >
             {!editMode ? (
               <Descriptions column={1} className={styles.descriptions}>
-                <Descriptions.Item label="Имя">
+                <Descriptions.Item label={t("profile.info.name")}>
                   {profile.name}
                 </Descriptions.Item>
-                <Descriptions.Item label="Телефон">
-                  {formatPhone(profile.phone) || "Не указан"}
+                <Descriptions.Item label={t("profile.info.phone")}>
+                  {formatPhone(profile.phone) || t("profile.info.notSpecified")}
                 </Descriptions.Item>
-                <Descriptions.Item label="Город">
-                  {profile.city || "Не указан"}
+                <Descriptions.Item label={t("profile.info.city")}>
+                  {profile.city || t("profile.info.notSpecified")}
                 </Descriptions.Item>
-                <Descriptions.Item label="О себе">
-                  {profile.bio || "Не указано"}
+                <Descriptions.Item label={t("profile.info.about")}>
+                  {profile.bio || t("profile.info.notSpecified")}
                 </Descriptions.Item>
               </Descriptions>
             ) : (
@@ -319,28 +310,27 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
               >
                 <Form.Item
                   name="name"
-                  label="Имя"
+                  label={t("profile.info.name")}
                   rules={[
-                    { required: true, message: "Введите имя" },
-                    { min: 2, message: "Имя должно содержать минимум 2 символа" },
-                    { max: 100, message: "Имя не должно превышать 100 символов" },
+                    { required: true, message: t("profile.validation.nameRequired") },
+                    { min: 2, message: t("profile.validation.nameMin") },
+                    { max: 100, message: t("profile.validation.nameMax") },
                     {
                       pattern: /^[a-zA-Zа-яА-ЯёЁ\s]+$/,
-                      message: "Имя должно содержать только буквы и пробелы",
+                      message: t("profile.validation.namePattern"),
                     },
                   ]}
                 >
-                  <Input placeholder="Введите ваше имя" />
+                  <Input placeholder={t("profile.info.name")} />
                 </Form.Item>
 
                 <Form.Item
                   name="phone"
-                  label="Телефон"
+                  label={t("profile.info.phone")}
                   rules={[
                     {
                       pattern: /^(\+375|80)?(29|33|44|25)\d{7}$/,
-                      message:
-                        "Введите корректный номер (например, +375291234567)",
+                      message: t("profile.validation.phoneInvalid"),
                     },
                   ]}
                 >
@@ -349,29 +339,28 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
 
                 <Form.Item
                   name="city"
-                  label="Город"
+                  label={t("profile.info.city")}
                   rules={[
-                    { min: 2, message: "Название города должно содержать минимум 2 символа" },
-                    { max: 100, message: "Название города не должно превышать 100 символов" },
+                    { min: 2, message: t("profile.validation.cityMin") },
+                    { max: 100, message: t("profile.validation.cityMax") },
                     {
                       pattern: /^[a-zA-Zа-яА-ЯёЁ\s-]+$/,
-                      message:
-                        "Название города должно содержать только буквы, пробелы и дефисы",
+                      message: t("profile.validation.cityPattern"),
                     },
                   ]}
                 >
-                  <Input placeholder="Введите ваш город" />
+                  <Input placeholder={t("profile.info.city")} />
                 </Form.Item>
 
                 <Form.Item
                   name="bio"
-                  label="О себе"
+                  label={t("profile.info.about")}
                   rules={[{ validator: validateBio }]}
-                  extra="Минимум 10 символов, максимум 500"
+                  extra={`${t("profile.validation.bioMin")}, ${t("profile.validation.bioMax")}`}
                 >
                   <TextArea
                     rows={4}
-                    placeholder="Расскажите о себе..."
+                    placeholder={t("profile.info.about")}
                     maxLength={500}
                     showCount
                   />
@@ -386,7 +375,7 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
                 icon={<LockOutlined />}
                 onClick={() => setChangePasswordVisible(true)}
               >
-                Сменить пароль
+                {t("profile.password.change")}
               </Button>
             </div>
           </Card>
@@ -394,7 +383,7 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
       </Row>
 
       <Modal
-        title="Смена пароля"
+        title={t("profile.password.title")}
         open={changePasswordVisible}
         onCancel={() => {
           setChangePasswordVisible(false);
@@ -410,24 +399,26 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
         >
           <Form.Item
             name="currentPassword"
-            label="Текущий пароль"
-            rules={[{ required: true, message: "Введите текущий пароль" }]}
+            label={t("profile.password.current")}
+            rules={[
+              { required: true, message: t("profile.password.validation.required") },
+            ]}
           >
             <Input.Password />
           </Form.Item>
           <Form.Item
             name="newPassword"
-            label="Новый пароль"
+            label={t("profile.password.new")}
             rules={[
-              { required: true, message: "Введите новый пароль" },
-              { min: 6, message: "Пароль должен содержать минимум 6 символов" },
+              { required: true, message: t("profile.password.validation.required") },
+              { min: 6, message: t("profile.password.validation.minLength") },
               {
                 pattern: /[a-zA-Z]/,
-                message: "Пароль должен содержать хотя бы одну букву",
+                message: t("profile.password.validation.hasLetter"),
               },
               {
                 pattern: /\d/,
-                message: "Пароль должен содержать хотя бы одну цифру",
+                message: t("profile.password.validation.hasDigit"),
               },
             ]}
           >
@@ -435,16 +426,16 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
           </Form.Item>
           <Form.Item
             name="confirmPassword"
-            label="Подтверждение пароля"
+            label={t("profile.password.confirm")}
             dependencies={["newPassword"]}
             rules={[
-              { required: true, message: "Подтвердите пароль" },
+              { required: true, message: t("profile.password.validation.required") },
               ({ getFieldValue }) => ({
                 validator(_, value) {
                   if (!value || getFieldValue("newPassword") === value) {
                     return Promise.resolve();
                   }
-                  return Promise.reject(new Error("Пароли не совпадают"));
+                  return Promise.reject(new Error(t("profile.password.validation.confirmMatch")));
                 },
               }),
             ]}
@@ -454,10 +445,10 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
           <Form.Item style={{ marginBottom: 0, textAlign: "right" }}>
             <Space>
               <Button onClick={() => setChangePasswordVisible(false)}>
-                Отмена
+                {t("common.cancel")}
               </Button>
               <Button type="primary" htmlType="submit">
-                Сменить пароль
+                {t("profile.password.change")}
               </Button>
             </Space>
           </Form.Item>

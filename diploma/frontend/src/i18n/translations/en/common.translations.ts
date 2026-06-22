@@ -43,7 +43,7 @@ export interface ICommonTranslations {
   };
 }
 
-export const common: ICommonTranslations = {
+export const common = {
   yes: "Yes",
   no: "No",
   ok: "OK",
@@ -86,4 +86,13 @@ export const common: ICommonTranslations = {
     november: "November",
     december: "December",
   },
+    details: "Details",
+  for: "for",
+  modules: "modules",
+  in: "in",
+  about: "About",
+  skills: "Skills",
+  email: "Email",
+  readMore: "Read more",
+  guest: "Guest",
 };
