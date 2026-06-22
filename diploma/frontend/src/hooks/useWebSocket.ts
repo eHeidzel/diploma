@@ -1,9 +1,12 @@
+// hooks/useWebSocket.ts
+import { useEffect, useState } from "react";
+import io from "socket.io-client";
 
-import { useEffect, useState, useRef } from "react";
-import { io, Socket } from "socket.io-client";
+// Определяем тип Socket самостоятельно
+type SocketType = ReturnType<typeof io>;
 
 export const useWebSocket = (userId: number | null) => {
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const [socket, setSocket] = useState<SocketType | null>(null);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [lastNotification, setLastNotification] = useState<any>(null);
 

@@ -26,7 +26,6 @@ import {
   CheckCircleOutlined,
   EyeOutlined,
   SearchOutlined,
-  FolderOpenOutlined,
 } from "@ant-design/icons";
 import { adminApi } from "../services/api";
 import styles from "../css/admin.module.css";
@@ -53,12 +52,11 @@ const CATEGORIES = [
   { value: "security", label: "Security" },
 ];
 
-const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
+const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
   const { t } = useTranslation();
   const { getTitleLevel } = useAdaptiveLevel();
   const [users, setUsers] = useState<any[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
-  const [teacherAccesses, setTeacherAccesses] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [accessModalVisible, setAccessModalVisible] = useState(false);
@@ -73,7 +71,6 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
   useEffect(() => {
     fetchUsers();
     fetchTeacherRequests();
-    fetchTeacherAccesses();
   }, []);
 
   const fetchUsers = async () => {
@@ -95,15 +92,6 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
       setTeachers(response.data);
     } catch (error) {
       console.error("Error fetching teacher requests:", error);
-    }
-  };
-
-  const fetchTeacherAccesses = async () => {
-    try {
-      const response = await adminApi.getTeacherAccesses();
-      setTeacherAccesses(response.data);
-    } catch (error) {
-      console.error("Error fetching teacher accesses:", error);
     }
   };
 
@@ -201,7 +189,6 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
       message.success(t("adminUsers.messages.grantAccessSuccess"));
       setAccessModalVisible(false);
       accessForm.resetFields();
-      fetchTeacherAccesses();
 
       if (selectedTeacher) {
         const response = await adminApi.getTeacherAccesses();
@@ -223,7 +210,6 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ user }) => {
     try {
       await adminApi.revokeTeacherAccess(accessId);
       message.success(t("adminUsers.messages.revokeAccessSuccess"));
-      fetchTeacherAccesses();
 
       if (selectedTeacher) {
         const response = await adminApi.getTeacherAccesses();

@@ -1,5 +1,3 @@
-import { IDashboardTranslations } from "@interfaces/dashboard.interface";
-
 export const dashboard = {
   title: "Schedule Management",
   welcome: "Welcome, {{name}}!",

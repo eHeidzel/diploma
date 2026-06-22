@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Form, Select, Button, Space, Alert, Spin } from "antd";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
-import dayjs from "dayjs";
 import { activitiesApi } from "../services/api";
 import styles from "@styles/learning.module.css";
 
@@ -180,13 +179,6 @@ const DefaultBookingModal: React.FC<DefaultBookingModalProps> = ({
           label: `${String(day).padStart(2, "0")}.${String(month).padStart(2, "0")}.${year}, ${weekday}`,
         };
       });
-  };
-
-  const getActivityTypeLabel = () => {
-    if (isWebinar) return "вебинара";
-    if (isMasterclass) return "мастер-класса";
-    if (isTrial) return "пробного занятия";
-    return "занятия";
   };
 
   if (!selectedActivity) return null;

@@ -15,7 +15,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAdaptiveLevel } from "../hooks/useAdaptiveLevel";
 import styles from "../css/learning.module.css";
 import { activitiesApi, profileApi } from "../services/api";
-import dayjs from "dayjs";
 import i18n from "../i18n";
 import DefaultBookingModal from "../components/DefaultBookingModal";
 import IndividualBookingModal from "../components/IndividualBookingModal";

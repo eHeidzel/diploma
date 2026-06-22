@@ -17,7 +17,6 @@ import {
 } from "antd";
 import {
   UserOutlined,
-  MailOutlined,
   PhoneOutlined,
   SearchOutlined,
   TeamOutlined,
@@ -48,7 +47,7 @@ interface Student {
   averageRating?: number;
 }
 
-const MyStudents: React.FC<MyStudentsProps> = ({ user }) => {
+const MyStudents: React.FC<MyStudentsProps> = ({ }) => {
   const { t } = useTranslation();
   const { getTitleLevel } = useAdaptiveLevel();
   const [students, setStudents] = useState<Student[]>([]);
@@ -57,7 +56,6 @@ const MyStudents: React.FC<MyStudentsProps> = ({ user }) => {
   const [studentLoading, setStudentLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [filterGroup, setFilterGroup] = useState<string>("all");
-  const [groups, setGroups] = useState<string[]>([]);
 
   const getFullAvatarUrl = (avatar: string | null | undefined): string | undefined => {
     if (!avatar) return undefined;
@@ -93,8 +91,6 @@ const MyStudents: React.FC<MyStudentsProps> = ({ user }) => {
 
   const fetchGroups = async () => {
     try {
-      const response = await teacherApi.getGroups();
-      setGroups(response.data || []);
     } catch (error) {
       console.error("Error fetching groups:", error);
     }

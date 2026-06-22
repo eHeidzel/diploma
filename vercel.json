@@ -1,0 +1,31 @@
+{
+  "builds": [
+    {
+      "src": "diploma/backend/dist/main.js",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": [
+          "diploma/backend/dist/**",
+          "diploma/backend/node_modules/**"
+        ]
+      }
+    },
+    {
+      "src": "diploma/frontend/dist/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "diploma/backend/dist/main.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "diploma/frontend/dist/$1"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+}

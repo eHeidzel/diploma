@@ -1,5 +1,3 @@
-import { ILoginTranslations } from "@interfaces/login.interface";
-
 export const login = {
   title: "Вход",
   welcome: "Добро пожаловать!",

@@ -1,4 +1,4 @@
-import { IDirectionResult } from "@interfaces/question.interface";
+import { IDirectionResult } from "./question.interface";
 
 export interface ITestResult {
   results: IDirectionResult[];

@@ -1,5 +1,3 @@
-import { ITestTranslations } from "@interfaces/test.interface";
-
 export const test = {
   title: "Кто вы в IT?",
   subtitle:

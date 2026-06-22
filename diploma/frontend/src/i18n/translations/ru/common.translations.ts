@@ -1,5 +1,3 @@
-import { ICommonTranslations } from "../en/common.translations";
-
 export const common = {
   yes: "Да",
   no: "Нет",

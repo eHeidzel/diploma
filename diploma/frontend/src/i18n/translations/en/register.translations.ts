@@ -1,5 +1,3 @@
-import { IRegisterTranslations } from "@interfaces/register.interface";
-
 export const register = {
   title: "Registration",
   subtitle: "Create a new account",

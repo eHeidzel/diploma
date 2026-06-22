@@ -16,7 +16,6 @@ import {
   TrophyOutlined,
   UserOutlined,
   ClockCircleOutlined,
-  ExperimentOutlined,
   TeamOutlined,
   GiftOutlined,
   StarOutlined,

@@ -29,8 +29,6 @@ const CATEGORIES = [
   { value: "security", label: "Security", color: "#a0a0a0", icon: "🔒" },
 ];
 
-const ALL_CATEGORIES = CATEGORIES.map((c) => c.value);
-
 type ActivityType =
   | "webinar"
   | "masterclass"

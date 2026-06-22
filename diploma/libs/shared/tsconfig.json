@@ -5,9 +5,15 @@
     "declaration": true,
     "rootDir": "./src",
     "outDir": "./dist",
+    "baseUrl": ".",
     "paths": {
       "@interfaces/*": ["./src/interfaces/*"]
-    }
+    },
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "target": "ES2020"
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]

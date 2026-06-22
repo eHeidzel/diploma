@@ -18,9 +18,6 @@ import {
 } from "antd";
 import {
   UserOutlined,
-  MailOutlined,
-  PhoneOutlined,
-  EnvironmentOutlined,
   UploadOutlined,
   LockOutlined,
   EditOutlined,
@@ -29,7 +26,6 @@ import type { UploadProps } from "antd";
 import { profileApi } from "../services/api";
 import styles from "../css/profile.module.css";
 import { useTranslation } from "react-i18next";
-import { useAdaptiveLevel } from "../hooks/useAdaptiveLevel";
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -41,14 +37,11 @@ interface ProfilePageProps {
 
 const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
   const { t } = useTranslation();
-  const { getTitleLevel } = useAdaptiveLevel();
   const [profile, setProfile] = useState<any>(null);
   const [balance, setBalance] = useState<number>(0);
-  const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [changePasswordVisible, setChangePasswordVisible] = useState(false);
-  const [phoneValue, setPhoneValue] = useState("+375");
   const [form] = Form.useForm();
   const [passwordForm] = Form.useForm();
 
@@ -60,11 +53,9 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
   }, []);
 
   const fetchProfile = async () => {
-    setLoading(true);
     try {
       const response = await profileApi.get();
       setProfile(response.data);
-      setPhoneValue(response.data.phone || "+375");
       form.setFieldsValue({
         name: response.data.name,
         phone: response.data.phone || "+375",
@@ -79,7 +70,6 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
       console.error("Error fetching profile:", error);
       message.error(t("profile.loading"));
     } finally {
-      setLoading(false);
     }
   };
 
@@ -94,7 +84,6 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
 
   const handleUpdateProfile = async (values: any) => {
     try {
-      const response = await profileApi.update(values);
       message.success(t("profile.info.save"));
       setEditMode(false);
 
@@ -152,15 +141,6 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
     } finally {
       setUploading(false);
     }
-  };
-
-  const validatePhone = (_: any, value: string) => {
-    if (!value) return Promise.resolve();
-    const phoneRegex = /^(\+375|80)?(29|33|44|25)\d{7}$/;
-    if (!phoneRegex.test(value)) {
-      return Promise.reject(new Error(t("profile.validation.phoneInvalid")));
-    }
-    return Promise.resolve();
   };
 
   const formatPhone = (phone: string) => {

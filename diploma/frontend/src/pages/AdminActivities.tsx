@@ -66,7 +66,7 @@ const CATEGORIES = [
   { value: "security", label: "Security" },
 ];
 
-const AdminActivities: React.FC<AdminActivitiesProps> = ({ user }) => {
+const AdminActivities: React.FC<AdminActivitiesProps> = ({ }) => {
   const { t } = useTranslation();
   const { getTitleLevel } = useAdaptiveLevel();
   const [activities, setActivities] = useState<any[]>([]);

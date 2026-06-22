@@ -72,36 +72,6 @@ const DashboardRedirect: React.FC<{ user: any }> = ({ user }) => {
   return <Navigate to={getDefaultPath()} replace />;
 };
 
-const RoleRoute: React.FC<{
-  children: React.ReactNode;
-  user: any;
-  allowedRoles?: UserRole[];
-}> = ({ children, user, allowedRoles }) => {
-  if (!allowedRoles) return <>{children}</>;
-
-  const userRole = user?.role;
-  const isGuest = user?.isGuest || userRole === "guest";
-
-  if ((!userRole && !isGuest) || isGuest) {
-    if (allowedRoles.includes(UserRole.GUEST)) {
-      return <>{children}</>;
-    }
-    return <Navigate to="/dashboard/home" replace />;
-  }
-
-  if (!allowedRoles.includes(userRole)) {
-    if (userRole === UserRole.ADMIN) {
-      return <Navigate to="/dashboard/admin-activities" replace />;
-    }
-    if (userRole === UserRole.TEACHER) {
-      return <Navigate to="/dashboard/schedule" replace />;
-    }
-    return <Navigate to="/dashboard/home" replace />;
-  }
-
-  return <>{children}</>;
-};
-
 const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
   const { t } = useTranslation();
   const { getTitleLevel } = useAdaptiveLevel();

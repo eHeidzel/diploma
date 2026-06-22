@@ -1,4 +1,3 @@
-import { IAppTranslations } from "../interfaces/index";
 import { dashboard } from "../translations/en/dashboard.translations";
 import { login } from "../translations/en/login.translations";
 import { register } from "../translations/en/register.translations";

@@ -18,7 +18,7 @@ import {
 } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
-import { adminApi, activitiesApi } from "../services/api";
+import { adminApi } from "../services/api";
 import styles from "../css/admin.module.css";
 import { useTranslation } from "react-i18next";
 import { useAdaptiveLevel } from "../hooks/useAdaptiveLevel";
@@ -29,7 +29,7 @@ interface AdminScheduleProps {
   user: any;
 }
 
-const AdminSchedule: React.FC<AdminScheduleProps> = ({ user }) => {
+const AdminSchedule: React.FC<AdminScheduleProps> = ({ }) => {
   const { t } = useTranslation();
   const { getTitleLevel } = useAdaptiveLevel();
   const [schedule, setSchedule] = useState<any[]>([]);

@@ -5,7 +5,6 @@ import {
   Popover,
   List,
   Button,
-  Space,
   Typography,
   Empty,
   Tag,
@@ -24,10 +23,13 @@ import {
   CloseOutlined,
 } from "@ant-design/icons";
 import { notificationsApi, settingsApi } from "../services/api";
-import { io, Socket } from "socket.io-client";
+import io from "socket.io-client";
 import styles from "../css/notifications.module.css";
 
 const { Text, Paragraph } = Typography;
+
+// Определяем тип Socket самостоятельно
+type SocketType = ReturnType<typeof io>;
 
 interface Notification {
   id: number;
@@ -54,7 +56,7 @@ const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
   const [modalVisible, setModalVisible] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const socketRef = useRef<Socket | null>(null);
+  const socketRef = useRef<SocketType | null>(null);
 
   useEffect(() => {
     if (userId) {
@@ -68,11 +70,9 @@ const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
       const enabled = response.data.notificationsEnabled !== false;
       setNotificationsEnabled(enabled);
       
-      // Если уведомления отключены, обнуляем счетчик
       if (!enabled) {
         setUnreadCount(0);
       } else {
-        // Если включены - загружаем количество
         fetchUnreadCount();
       }
     } catch (error) {
@@ -82,7 +82,6 @@ const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
 
   useEffect(() => {
     if (!userId || !notificationsEnabled) {
-      // Если уведомления отключены - обнуляем счетчик
       setUnreadCount(0);
       return;
     }
@@ -105,7 +104,6 @@ const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
 
     socket.on("unread_count_update", (data: { count: number }) => {
       console.log("Unread count update:", data.count);
-      // Обновляем счетчик только если уведомления включены
       if (notificationsEnabled) {
         setUnreadCount(data.count);
       }
@@ -113,7 +111,6 @@ const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
 
     socket.on("new_notification", (notification: Notification) => {
       console.log("New notification:", notification);
-      // Добавляем уведомление только если они включены
       if (notificationsEnabled) {
         setNotifications((prev) => [notification, ...prev]);
         setUnreadCount((prev) => prev + 1);
@@ -124,7 +121,7 @@ const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
       console.log("WebSocket disconnected");
     });
 
-    socket.on("connect_error", (error) => {
+    socket.on("connect_error", (error: any) => {
       console.error("WebSocket connection error:", error);
     });
 
@@ -379,7 +376,6 @@ const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
     </div>
   );
 
-  // Если уведомления отключены - не показываем иконку с бейджем
   if (!userId || !notificationsEnabled) {
     return (
       <Popover

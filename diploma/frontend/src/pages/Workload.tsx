@@ -26,7 +26,7 @@ import styles from "../css/workload.module.css";
 import { useTranslation } from "react-i18next";
 import { useAdaptiveLevel } from "../hooks/useAdaptiveLevel";
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 const { RangePicker } = DatePicker;
 
 interface WorkloadProps {
@@ -53,7 +53,7 @@ interface WorkloadData {
   lessons: Lesson[];
 }
 
-const Workload: React.FC<WorkloadProps> = ({ user }) => {
+const Workload: React.FC<WorkloadProps> = ({}) => {
   const { t } = useTranslation();
   const { getTitleLevel } = useAdaptiveLevel();
   const [workload, setWorkload] = useState<WorkloadData | null>(null);

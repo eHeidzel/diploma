@@ -1,5 +1,3 @@
-import { ITestTranslations } from "@interfaces/test.interface";
-
 export const test = {
   title: "Who are you in IT?",
   subtitle: "Take the test to find out which IT direction suits you best",

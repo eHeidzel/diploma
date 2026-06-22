@@ -21,10 +21,10 @@ interface SettingsPageProps {
   user: any;
 }
 
-const Settings: React.FC<SettingsPageProps> = ({ user }) => {
+const Settings: React.FC<SettingsPageProps> = ({ }) => {
   const { t, i18n } = useTranslation();
   const { getTitleLevel } = useAdaptiveLevel();
-  const [settings, setSettings] = useState<any>(null);
+  const [setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();

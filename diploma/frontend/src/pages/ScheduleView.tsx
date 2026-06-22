@@ -33,7 +33,7 @@ import styles from "../css/scheduleView.module.css";
 import { useTranslation } from "react-i18next";
 import { useAdaptiveLevel } from "../hooks/useAdaptiveLevel";
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 const { TextArea } = Input;
 
 interface ScheduleViewProps {
