@@ -4,12 +4,12 @@
   "installCommand": "npm install --legacy-peer-deps",
   "experimentalServices": {
     "frontend": {
-      "root": "diploma/frontend",
+      "root": "frontend",
       "routePrefix": "/",
       "framework": "vite"
     },
     "backend": {
-      "root": "diploma/backend",
+      "root": "backend",
       "routePrefix": "/api"
     }
   }
