@@ -39,13 +39,13 @@ import Workload from "./Workload";
 import BalanceModal from "../components/BalanceModal";
 import styles from "../css/dashboard.module.css";
 import { useAdaptiveLevel } from "../hooks/useAdaptiveLevel";
-import { UserRole } from "@libs/shared";
 import Test from "./Test";
 import Learning from "./Learning";
 import ScheduleView from "./ScheduleView";
 import AdminActivities from "./AdminActivities";
 import AdminUsers from "./AdminUsers";
 import AdminSchedule from "./AdminSchedule";
+import { UserRole } from "../enums/UserRole.enums";
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
