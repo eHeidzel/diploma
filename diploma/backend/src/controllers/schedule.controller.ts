@@ -15,7 +15,7 @@ import { Schedule } from '../entities/schedule.entity';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../decorators/roles.decorator';
-import { UserRole } from '@libs/shared';
+import { UserRole } from 'src/enums/UserRole.enums';
 
 @Controller('schedule')
 export class ScheduleController {

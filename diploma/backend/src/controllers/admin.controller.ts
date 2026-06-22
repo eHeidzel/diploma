@@ -15,7 +15,7 @@ import { AdminService } from '../services/admin.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../decorators/roles.decorator';
-import { UserRole } from '@libs/shared';
+import { UserRole } from 'src/enums/UserRole.enums';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard)

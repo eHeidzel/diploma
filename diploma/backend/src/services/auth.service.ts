@@ -9,12 +9,12 @@ import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { User } from '@entities/user.entity';
-import { UserRole } from '@libs/shared';
 import { I18nContext } from 'nestjs-i18n';
 import { EmailService } from './email.service';
 import { NotificationsService } from './notifications.service';
 import { NotificationType } from '../entities/notification.entity';
 import { UserBalance } from '../entities/user-balance.entity';
+import { UserRole } from 'src/enums/UserRole.enums';
 
 @Injectable()
 export class AuthService {

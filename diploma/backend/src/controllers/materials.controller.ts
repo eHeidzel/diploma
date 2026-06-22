@@ -12,8 +12,8 @@ import { MaterialsService } from '../services/materials.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../decorators/roles.decorator';
-import { UserRole } from '@libs/shared';
 import { Material, MaterialCategory } from '@entities/material.entity';
+import { UserRole } from 'src/enums/UserRole.enums';
 
 @Controller('materials')
 @UseGuards(JwtAuthGuard)

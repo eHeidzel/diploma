@@ -11,8 +11,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ActivitiesService } from '../services/activities.service';
-import { Language } from '@libs/shared';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { Language } from 'src/enums/Language.enums';
 
 @Controller('activities')
 export class ActivitiesController {

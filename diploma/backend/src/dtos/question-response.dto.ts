@@ -1,4 +1,4 @@
-import { QuestionType } from '@libs/shared';
+import { QuestionType } from "src/enums/QuestionType.enums";
 
 export class QuestionResponseDto {
   id!: number;

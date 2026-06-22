@@ -10,7 +10,6 @@ import {
 } from 'typeorm';
 import { Enrollment } from './enrollment.entity';
 import { Schedule } from './schedule.entity';
-import { UserRole } from '@libs/shared';
 import { Notification } from './notification.entity';
 import { UserSettings } from './user-settings.entity';
 import { UserBalance } from './user-balance.entity';
@@ -18,6 +17,7 @@ import { BalanceTransaction } from './balance-transaction.entity';
 import { ScheduleRequest } from './schedule-request.entity';
 import { UserAccess } from './user-access.entity';
 import { ActivityReview } from './activity-review.entity';
+import { UserRole } from 'src/enums/UserRole.enums';
 
 @Entity('users')
 export class User {

@@ -14,7 +14,7 @@ import {
 import { User } from '../entities/user.entity';
 import { NotificationsService } from './notifications.service';
 import { NotificationType } from '../entities/notification.entity';
-import { UserRole } from '@libs/shared';
+import { UserRole } from 'src/enums/UserRole.enums';
 
 @Injectable()
 export class ScheduleRequestsService {

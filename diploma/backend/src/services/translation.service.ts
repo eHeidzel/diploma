@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In, FindOptionsWhere } from 'typeorm';
 import { Translation } from '../entities/translation.entity';
-import { Language } from '@libs/shared';
+import { Language } from 'src/enums/Language.enums';
 
 @Injectable()
 export class TranslationService {

@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { Question } from './question.entity';
 import { Translation } from './translation.entity';
-import { AnswerDirection } from '@libs/shared';
+import { AnswerDirection } from '@services/questions.service';
 
 @Entity('question_options')
 export class QuestionOption {

@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
-import { UserRole } from '@libs/shared';
 import { Project } from '../entities/project.entity';
 import { Review } from '../entities/review.entity';
+import { UserRole } from 'src/enums/UserRole.enums';
 
 @Injectable()
 export class StatisticsService {

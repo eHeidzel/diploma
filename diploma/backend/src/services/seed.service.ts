@@ -29,7 +29,9 @@ import {
 import { UserAccess } from '../entities/user-access.entity';
 import { ActivityReview } from '../entities/activity-review.entity';
 import { MaterialsService } from './materials.service';
-import { UserRole, Language, QuestionType } from '@libs/shared';
+import { UserRole } from 'src/enums/UserRole.enums';
+import { Language } from 'src/enums/Language.enums';
+import { QuestionType } from 'src/enums/QuestionType.enums';
 
 @Injectable()
 export class SeedService {

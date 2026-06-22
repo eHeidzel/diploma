@@ -1,16 +1,14 @@
 
 import {
-  Injectable,
-  NotFoundException,
-  ConflictException,
+  Injectable
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from '../entities/user.entity';
-import { UserRole } from '@libs/shared';
 import { NotificationsService } from './notifications.service';
 import { NotificationType } from '../entities/notification.entity';
+import { UserRole } from 'src/enums/UserRole.enums';
 
 @Injectable()
 export class UsersService {

@@ -6,8 +6,8 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
-import { QuestionType } from '@libs/shared';
 import { QuestionOption } from './question-option.entity';
+import { QuestionType } from 'src/enums/QuestionType.enums';
 
 @Entity('questions')
 export class Question {

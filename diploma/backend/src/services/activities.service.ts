@@ -12,12 +12,12 @@ import { ActivityReview } from '../entities/activity-review.entity';
 import { Enrollment } from '../entities/enrollment.entity';
 import { Schedule, ScheduleStatus } from '../entities/schedule.entity';
 import { TranslationService } from './translation.service';
-import { Language } from '@libs/shared';
 import { UserBalance } from '../entities/user-balance.entity';
 import { User } from '../entities/user.entity';
 import { NotificationsService } from './notifications.service';
 import { NotificationType } from '../entities/notification.entity';
 import { ScheduleService } from './schedule.service';
+import { Language } from 'src/enums/Language.enums';
 
 export interface IActivityResponse {
   id: number;

@@ -7,13 +7,61 @@ import { Direction } from '../entities/direction.entity';
 import { DirectionSkill } from '../entities/direction-skill.entity';
 import { DirectionRecommendation } from '../entities/direction-recommendation.entity';
 import { TranslationService } from './translation.service';
-import { QuestionType, AnswerDirection, Language } from '@libs/shared';
-import {
-  IQuestionResponse,
-  IUserAnswer,
-  IDirectionResult,
-  ITestResult,
-} from '@libs/shared';
+import { Language } from 'src/enums/Language.enums';
+import { QuestionType } from 'src/enums/QuestionType.enums'; // Импортируем глобальный enum
+
+// ============================================
+// ТИПЫ И ИНТЕРФЕЙСЫ
+// ============================================
+
+// Тип для ответа пользователя
+export interface IAnswer {
+  questionId: number;
+  selectedOptionId: number;
+}
+
+// Тип для направления
+export type AnswerDirection = string;
+
+// Интерфейс для опции вопроса
+export interface IQuestionOption {
+  id: number;
+  text: string;
+  directionScores: Record<string, number>;
+  order: number;
+}
+
+// Интерфейс для вопроса (ответ от API)
+export interface IQuestionResponse {
+  id: number;
+  text: string;
+  type: string;
+  options?: IQuestionOption[];
+  explanation?: string;
+}
+
+// Интерфейс для результата направления
+export interface IDirectionResult {
+  direction: AnswerDirection;
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+  skills: string[];
+  salary: string;
+  totalScore: number;
+}
+
+// Интерфейс для результата теста
+export interface ITestResult {
+  results: IDirectionResult[];
+  topDirection: IDirectionResult;
+  recommendations: string[];
+}
+
+// ============================================
+// СЕРВИС
+// ============================================
 
 @Injectable()
 export class QuestionsService {
@@ -31,6 +79,9 @@ export class QuestionsService {
     private translationService: TranslationService,
   ) {}
 
+  /**
+   * Получить все активные вопросы с переводами
+   */
   async getQuestions(
     language: Language = Language.RU,
   ): Promise<IQuestionResponse[]> {
@@ -49,22 +100,20 @@ export class QuestionsService {
       (q) => q.options?.map((o) => o.id) || [],
     );
 
-    const questionTranslations =
-      await this.translationService.getEntityTranslations(
+    const [questionTranslations, optionTranslations] = await Promise.all([
+      this.translationService.getEntityTranslations(
         'question',
         questionIds,
         language,
-      );
-
-    const optionTranslations =
-      await this.translationService.getEntityTranslations(
+      ),
+      this.translationService.getEntityTranslations(
         'option',
         optionIds,
         language,
-      );
+      ),
+    ]);
 
-    const result: IQuestionResponse[] = [];
-    for (const question of questions) {
+    return questions.map((question) => {
       const qTranslations = questionTranslations.get(question.id) || {};
 
       const options = (question.options || [])
@@ -79,24 +128,23 @@ export class QuestionsService {
           };
         });
 
-      result.push({
+      return {
         id: question.id,
         text: qTranslations.text || '',
         type: question.type,
         options: question.type !== QuestionType.TEXT ? options : undefined,
         explanation: qTranslations.explanation,
-      });
-    }
-
-    return result;
+      };
+    });
   }
 
+  /**
+   * Рассчитать результаты теста на основе ответов пользователя
+   */
   async calculateResults(
-    answers: IUserAnswer[],
+    answers: IAnswer[],
     language: Language = Language.RU,
   ): Promise<ITestResult> {
-    const scores: Record<string, number> = {};
-
     const directions = await this.directionRepo.find({
       where: { isActive: true },
     });
@@ -105,10 +153,13 @@ export class QuestionsService {
       throw new NotFoundException('No directions found in database');
     }
 
+    // Инициализация счетчиков для всех направлений
+    const scores: Record<string, number> = {};
     directions.forEach((dir) => {
       scores[dir.code] = 0;
     });
 
+    // Получение выбранных опций и подсчет баллов
     const selectedOptionIds = answers.map((a) => a.selectedOptionId);
     const options = await this.optionRepo.find({
       where: { id: In(selectedOptionIds) },
@@ -124,15 +175,14 @@ export class QuestionsService {
       }
     }
 
-    const sortedDirections = Object.entries(scores)
+    // Сортировка направлений по убыванию баллов
+    const sortedDirectionCodes = Object.entries(scores)
       .sort(([, a], [, b]) => b - a)
       .map(([dir]) => dir);
 
-    const topDirectionCode = sortedDirections[0];
-    const topDirectionEntity = directions.find(
-      (d) => d.code === topDirectionCode,
-    );
+    const topDirectionCode = sortedDirectionCodes[0];
 
+    // Получение переводов для направлений
     const directionIds = directions.map((d) => d.id);
     const translations = await this.translationService.getEntityTranslations(
       'direction',
@@ -140,6 +190,7 @@ export class QuestionsService {
       language,
     );
 
+    // Получение переводов для навыков
     const allSkills = await this.directionSkillRepo.find();
     const skillIds = allSkills.map((s) => s.id);
     const skillTranslations =
@@ -149,8 +200,9 @@ export class QuestionsService {
         language,
       );
 
+    // Формирование результатов для всех направлений
     const results: IDirectionResult[] = [];
-    for (const directionCode of sortedDirections) {
+    for (const directionCode of sortedDirectionCodes) {
       const directionEntity = directions.find((d) => d.code === directionCode);
       if (!directionEntity) continue;
 
@@ -167,7 +219,7 @@ export class QuestionsService {
       });
 
       results.push({
-        direction: directionCode as AnswerDirection,
+        direction: directionCode,
         name: dirTranslations.name || directionEntity.code,
         description: dirTranslations.description || '',
         icon: directionEntity.icon,
@@ -177,6 +229,11 @@ export class QuestionsService {
         totalScore: scores[directionCode],
       });
     }
+
+    // Получение рекомендаций для топ-направления
+    const topDirectionEntity = directions.find(
+      (d) => d.code === topDirectionCode,
+    );
 
     const recommendations = await this.directionRecommendationRepo.find({
       where: { directionId: topDirectionEntity?.id },
@@ -203,6 +260,9 @@ export class QuestionsService {
     };
   }
 
+  /**
+   * Получить все доступные направления с переводами
+   */
   async getAvailableDirections(
     language: Language = Language.RU,
   ): Promise<IDirectionResult[]> {
@@ -216,13 +276,15 @@ export class QuestionsService {
     }
 
     const directionIds = directions.map((d) => d.id);
-    const translations = await this.translationService.getEntityTranslations(
-      'direction',
-      directionIds,
-      language,
-    );
+    const [translations, allSkills] = await Promise.all([
+      this.translationService.getEntityTranslations(
+        'direction',
+        directionIds,
+        language,
+      ),
+      this.directionSkillRepo.find(),
+    ]);
 
-    const allSkills = await this.directionSkillRepo.find();
     const skillIds = allSkills.map((s) => s.id);
     const skillTranslations =
       await this.translationService.getEntityTranslations(
@@ -246,7 +308,7 @@ export class QuestionsService {
       });
 
       results.push({
-        direction: direction.code as AnswerDirection,
+        direction: direction.code,
         name: dirTranslations.name || direction.code,
         description: dirTranslations.description || '',
         icon: direction.icon,
@@ -260,6 +322,9 @@ export class QuestionsService {
     return results;
   }
 
+  /**
+   * Получить вопрос по ID с переводами
+   */
   async getQuestionById(
     id: number,
     language: Language = Language.RU,
@@ -271,18 +336,14 @@ export class QuestionsService {
 
     if (!question) return null;
 
-    const questionTranslations = await this.translationService.getTranslations(
-      'question',
-      question.id,
-      language,
-    );
-    const optionIds = question.options?.map((o) => o.id) || [];
-    const optionTranslations =
-      await this.translationService.getEntityTranslations(
+    const [questionTranslations, optionTranslations] = await Promise.all([
+      this.translationService.getTranslations('question', question.id, language),
+      this.translationService.getEntityTranslations(
         'option',
-        optionIds,
+        question.options?.map((o) => o.id) || [],
         language,
-      );
+      ),
+    ]);
 
     const options = (question.options || [])
       .sort((a, b) => a.order - b.order)

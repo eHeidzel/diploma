@@ -1,3 +1,4 @@
+import { Language } from 'src/enums/Language.enums';
 import {
   Entity,
   Column,
@@ -6,7 +7,6 @@ import {
   UpdateDateColumn,
   Index,
 } from 'typeorm';
-import { Language } from '@libs/shared';
 
 @Entity('translations')
 @Index(['entityType', 'entityId', 'field', 'language'], { unique: true })
