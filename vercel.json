@@ -11,14 +11,13 @@
     "backend": {
       "root": "diploma/backend",
       "routePrefix": "/api",
-      "runtime": "@vercel/node",
       "entrypoint": "src/main.ts"
     }
   },
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "diploma/backend"
+      "dest": "diploma/backend/src/main.ts"
     },
     {
       "handle": "filesystem"
