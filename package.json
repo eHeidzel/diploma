@@ -3,12 +3,13 @@
   "version": "1.0.0",
   "scripts": {
     "build": "npm run build:backend && npm run build:frontend",
-    "build:backend": "npm install --prefix diploma/backend && npm run build --prefix diploma/backend",
-    "build:frontend": "npm install --prefix diploma/frontend && npm run build --prefix diploma/frontend",
+    "build:backend": "cd diploma/backend && npm install && npm run build",
+    "build:frontend": "cd diploma/frontend && npm install && npm run build",
     "start": "node diploma/backend/dist/main.js",
     "clean": "rm -rf libs/shared/dist diploma/backend/dist diploma/frontend/dist"
   },
   "dependencies": {
+    "@nestjs/cli": "^11.0.23",
     "@nestjs/config": "^4.0.4",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-socket.io": "^11.1.26",
