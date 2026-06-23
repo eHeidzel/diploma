@@ -1,23 +1,30 @@
 {
   "version": 2,
-  "buildCommand": "npm run build:all",
+  "buildCommand": "npm run build",
   "installCommand": "npm install --legacy-peer-deps",
-  "functions": {
-    "diploma/backend/dist/main.js": {
-      "runtime": "nodejs18.x"
+  "experimentalServices": {
+    "frontend": {
+      "root": "diploma/frontend",
+      "routePrefix": "/",
+      "framework": "vite"
+    },
+    "backend": {
+      "root": "diploma/backend",
+      "routePrefix": "/api",
+      "entrypoint": "src/main.ts"
     }
   },
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "diploma/backend/dist/main.js"
+      "dest": "diploma/backend/src/main.ts"
     },
     {
       "handle": "filesystem"
     },
     {
       "src": "/(.*)",
-      "dest": "diploma/frontend/index.html"
+      "dest": "diploma/frontend"
     }
   ]
 }
