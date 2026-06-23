@@ -528,13 +528,6 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
                       style={{ width: "100%" }}
                     >
                       <Text type="secondary">{project.description}</Text>
-                      <div>
-                        {project.technologies?.map((tech: string) => (
-                          <Tag key={tech} color="blue">
-                            {tech}
-                          </Tag>
-                        ))}
-                      </div>
                     </Space>
                   }
                 />
