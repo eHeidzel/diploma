@@ -261,7 +261,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
   const avatarUrl = currentUser?.avatar
     ? currentUser.avatar.startsWith("http")
       ? currentUser.avatar
-      : `http://localhost:8080${currentUser.avatar}?t=${avatarKey}`
+      : `https://codezone1.vercel.app${currentUser.avatar}?t=${avatarKey}`
     : null;
 
   return (

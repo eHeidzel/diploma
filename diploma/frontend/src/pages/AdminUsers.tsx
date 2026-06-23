@@ -55,7 +55,7 @@ const CATEGORIES = [
 const getFullAvatarUrl = (avatar: string) => {
   if (!avatar) return null;
   if (avatar.startsWith('http')) return avatar;
-  return `http://localhost:8080${avatar}`;
+  return `https://codezone1.vercel.app${avatar}`;
 };
 
 const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
