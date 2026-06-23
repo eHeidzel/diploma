@@ -4,7 +4,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 
-
 import { User } from '@entities/user.entity';
 import { Activity } from '@entities/activity.entity';
 import { Schedule } from '@entities/schedule.entity';
@@ -26,7 +25,6 @@ import { UserAccess } from '@entities/user-access.entity';
 import { ActivityReview } from '@entities/activity-review.entity';
 import { Material } from '@entities/material.entity';
 
-
 import { UsersController } from '@controllers/users.controller';
 import { ScheduleController } from '@controllers/schedule.controller';
 import { AuthController } from '@controllers/auth.controller';
@@ -44,7 +42,6 @@ import { MaterialsController } from '@controllers/materials.controller';
 import { WorkloadController } from '@controllers/workload.controller';
 import { AdminController } from '@controllers/admin.controller';
 import { ActivityReviewsController } from '@controllers/activity-reviews.controller';
-
 
 import { UsersService } from '@services/users.service';
 import { ScheduleService } from '@services/schedule.service';
@@ -68,9 +65,7 @@ import { EmailService } from '@services/email.service';
 import { AdminService } from '@services/admin.service';
 import { JwtStrategy } from '@strategies/jwt.strategy';
 
-
 import { NotificationsGateway } from '../gateways/notifications.gateway';
-
 
 import {
   I18nModule,
@@ -85,7 +80,6 @@ import { ScheduleRequestsService } from '@services/schedule-requests.service';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: '.env',
       isGlobal: true,
     }),
     PassportModule.register({ defaultStrategy: 'jwt' }),
@@ -103,11 +97,16 @@ import { ScheduleRequestsService } from '@services/schedule-requests.service';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'mysql',
-        host: configService.get('DB_HOST', 'localhost'),
-        port: parseInt(configService.get('DB_PORT', '3306') || '3306'),
-        username: configService.get('DB_USER', 'root'),
-        password: configService.get('DB_PASSWORD', ''),
-        database: configService.get('DB_NAME', 'diploma_db'),
+        host:
+          configService.get('DB_HOST') || process.env.DB_HOST || 'localhost',
+        port: parseInt(
+          configService.get('DB_PORT') || process.env.DB_PORT || '3306',
+        ),
+        username: configService.get('DB_USER') || process.env.DB_USER || 'root',
+        password:
+          configService.get('DB_PASSWORD') || process.env.DB_PASSWORD || '',
+        database:
+          configService.get('DB_NAME') || process.env.DB_NAME || 'diploma_db',
         entities: [
           User,
           Activity,
