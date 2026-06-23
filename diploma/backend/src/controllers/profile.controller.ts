@@ -63,7 +63,7 @@ export class ProfileController {
     const avatarUrl = `/uploads/avatars/${fileName}`;
     await this.profileService.updateAvatar(req.user.id, avatarUrl);
 
-    const baseUrl = process.env.BASE_URL || 'http://localhost:8080';
+    const baseUrl = process.env.BASE_URL || 'https://codezone1.vercel.app';
     return { avatar: `${baseUrl}${avatarUrl}` };
   }
 
