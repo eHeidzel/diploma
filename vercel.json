@@ -1,30 +1,26 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
-  "installCommand": "npm install --legacy-peer-deps",
-  "experimentalServices": {
-    "frontend": {
-      "root": "diploma/frontend",
-      "routePrefix": "/",
-      "framework": "vite"
+  "builds": [
+    {
+      "src": "diploma/frontend/**",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "diploma/frontend/dist"
+      }
     },
-    "backend": {
-      "root": "diploma/backend",
-      "routePrefix": "/api",
-      "entrypoint": "src/main.ts"
+    {
+      "src": "diploma/backend/**",
+      "use": "@vercel/node"
     }
-  },
+  ],
   "routes": [
     {
       "src": "/api/(.*)",
       "dest": "diploma/backend/src/main.ts"
     },
     {
-      "handle": "filesystem"
-    },
-    {
       "src": "/(.*)",
-      "dest": "diploma/frontend"
+      "dest": "diploma/frontend/index.html"
     }
   ]
 }
