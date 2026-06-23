@@ -7,11 +7,11 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'https://diploma-production-f729.up.railway.app/',
         changeOrigin: true,
       },
       '/uploads': {
-        target: 'http://localhost:8080',
+        target: 'https://diploma-production-f729.up.railway.app/',
         changeOrigin: true,
       },
     },

@@ -31,7 +31,6 @@ async function bootstrap() {
   const allowedOrigins = [
     'http://localhost:3000',
     'http://localhost:3001',
-    'http://localhost:8080',
     'http://localhost:5173',
     'http://localhost:4173',
     'https://diploma-production-f729.up.railway.app',
