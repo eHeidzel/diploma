@@ -93,7 +93,7 @@ const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
       return;
     }
 
-    const socket = io("https://codezone1.vercel.app", {
+    const socket = io("http://localhost:8080", {
       auth: { token },
       transports: ["websocket"],
     });

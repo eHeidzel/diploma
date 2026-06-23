@@ -14,7 +14,7 @@ export const useWebSocket = (userId: number | null) => {
     if (!userId) return;
 
     const token = localStorage.getItem("token");
-    const newSocket = io("https://codezone1.vercel.app", {
+    const newSocket = io("http://localhost:8080", {
       auth: { token },
       transports: ["websocket"],
     });

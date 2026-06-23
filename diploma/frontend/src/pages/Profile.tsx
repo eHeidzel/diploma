@@ -173,7 +173,7 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
   const avatarUrl = profile.avatar
     ? profile.avatar.startsWith("http")
       ? profile.avatar
-      : `https://codezone1.vercel.app${profile.avatar}`
+      : `http://localhost:8080${profile.avatar}`
     : null;
 
   return (
