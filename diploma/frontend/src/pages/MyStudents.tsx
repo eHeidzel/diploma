@@ -60,7 +60,7 @@ const MyStudents: React.FC<MyStudentsProps> = ({ }) => {
   const getFullAvatarUrl = (avatar: string | null | undefined): string | undefined => {
     if (!avatar) return undefined;
     if (avatar.startsWith("http")) return avatar;
-    return `http://localhost:8080${avatar}`;
+    return `https://diploma-production-f729.up.railway.app${avatar}`;
   };
 
   useEffect(() => {

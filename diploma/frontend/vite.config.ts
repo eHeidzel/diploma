@@ -9,26 +9,38 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,
+        secure: false,
       },
       '/uploads': {
         target: 'http://localhost:8080',
         changeOrigin: true,
+        secure: false,
       },
+      // Прокси для всех запросов, кроме статики
+      '^/(?!assets|src|node_modules|@vite).*': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false,
+      }
     },
   },
   preview: {
     port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/uploads': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
   build: {
     outDir: 'dist',
     sourcemap: false,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          react: ['react', 'react-dom', 'react-router-dom'],
-          antd: ['antd', '@ant-design/icons'],
-        },
-      },
-    },
   },
 });

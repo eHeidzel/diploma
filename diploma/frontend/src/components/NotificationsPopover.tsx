@@ -93,7 +93,7 @@ const NotificationsPopover: React.FC<NotificationsPopoverProps> = ({
       return;
     }
 
-    const socket = io("http://localhost:8080", {
+    const socket = io("https://diploma-production-f729.up.railway.app", {
       auth: { token },
       transports: ["websocket"],
     });
