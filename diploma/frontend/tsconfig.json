@@ -22,7 +22,7 @@
       "@libs/shared/*": ["../libs/shared/src/*"],
       "@interfaces/*": ["./src/i18n/interfaces/*"],
       "@components/*": ["./src/components/*"],
-      "@styles/*": ["./src/css/*"]
+      "../css//*": ["./src/css/*"]
     }
   },
   "include": ["src"],

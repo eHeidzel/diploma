@@ -17,7 +17,7 @@ import {
   ClockCircleOutlined,
   CalendarOutlined,
 } from "@ant-design/icons";
-import styles from "@styles/learning.module.css";
+import styles from "../css/learning.module.css";
 
 interface GroupBookingModalProps {
   visible: boolean;

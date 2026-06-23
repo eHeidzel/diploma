@@ -22,7 +22,7 @@ import {
   EyeOutlined,
   MessageOutlined,
 } from "@ant-design/icons";
-import styles from "@styles/learning.module.css";
+import styles from "../css/learning.module.css";
 import { useTranslation } from "react-i18next";
 
 const { Title, Text, Paragraph } = Typography;

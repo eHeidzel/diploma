@@ -21,7 +21,7 @@ import {
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { activitiesApi } from "../services/api";
-import styles from "@styles/learning.module.css";
+import styles from "../css/learning.module.css";
 
 const daysOfWeek = [
   { value: "monday", label: "Понедельник", dayjsDay: 1 },

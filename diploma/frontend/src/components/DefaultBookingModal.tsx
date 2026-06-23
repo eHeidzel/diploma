@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Modal, Form, Select, Button, Space, Alert, Spin } from "antd";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
 import { activitiesApi } from "../services/api";
-import styles from "@styles/learning.module.css";
+import styles from "../css/learning.module.css";
 
 interface DefaultBookingModalProps {
   visible: boolean;
