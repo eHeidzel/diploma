@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Card,
   Form,
@@ -8,12 +8,14 @@ import {
   message,
   Typography,
   Select,
+  Result,
 } from "antd";
 import { BellOutlined, GlobalOutlined } from "@ant-design/icons";
 import { settingsApi } from "../services/api";
 import { useTranslation } from "react-i18next";
 import styles from "../css/settings.module.css";
 import { useAdaptiveLevel } from "../hooks/useAdaptiveLevel";
+import { useNavigate } from "react-router-dom";
 
 const { Title } = Typography;
 
@@ -23,15 +25,27 @@ interface SettingsPageProps {
 
 const Settings: React.FC<SettingsPageProps> = ({ user }) => {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const { getTitleLevel } = useAdaptiveLevel();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
+  const hasRedirected = useRef(false);
 
   useEffect(() => {
-    if (user) {
-      fetchSettings();
+    // Проверка на гостя
+    if (!user || user.role === "guest") {
+      if (!hasRedirected.current) {
+        hasRedirected.current = true;
+        message.warning(t("settings.guest.accessDenied"));
+        navigate("/");
+      }
+      return;
     }
+
+    // Сбрасываем флаг если пользователь авторизован
+    hasRedirected.current = false;
+    fetchSettings();
   }, [user]);
 
   const fetchSettings = async () => {
@@ -74,6 +88,24 @@ const Settings: React.FC<SettingsPageProps> = ({ user }) => {
       setSaving(false);
     }
   };
+
+  // Если пользователь гость, показываем страницу с ошибкой доступа
+  if (!user || user.role === "guest") {
+    return (
+      <div className={styles.container}>
+        <Result
+          status="403"
+          title="403"
+          subTitle={t("settings.guest.accessDenied")}
+          extra={
+            <Button type="primary" onClick={() => navigate("/")}>
+              {t("common.backToHome")}
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
 
   if (loading) return <div className={styles.loading}>{t("settings.loading")}</div>;
 

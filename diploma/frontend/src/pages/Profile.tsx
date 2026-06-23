@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Card,
   Form,
@@ -15,6 +15,7 @@ import {
   Descriptions,
   Tag,
   Modal,
+  Result,
 } from "antd";
 import {
   UserOutlined,
@@ -26,6 +27,7 @@ import type { UploadProps } from "antd";
 import { profileApi } from "../services/api";
 import styles from "../css/profile.module.css";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -37,6 +39,7 @@ interface ProfilePageProps {
 
 const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
   const [balance, setBalance] = useState<number>(0);
   const [uploading, setUploading] = useState(false);
@@ -44,13 +47,29 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
   const [changePasswordVisible, setChangePasswordVisible] = useState(false);
   const [form] = Form.useForm();
   const [passwordForm] = Form.useForm();
+  const hasRedirected = useRef(false); // Флаг для предотвращения множественных редиректов
 
+  // Проверка на гостя
   useEffect(() => {
+    // Проверяем, что пользователь существует и не гость
+    if (!user || user.role === "guest") {
+      // Показываем сообщение только один раз
+      if (!hasRedirected.current) {
+        hasRedirected.current = true;
+        message.warning(t("profile.guest.accessDenied"));
+        navigate("/");
+      }
+      return;
+    }
+
+    // Сбрасываем флаг если пользователь авторизован
+    hasRedirected.current = false;
+    
     fetchProfile();
     if (user?.role === "student") {
       fetchBalance();
     }
-  }, []);
+  }, [user]);
 
   const fetchProfile = async () => {
     try {
@@ -167,6 +186,24 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
     }
     return Promise.resolve();
   };
+
+  // Если пользователь гость, показываем страницу с ошибкой доступа
+  if (!user || user.role === "guest") {
+    return (
+      <div className={styles.container}>
+        <Result
+          status="403"
+          title="403"
+          subTitle={t("profile.guest.accessDenied")}
+          extra={
+            <Button type="primary" onClick={() => navigate("/")}>
+              {t("common.backToHome")}
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
 
   if (!profile) return <div className={styles.loading}>{t("profile.loading")}</div>;
 
