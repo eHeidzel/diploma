@@ -5,7 +5,10 @@
     "build": "npm run build:backend && npm run build:frontend",
     "build:backend": "cd diploma/backend && npm install --legacy-peer-deps && npm run build",
     "build:frontend": "cd diploma/frontend && npm install --legacy-peer-deps && npm run build",
-    "start": "node diploma/backend/dist/main.js"
+    "start": "node diploma/backend/dist/main.js",
+    "build:all": "npm run build:backend && npm run build:frontend",
+    "start:backend": "cd diploma/backend && node dist/main.js",
+    "start:frontend": "cd diploma/frontend && npm run preview"
   },
   "dependencies": {
     "@nestjs/config": "^4.0.4",
