@@ -24,6 +24,7 @@ async function bootstrap() {
     'http://localhost:3000',
     'http://localhost:3001',
     'http://localhost:8080',
+    'https://codezone1.vercel.app',
     process.env.FRONTEND_URL,
     process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
     process.env.VERCEL_BRANCH_URL
