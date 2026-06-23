@@ -1,5 +1,7 @@
 {
   "version": 2,
+  "buildCommand": "npm run build",
+  "installCommand": "npm install --legacy-peer-deps",
   "experimentalServices": {
     "frontend": {
       "root": "diploma/frontend",
@@ -8,7 +10,21 @@
     },
     "backend": {
       "root": "diploma/backend",
-      "routePrefix": "/api"
+      "routePrefix": "/api",
+      "entrypoint": "src/main.ts"
     }
-  }
+  },
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "diploma/backend/src/main.ts"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "diploma/frontend"
+    }
+  ]
 }
