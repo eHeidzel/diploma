@@ -7,7 +7,8 @@
     "build:frontend": "cd diploma/frontend && npm install --legacy-peer-deps && npm run build",
     "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
     "start:backend": "cd diploma/backend && node dist/main.js",
-    "start:frontend": "cd diploma/frontend && npm run preview",
+    "start:frontend": "cd diploma/frontend && npm run start",
+    "start:frontend:preview": "cd diploma/frontend && npm run preview",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "cd diploma/backend && npm run start:dev",
     "dev:frontend": "cd diploma/frontend && npm run dev"
