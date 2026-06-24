@@ -105,6 +105,7 @@ export interface IAdminUsersTranslations {
     experience: string;
     status: string;
     actions: string;
+    requestText: string;
   };
 }
 
@@ -215,5 +216,6 @@ export const adminUsers: IAdminUsersTranslations = {
     experience: "Experience",
     status: "Status",
     actions: "Actions",
+    requestText: "Messsage"
   },
 };

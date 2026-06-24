@@ -26,6 +26,7 @@ import {
   CheckCircleOutlined,
   EyeOutlined,
   SearchOutlined,
+  FileTextOutlined,
 } from "@ant-design/icons";
 import { adminApi } from "../services/api";
 import styles from "../css/admin.module.css";
@@ -70,6 +71,8 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
   const [editingUser, setEditingUser] = useState<any>(null);
   const [selectedTeacher, setSelectedTeacher] = useState<any>(null);
   const [viewModalVisible, setViewModalVisible] = useState(false);
+  const [requestViewModalVisible, setRequestViewModalVisible] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [searchText, setSearchText] = useState("");
   const [form] = Form.useForm();
   const [accessForm] = Form.useForm();
@@ -122,6 +125,11 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
       }
     }
     setViewModalVisible(true);
+  };
+
+  const handleViewRequest = (record: any) => {
+    setSelectedRequest(record);
+    setRequestViewModalVisible(true);
   };
 
   const handleSubmit = async (values: any) => {
@@ -404,61 +412,51 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
       },
     },
     {
-      title: t("adminUsers.requestColumns.specialization"),
-      dataIndex: "specialization",
-      key: "specialization",
-    },
-    {
-      title: t("adminUsers.requestColumns.experience"),
-      dataIndex: "experience",
-      key: "experience",
-    },
-    {
-      title: t("adminUsers.requestColumns.status"),
-      dataIndex: "status",
-      key: "status",
-      render: (status: string) => (
-        <Tag
-          color={
-            status === "pending"
-              ? "orange"
-              : status === "approved"
-                ? "green"
-                : "red"
-          }
-        >
-          {status === "pending"
-            ? t("adminUsers.requestStatuses.pending")
-            : status === "approved"
-              ? t("adminUsers.requestStatuses.approved")
-              : t("adminUsers.requestStatuses.rejected")}
-        </Tag>
+      title: t("adminUsers.requestColumns.requestText"),
+      dataIndex: "requestText",
+      key: "requestText",
+      render: (text: string) => (
+        <Tooltip title={text}>
+          <div style={{ maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {text || t("common.notSpecified")}
+          </div>
+        </Tooltip>
       ),
     },
     {
       title: t("adminUsers.requestColumns.actions"),
       key: "actions",
-      render: (_: any, record: any) =>
-        record.status === "pending" && (
-          <Space>
+      render: (_: any, record: any) => (
+        <Space>
+          <Tooltip title={t("adminUsers.table.viewRequest")}>
             <Button
-              type="primary"
-              size="small"
-              icon={<CheckCircleOutlined />}
-              onClick={() => handleTeacherRequest(record.id, "approved")}
-            >
-              {t("adminUsers.modals.approve")}
-            </Button>
-            <Button
-              danger
-              size="small"
-              icon={<BlockOutlined />}
-              onClick={() => handleTeacherRequest(record.id, "rejected")}
-            >
-              {t("adminUsers.modals.reject")}
-            </Button>
-          </Space>
-        ),
+              type="text"
+              icon={<FileTextOutlined />}
+              onClick={() => handleViewRequest(record)}
+            />
+          </Tooltip>
+          {record.status === "pending" && (
+            <>
+              <Button
+                type="primary"
+                size="small"
+                icon={<CheckCircleOutlined />}
+                onClick={() => handleTeacherRequest(record.id, "approved")}
+              >
+                {t("adminUsers.modals.approve")}
+              </Button>
+              <Button
+                danger
+                size="small"
+                icon={<BlockOutlined />}
+                onClick={() => handleTeacherRequest(record.id, "rejected")}
+              >
+                {t("adminUsers.modals.reject")}
+              </Button>
+            </>
+          )}
+        </Space>
+      ),
     },
   ];
 
@@ -703,12 +701,6 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
               <Input.Password placeholder={t("adminUsers.placeholders.password")} />
             </Form.Item>
           )}
-          <Form.Item name="specialization" label={t("adminUsers.fields.specialization")}>
-            <Input placeholder={t("adminUsers.placeholders.specialization")} />
-          </Form.Item>
-          <Form.Item name="experience" label={t("adminUsers.fields.experience")}>
-            <Input placeholder={t("adminUsers.placeholders.experience")} />
-          </Form.Item>
           <Form.Item name="bio" label={t("adminUsers.fields.bio")}>
             <Input.TextArea rows={3} placeholder={t("adminUsers.placeholders.bio")} />
           </Form.Item>
@@ -796,6 +788,48 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
           rowKey="id"
           pagination={{ pageSize: 10 }}
         />
+      </Modal>
+
+      <Modal
+        title={t("adminUsers.modals.viewRequestTitle")}
+        open={requestViewModalVisible}
+        onCancel={() => {
+          setRequestViewModalVisible(false);
+          setSelectedRequest(null);
+        }}
+        footer={
+          <Button
+            onClick={() => {
+              setRequestViewModalVisible(false);
+              setSelectedRequest(null);
+            }}
+          >
+            {t("adminUsers.modals.close")}
+          </Button>
+        }
+        width={600}
+        destroyOnClose
+      >
+        {selectedRequest && (
+          <div style={{ padding: "16px 0" }}>
+            <Descriptions column={1} bordered>
+              <Descriptions.Item label={t("adminUsers.fields.name")}>
+                {selectedRequest.name}
+              </Descriptions.Item>
+              <Descriptions.Item label={t("adminUsers.fields.email")}>
+                {selectedRequest.email}
+              </Descriptions.Item>
+              <Descriptions.Item label={t("adminUsers.fields.requestText")}>
+                <div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                  {selectedRequest.requestText || t("common.notSpecified")}
+                </div>
+              </Descriptions.Item>
+              <Descriptions.Item label={t("adminUsers.fields.createdAt")}>
+                {new Date(selectedRequest.createdAt).toLocaleString()}
+              </Descriptions.Item>
+            </Descriptions>
+          </div>
+        )}
       </Modal>
     </div>
   );

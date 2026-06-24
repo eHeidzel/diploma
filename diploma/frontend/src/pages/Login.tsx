@@ -49,18 +49,51 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       message.success(t("login.loginSuccess").replace("{{name}}", user.name));
       navigate("/dashboard");
     } catch (error: any) {
-      const errorMsg = error.response?.data?.message || t("login.loginError");
-
-      if (
-        errorMsg.toLowerCase().includes("заблокирован") ||
-        errorMsg.toLowerCase().includes("blocked")
-      ) {
-        setBlockedMessage(errorMsg);
-        message.error(errorMsg);
-      } else {
+      console.error("Login error:", error);
+      
+      // Обработка различных статусов ошибок
+      let errorMsg = t("login.loginError");
+      
+      if (error.response) {
+        // Сервер ответил с ошибкой
+        const status = error.response.status;
+        const data = error.response.data;
+        
+        console.log("Error status:", status);
+        console.log("Error data:", data);
+        
+        if (status === 404) {
+          errorMsg = t("login.userNotFound");
+        } else if (status === 401) {
+          errorMsg = t("login.invalidPassword");
+        } else if (status === 403) {
+          errorMsg = t("login.accountBlocked");
+        } else if (status === 400) {
+          errorMsg = data?.message || t("login.invalidData");
+        } else if (data?.message) {
+          errorMsg = data.message;
+        }
+        
+        // Проверка на блокировку
+        if (
+          errorMsg.toLowerCase().includes("заблокирован") ||
+          errorMsg.toLowerCase().includes("blocked")
+        ) {
+          setBlockedMessage(errorMsg);
+        } else {
+          setErrorMessage(errorMsg);
+        }
+      } else if (error.request) {
+        // Запрос был отправлен, но ответа нет
+        errorMsg = t("login.serverNotResponding");
         setErrorMessage(errorMsg);
-        message.error(errorMsg);
+      } else {
+        // Ошибка при настройке запроса
+        errorMsg = error.message || t("login.loginError");
+        setErrorMessage(errorMsg);
       }
+      
+      message.error(errorMsg);
     } finally {
       setLoading(false);
     }

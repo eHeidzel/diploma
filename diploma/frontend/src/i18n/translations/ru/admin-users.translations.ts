@@ -107,5 +107,6 @@ export const adminUsers: IAdminUsersTranslations = {
     experience: "Опыт",
     status: "Статус",
     actions: "Действия",
+    requestText: "Сообщение"
   },
 };
