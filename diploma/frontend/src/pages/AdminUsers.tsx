@@ -128,7 +128,6 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
   };
 
   const handleViewRequest = (record: any) => {
-    console.log("Selected request:", record); // Для отладки
     setSelectedRequest(record);
     setRequestViewModalVisible(true);
   };
@@ -266,6 +265,11 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
       u.email?.toLowerCase().includes(searchText.toLowerCase()),
   );
 
+  // Функция для получения пользователя по ID
+  const getUserById = (userId: number) => {
+    return users.find(user => user.id === userId);
+  };
+
   const columns = [
     {
       title: t("adminUsers.table.user"),
@@ -393,9 +397,9 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
       title: t("adminUsers.requestColumns.teacher"),
       key: "user",
       render: (_: any, record: any) => {
-        // Данные пользователя могут быть в record.User или напрямую в record
-        const userData = record.User || record;
-        const avatarUrl = userData.avatar || userData.avatarUrl || userData.avatar_url;
+        // Получаем пользователя по requesterId
+        const user = getUserById(record.requesterId);
+        const avatarUrl = user?.avatar || user?.avatarUrl || user?.avatar_url;
         const fullAvatarUrl = getFullAvatarUrl(avatarUrl);
         
         return (
@@ -406,9 +410,9 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
               onError={() => false}
             />
             <div>
-              <Text strong>{userData.name || t("common.notSpecified")}</Text>
+              <Text strong>{user?.name || t("common.notSpecified")}</Text>
               <br />
-              <Text type="secondary">{userData.email || t("common.notSpecified")}</Text>
+              <Text type="secondary">{user?.email || t("common.notSpecified")}</Text>
             </div>
           </Space>
         );
@@ -532,10 +536,10 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
     },
   ];
 
-  // Получение имени пользователя из заявки
-  const getRequestUserName = (request: any) => {
-    if (!request) return "";
-    return request.User?.name || request.name || "";
+  // Получение данных пользователя по requesterId для модального окна
+  const getRequestUserData = (request: any) => {
+    if (!request) return null;
+    return getUserById(request.requesterId);
   };
 
   return (
@@ -826,7 +830,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
       <Modal
         title={
           selectedRequest 
-            ? `${t("adminUsers.modals.viewRequestTitle")}: ${getRequestUserName(selectedRequest)}`
+            ? `${t("adminUsers.modals.viewRequestTitle")}: ${getRequestUserData(selectedRequest)?.name || ""}`
             : t("adminUsers.modals.viewRequestTitle")
         }
         open={requestViewModalVisible}

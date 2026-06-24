@@ -2,7 +2,7 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: "https://diploma-production-f729.up.railway.app/",
-  timeout: 10000,
+  timeout: 20000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -17,49 +17,20 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Функция для безопасного парсинга JSON
-const safeParseJSON = (data: any) => {
-  if (typeof data === 'string') {
-    try {
-      return JSON.parse(data);
-    } catch (e) {
-      console.warn('Invalid JSON response:', data);
-      return null;
-    }
-  }
-  return data;
-};
-
 api.interceptors.response.use(
-  (response) => {
-    // Безопасно парсим JSON если это строка
-    if (typeof response.data === 'string') {
-      response.data = safeParseJSON(response.data);
-    }
-    
-    // Проверяем, что данные не null/undefined для массивов
-    if (Array.isArray(response.data) && response.data === null) {
-      response.data = [];
-    }
-    
-    return response;
-  },
+  (response) => response,
   (error) => {
+    // Проверяем гостевой режим
     const isGuest = localStorage.getItem("isGuest") === "true";
-    const isLoginPage = window.location.pathname === "/login";
-    const isRegisterPage = window.location.pathname === "/register";
-
-    // Для гостей игнорируем 401 ошибки
+    
+    // Если ответ 401 и пользователь гость - игнорируем ошибку
     if (error.response?.status === 401 && isGuest) {
-      console.warn("Guest: Ignoring 401 error");
+      console.warn("Guest mode: Ignoring 401 error");
       
-      // Возвращаем безопасные данные в зависимости от типа запроса
+      // Определяем тип запроса и возвращаем соответствующий пустой ответ
       const url = error.config?.url || '';
-      const method = error.config?.method || 'get';
       
-      let safeData: any = {};
-      
-      // Для запросов, которые ожидают массив
+      // Для запросов, ожидающих массив
       if (url.includes('/activities') || 
           url.includes('/notifications') || 
           url.includes('/reviews') || 
@@ -67,22 +38,42 @@ api.interceptors.response.use(
           url.includes('/users') ||
           url.includes('/materials') ||
           url.includes('/projects') ||
-          url.includes('/teachers')) {
-        safeData = [];
+          url.includes('/teachers') ||
+          url.includes('/teacher-requests')) {
+        return Promise.resolve({
+          data: [],
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          config: error.config,
+        });
       }
       
       // Для запросов профиля
       if (url.includes('/profile') || url.includes('/auth/profile')) {
-        safeData = null;
+        return Promise.resolve({
+          data: null,
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          config: error.config,
+        });
       }
       
-      // Для запросов с пагинацией
-      if (url.includes('page') || url.includes('limit')) {
-        safeData = { data: [], total: 0, page: 1, limit: 10 };
+      // Для остальных GET запросов
+      if (error.config?.method === 'get') {
+        return Promise.resolve({
+          data: {},
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          config: error.config,
+        });
       }
       
+      // Для POST/PUT/DELETE запросов
       return Promise.resolve({
-        data: safeData,
+        data: { success: true },
         status: 200,
         statusText: "OK",
         headers: {},
@@ -90,17 +81,16 @@ api.interceptors.response.use(
       });
     }
 
-    // Если не гость и не на страницах авторизации
-    if (error.response?.status === 401 && !isGuest && !isLoginPage && !isRegisterPage) {
+    // Если не гость и 401 - перенаправляем на логин
+    if (error.response?.status === 401 && !isGuest) {
       console.warn("Token expired or invalid, redirecting to login");
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      localStorage.setItem("isGuest", "true");
       window.location.href = "/login";
       return Promise.reject(error);
     }
 
-    // Обработка других ошибок
+    // Если 404 - возвращаем пустые данные
     if (error.response?.status === 404) {
       console.warn("Resource not found:", error.config?.url);
       return Promise.resolve({
@@ -112,7 +102,7 @@ api.interceptors.response.use(
       });
     }
 
-    // Обработка ошибок парсинга JSON
+    // Если ошибка парсинга JSON
     if (error.message?.includes('JSON')) {
       console.warn("JSON parsing error, returning empty data");
       return Promise.resolve({
@@ -124,13 +114,12 @@ api.interceptors.response.use(
       });
     }
 
-    // Для всех остальных - пробрасываем ошибку
     return Promise.reject(error);
   },
 );
 
-// Обертка для всех API методов с безопасной обработкой
-const safeApiCall = async (apiCall: () => Promise<any>, defaultValue: any = null) => {
+// Функция для безопасных API вызовов
+export const safeApiCall = async (apiCall: () => Promise<any>, defaultValue: any = null) => {
   try {
     const response = await apiCall();
     return response;
@@ -146,201 +135,194 @@ const safeApiCall = async (apiCall: () => Promise<any>, defaultValue: any = null
   }
 };
 
-// Экспортируем обернутые API методы
 export const authApi = {
   login: (email: string, password: string) =>
-    safeApiCall(() => api.post("/auth/login", { email, password }), null),
-  register: (data: any) => 
-    safeApiCall(() => api.post("/auth/register", data), null),
-  logout: () => 
-    safeApiCall(() => api.post("/auth/logout"), null),
-  getProfile: () => 
-    safeApiCall(() => api.get("/auth/profile"), null),
+    api.post("/auth/login", { email, password }),
+  register: (data: any) => api.post("/auth/register", data),
+  logout: () => api.post("/auth/logout"),
+  getProfile: () => api.get("/auth/profile"),
 };
 
 export const activitiesApi = {
-  getAll: (lang?: string) => 
-    safeApiCall(() => api.get("/activities", { params: { lang } }), []),
+  getAll: (lang?: string) => api.get("/activities", { params: { lang } }),
   getById: (id: number, lang?: string) =>
-    safeApiCall(() => api.get(`/activities/${id}`, { params: { lang } }), null),
+    api.get(`/activities/${id}`, { params: { lang } }),
   book: (activityId: number, data: any) =>
-    safeApiCall(() => api.post("/activities/bookings", { activityId, ...data }), null),
+    api.post("/activities/bookings", { activityId, ...data }),
   getTeacherAvailableSlots: (teacherId: number, date: string, duration?: number) =>
-    safeApiCall(() => api.get(`/activities/teacher/${teacherId}/available-slots`, {
+    api.get(`/activities/teacher/${teacherId}/available-slots`, {
       params: { date, duration },
-    }), []),
+    }),
   checkTeacherAvailability: (teacherId: number, date: string, startTime: string, endTime: string) =>
-    safeApiCall(() => api.get(`/activities/teacher/${teacherId}/check-availability`, {
+    api.get(`/activities/teacher/${teacherId}/check-availability`, {
       params: { date, startTime, endTime },
-    }), { available: false }),
+    }),
   getAvailableDates: (activityId: number) =>
-    safeApiCall(() => api.get(`/activities/${activityId}/available-dates`), []),
+    api.get(`/activities/${activityId}/available-dates`),
 };
 
 export const notificationsApi = {
-  getAll: () => safeApiCall(() => api.get("/notifications"), []),
-  getUnreadCount: () => safeApiCall(() => api.get("/notifications/unread/count"), 0),
-  markAsRead: (id: number) => safeApiCall(() => api.patch(`/notifications/${id}/read`), null),
-  markAllAsRead: () => safeApiCall(() => api.patch("/notifications/read-all"), null),
-  delete: (id: number) => safeApiCall(() => api.delete(`/notifications/${id}`), null),
+  getAll: () => api.get("/notifications"),
+  getUnreadCount: () => api.get("/notifications/unread/count"),
+  markAsRead: (id: number) => api.patch(`/notifications/${id}/read`),
+  markAllAsRead: () => api.patch("/notifications/read-all"),
+  delete: (id: number) => api.delete(`/notifications/${id}`),
 };
 
 export const profileApi = {
-  get: () => safeApiCall(() => api.get("/profile"), null),
-  update: (data: any) => safeApiCall(() => api.put("/profile", data), null),
+  get: () => api.get("/profile"),
+  update: (data: any) => api.put("/profile", data),
   changePassword: (currentPassword: string, newPassword: string) =>
-    safeApiCall(() => api.post("/profile/change-password", { currentPassword, newPassword }), null),
+    api.post("/profile/change-password", { currentPassword, newPassword }),
   uploadAvatar: (file: File) => {
     const formData = new FormData();
     formData.append("avatar", file);
-    return safeApiCall(() => api.post("/profile/avatar", formData, {
+    return api.post("/profile/avatar", formData, {
       headers: { "Content-Type": "multipart/form-data" },
-    }), null);
+    });
   },
-  getBalance: () => safeApiCall(() => api.get("/profile/balance"), 0),
+  getBalance: () => api.get("/profile/balance"),
 };
 
 export const settingsApi = {
-  get: () => safeApiCall(() => api.get("/settings"), { language: 'ru', notificationsEnabled: true }),
+  get: () => api.get("/settings"),
   update: (data: { language?: string; notificationsEnabled?: boolean }) =>
-    safeApiCall(() => api.put("/settings", data), null),
+    api.put("/settings", data),
   updateNotifications: (data: { enabled: boolean }) =>
-    safeApiCall(() => api.put("/settings/notifications", data), null),
-  updatePrivacy: (data: any) => safeApiCall(() => api.put("/settings/privacy", data), null),
+    api.put("/settings/notifications", data),
+  updatePrivacy: (data: any) => api.put("/settings/privacy", data),
 };
 
 export const balanceApi = {
-  get: () => safeApiCall(() => api.get("/balance"), 0),
+  get: () => api.get("/balance"),
   topUp: (amount: number, paymentMethod: string) =>
-    safeApiCall(() => api.post("/balance/topup", { amount, paymentMethod }), null),
-  getTransactions: () => safeApiCall(() => api.get("/balance/transactions"), []),
+    api.post("/balance/topup", { amount, paymentMethod }),
+  getTransactions: () => api.get("/balance/transactions"),
 };
 
 export const scheduleApi = {
-  getAll: () => safeApiCall(() => api.get("/schedule"), []),
-  getMy: () => safeApiCall(() => api.get("/schedule/student/my"), []),
+  getAll: () => api.get("/schedule"),
+  getMy: () => api.get("/schedule/student/my"),
   getByTeacher: (teacherId: number) =>
-    safeApiCall(() => api.get(`/schedule/teacher/${teacherId}`), []),
+    api.get(`/schedule/teacher/${teacherId}`),
   getByActivity: (activityId: number) =>
-    safeApiCall(() => api.get(`/schedule/activity/${activityId}`), []),
+    api.get(`/schedule/activity/${activityId}`),
   getAvailable: (activityId: number) =>
-    safeApiCall(() => api.get(`/schedule/available/${activityId}`), []),
-  enroll: (scheduleId: number) => safeApiCall(() => api.post(`/schedule/enroll/${scheduleId}`), null),
-  cancel: (scheduleId: number) => safeApiCall(() => api.delete(`/schedule/cancel/${scheduleId}`), null),
+    api.get(`/schedule/available/${activityId}`),
+  enroll: (scheduleId: number) => api.post(`/schedule/enroll/${scheduleId}`),
+  cancel: (scheduleId: number) => api.delete(`/schedule/cancel/${scheduleId}`),
   getEnrolledStudents: (scheduleId: number) =>
-    safeApiCall(() => api.get(`/schedule/${scheduleId}/students`), []),
+    api.get(`/schedule/${scheduleId}/students`),
   checkEnrollment: (activityId: number) =>
-    safeApiCall(() => api.get(`/schedule/check-enrollment/${activityId}`), false),
-  getMySeries: () => safeApiCall(() => api.get("/schedule/series/my"), []),
+    api.get(`/schedule/check-enrollment/${activityId}`),
+  getMySeries: () => api.get("/schedule/series/my"),
   cancelSeries: (seriesId: number) =>
-    safeApiCall(() => api.post(`/schedule/series/${seriesId}/cancel`), null),
-  getSeriesById: (seriesId: number) => safeApiCall(() => api.get(`/schedule/series/${seriesId}`), null),
+    api.post(`/schedule/series/${seriesId}/cancel`),
+  getSeriesById: (seriesId: number) => api.get(`/schedule/series/${seriesId}`),
   getSchedulesBySeries: (seriesId: number) =>
-    safeApiCall(() => api.get(`/schedule/series/${seriesId}/schedules`), []),
+    api.get(`/schedule/series/${seriesId}/schedules`),
   sendRequest: (data: {
     scheduleId: number;
     requestType: string;
     reason: string;
     proposedDate?: string;
     proposedTime?: string;
-  }) => safeApiCall(() => api.post("/schedule-requests", data), null),
+  }) => api.post("/schedule-requests", data),
 };
 
 export const teacherApi = {
   getWorkload: (startDate: string, endDate: string) =>
-    safeApiCall(() => api.get("/teacher/workload", { params: { startDate, endDate } }), { lessons: 0, hours: 0 }),
-  getStudents: () => safeApiCall(() => api.get("/teacher/students"), []),
+    api.get("/teacher/workload", { params: { startDate, endDate } }),
+  getStudents: () => api.get("/teacher/students"),
   getStudentProfile: (studentId: number) =>
-    safeApiCall(() => api.get(`/teacher/students/${studentId}`), null),
-  getGroups: () => safeApiCall(() => api.get("/teacher/groups"), []),
-  getStats: () => safeApiCall(() => api.get("/teacher/stats"), { students: 0, lessons: 0, rating: 0 }),
+    api.get(`/teacher/students/${studentId}`),
+  getGroups: () => api.get("/teacher/groups"),
+  getStats: () => api.get("/teacher/stats"),
   getAvailableSlots: (teacherId: number, date: string, duration?: number) =>
-    safeApiCall(() => api.get(`/teacher/${teacherId}/available-slots`, {
+    api.get(`/teacher/${teacherId}/available-slots`, {
       params: { date, duration },
-    }), []),
+    }),
   getAvailableDates: (teacherId: number, startDate: string, endDate: string) =>
-    safeApiCall(() => api.get(`/teacher/${teacherId}/available-dates`, {
+    api.get(`/teacher/${teacherId}/available-dates`, {
       params: { startDate, endDate },
-    }), []),
+    }),
 };
 
 export const materialsApi = {
-  getAll: () => safeApiCall(() => api.get("/materials"), []),
-  getById: (id: number) => safeApiCall(() => api.get(`/materials/${id}`), null),
+  getAll: () => api.get("/materials"),
+  getById: (id: number) => api.get(`/materials/${id}`),
   getByCategory: (category: string) =>
-    safeApiCall(() => api.get(`/materials/category/${category}`), []),
+    api.get(`/materials/category/${category}`),
 };
 
 export const schoolReviewsApi = {
-  getAll: () => safeApiCall(() => api.get("/reviews"), []),
-  getOne: (id: number) => safeApiCall(() => api.get(`/reviews/${id}`), null),
-  getMy: () => safeApiCall(() => api.get("/reviews/my"), []),
+  getAll: () => api.get("/reviews"),
+  getOne: (id: number) => api.get(`/reviews/${id}`),
+  getMy: () => api.get("/reviews/my"),
   create: (data: { rating: number; text: string }) =>
-    safeApiCall(() => api.post("/reviews", data), null),
+    api.post("/reviews", data),
   update: (id: number, data: { rating: number; text: string }) =>
-    safeApiCall(() => api.put(`/reviews/${id}`, data), null),
-  delete: (id: number) => safeApiCall(() => api.delete(`/reviews/${id}`), null),
+    api.put(`/reviews/${id}`, data),
+  delete: (id: number) => api.delete(`/reviews/${id}`),
 };
 
 export const reviewsApi = {
   getByActivity: (activityId: number) =>
-    safeApiCall(() => api.get(`/activities/${activityId}/reviews`), []),
+    api.get(`/activities/${activityId}/reviews`),
   getMy: (activityId: number) =>
-    safeApiCall(() => api.get(`/activities/${activityId}/reviews/my`), null),
+    api.get(`/activities/${activityId}/reviews/my`),
   create: (activityId: number, data: { rating: number; text: string }) =>
-    safeApiCall(() => api.post(`/activities/${activityId}/reviews`, data), null),
+    api.post(`/activities/${activityId}/reviews`, data),
   update: (activityId: number, reviewId: number, data: { rating: number; text: string }) =>
-    safeApiCall(() => api.put(`/activities/${activityId}/reviews/${reviewId}`, data), null),
+    api.put(`/activities/${activityId}/reviews/${reviewId}`, data),
   delete: (activityId: number, reviewId: number) =>
-    safeApiCall(() => api.delete(`/activities/${activityId}/reviews/${reviewId}`), null),
+    api.delete(`/activities/${activityId}/reviews/${reviewId}`),
 };
 
 export const scheduleRequestsApi = {
-  getAll: () => safeApiCall(() => api.get("/schedule-requests"), []),
-  getPending: () => safeApiCall(() => api.get("/schedule-requests/pending"), []),
-  getByUser: (userId: number) =>
-    safeApiCall(() => api.get(`/schedule-requests/user/${userId}`), []),
-  getMy: () => safeApiCall(() => api.get("/schedule-requests/my"), []),
-  create: (data: { reason: string }) => safeApiCall(() => api.post("/schedule-requests", data), null),
-  approve: (id: number) => safeApiCall(() => api.patch(`/schedule-requests/${id}/approve`), null),
-  reject: (id: number) => safeApiCall(() => api.patch(`/schedule-requests/${id}/reject`), null),
-  delete: (id: number) => safeApiCall(() => api.delete(`/schedule-requests/${id}`), null),
+  getAll: () => api.get("/schedule-requests"),
+  getPending: () => api.get("/schedule-requests/pending"),
+  getByUser: (userId: number) => api.get(`/schedule-requests/user/${userId}`),
+  getMy: () => api.get("/schedule-requests/my"),
+  create: (data: { reason: string }) => api.post("/schedule-requests", data),
+  approve: (id: number) => api.patch(`/schedule-requests/${id}/approve`),
+  reject: (id: number) => api.patch(`/schedule-requests/${id}/reject`),
+  delete: (id: number) => api.delete(`/schedule-requests/${id}`),
 };
 
 export const adminApi = {
-  getUsers: () => safeApiCall(() => api.get("/admin/users"), []),
-  getTeachers: () => safeApiCall(() => api.get("/admin/users/teachers"), []),
-  createTeacher: (data: any) => safeApiCall(() => api.post("/admin/users/teacher", data), null),
-  updateUser: (id: number, data: any) =>
-    safeApiCall(() => api.put(`/admin/users/${id}`, data), null),
-  deleteUser: (id: number) => safeApiCall(() => api.delete(`/admin/users/${id}`), null),
+  getUsers: () => api.get("/admin/users"),
+  getTeachers: () => api.get("/admin/users/teachers"),
+  createTeacher: (data: any) => api.post("/admin/users/teacher", data),
+  updateUser: (id: number, data: any) => api.put(`/admin/users/${id}`, data),
+  deleteUser: (id: number) => api.delete(`/admin/users/${id}`),
   blockUser: (id: number, isBlocked: boolean, reason?: string, until?: string) =>
-    safeApiCall(() => api.patch(`/admin/users/${id}/block`, { isBlocked, reason, until }), null),
-  getBlacklist: () => safeApiCall(() => api.get("/admin/blacklist"), []),
-  getTeacherRequests: () => safeApiCall(() => api.get("/admin/teacher-requests"), []),
+    api.patch(`/admin/users/${id}/block`, { isBlocked, reason, until }),
+  getBlacklist: () => api.get("/admin/blacklist"),
+  getTeacherRequests: () => api.get("/admin/teacher-requests"),
   processTeacherRequest: (id: number, status: string) =>
-    safeApiCall(() => api.patch(`/admin/teacher-requests/${id}`, { status }), null),
-  getSchedule: () => safeApiCall(() => api.get("/admin/schedule"), []),
-  createSchedule: (data: any) => safeApiCall(() => api.post("/admin/schedule", data), null),
+    api.patch(`/admin/teacher-requests/${id}`, { status }),
+  getSchedule: () => api.get("/admin/schedule"),
+  createSchedule: (data: any) => api.post("/admin/schedule", data),
   updateSchedule: (id: number, data: any) =>
-    safeApiCall(() => api.put(`/admin/schedule/${id}`, data), null),
-  deleteSchedule: (id: number) => safeApiCall(() => api.delete(`/admin/schedule/${id}`), null),
-  getTeacherAccesses: () => safeApiCall(() => api.get("/admin/access"), []),
+    api.put(`/admin/schedule/${id}`, data),
+  deleteSchedule: (id: number) => api.delete(`/admin/schedule/${id}`),
+  getTeacherAccesses: () => api.get("/admin/access"),
   grantTeacherAccess: (data: { teacherId: number; category: string; googleDriveLink: string }) =>
-    safeApiCall(() => api.post("/admin/access", data), null),
-  revokeTeacherAccess: (id: number) => safeApiCall(() => api.delete(`/admin/access/${id}`), null),
-  getActivities: () => safeApiCall(() => api.get("/admin/activities"), []),
-  createActivity: (data: any) => safeApiCall(() => api.post("/admin/activities", data), null),
+    api.post("/admin/access", data),
+  revokeTeacherAccess: (id: number) => api.delete(`/admin/access/${id}`),
+  getActivities: () => api.get("/admin/activities"),
+  createActivity: (data: any) => api.post("/admin/activities", data),
   updateActivity: (id: number, data: any) =>
-    safeApiCall(() => api.put(`/admin/activities/${id}`, data), null),
-  deleteActivity: (id: number) => safeApiCall(() => api.delete(`/admin/activities/${id}`), null),
+    api.put(`/admin/activities/${id}`, data),
+  deleteActivity: (id: number) => api.delete(`/admin/activities/${id}`),
 };
 
 export const dashboardApi = {
-  getReviews: () => safeApiCall(() => api.get("/reviews"), []),
-  getTeachers: () => safeApiCall(() => api.get("/teachers"), []),
-  getProjects: () => safeApiCall(() => api.get("/projects"), []),
-  getStatistics: () => safeApiCall(() => api.get("/statistics"), { users: 0, activities: 0, reviews: 0 }),
+  getReviews: () => api.get("/reviews"),
+  getTeachers: () => api.get("/teachers"),
+  getProjects: () => api.get("/projects"),
+  getStatistics: () => api.get("/statistics"),
 };
 
 export default api;
