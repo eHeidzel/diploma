@@ -32,88 +32,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     localStorage.removeItem("isGuest");
   }, [location, t]);
 
-  // Функция для извлечения сообщения из ошибки
-  const extractErrorMessage = (error: any): string => {
-    try {
-      // Если есть response и data
-      if (error.response) {
-        const { data, status, statusText } = error.response;
-        
-        console.log("Error response:", { data, status, statusText });
-        
-        // Если data - это объект
-        if (data && typeof data === 'object') {
-          // Ищем сообщение в различных полях
-          if (data.message) return data.message;
-          if (data.error) return data.error;
-          if (data.detail) return data.detail;
-          if (data.description) return data.description;
-          if (data.error_description) return data.error_description;
-          
-          // Если есть errors (валидация)
-          if (data.errors) {
-            if (typeof data.errors === 'object') {
-              const messages = Object.values(data.errors).flat();
-              return messages.join(', ');
-            }
-            return data.errors;
-          }
-          
-          // Если есть массив ошибок
-          if (Array.isArray(data)) {
-            return data.map(item => item.message || item).join(', ');
-          }
-          
-          // Если data - это строка
-          if (typeof data === 'string') {
-            try {
-              const parsed = JSON.parse(data);
-              if (parsed.message) return parsed.message;
-              if (parsed.error) return parsed.error;
-              return data;
-            } catch {
-              return data;
-            }
-          }
-          
-          // Попробуем получить сообщение из статуса
-          if (status === 401) return t("login.invalidPassword");
-          if (status === 403) return t("login.accountBlocked");
-          if (status === 404) return t("login.userNotFound");
-          if (status === 500) return t("login.serverError");
-          
-          // Если ничего не нашли, возвращаем статус
-          return statusText || t("login.loginError");
-        }
-        
-        // Если data - строка
-        if (typeof data === 'string') {
-          try {
-            const parsed = JSON.parse(data);
-            return parsed.message || parsed.error || data;
-          } catch {
-            return data || t("login.loginError");
-          }
-        }
-      }
-      
-      // Если есть message в самом error
-      if (error.message) {
-        return error.message;
-      }
-      
-      // Если есть error.message
-      if (error.error?.message) {
-        return error.error.message;
-      }
-      
-      return t("login.loginError");
-    } catch (parseError) {
-      console.error("Error parsing error message:", parseError);
-      return t("login.loginError");
-    }
-  };
-
   const onFinish = async (values: { email: string; password: string }) => {
     setLoading(true);
     setBlockedMessage(null);
@@ -121,20 +39,64 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
     try {
       const response = await authApi.login(values.email, values.password);
-      const { user, token } = response.data;
+      
+      // Проверяем, что response.data существует и содержит user и token
+      if (response.data && response.data.user && response.data.token) {
+        const { user, token } = response.data;
 
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-      localStorage.removeItem("isGuest");
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user));
+        localStorage.removeItem("isGuest");
 
-      onLogin(user);
-      message.success(t("login.loginSuccess").replace("{{name}}", user.name));
-      navigate("/dashboard");
+        onLogin(user);
+        message.success(t("login.loginSuccess").replace("{{name}}", user.name));
+        navigate("/dashboard");
+      } else {
+        // Если данные неполные
+        setErrorMessage(t("login.invalidResponse"));
+        message.error(t("login.invalidResponse"));
+      }
     } catch (error: any) {
       console.error("Login error:", error);
       
+      let errorMsg = t("login.loginError");
+      
       // Извлекаем сообщение из ошибки
-      const errorMsg = extractErrorMessage(error);
+      if (error.response) {
+        const { data, status } = error.response;
+        
+        if (data && typeof data === 'object') {
+          // Ищем сообщение в различных полях
+          if (data.message) {
+            errorMsg = data.message;
+          } else if (data.error) {
+            errorMsg = data.error;
+          } else if (data.detail) {
+            errorMsg = data.detail;
+          } else if (data.errors) {
+            if (typeof data.errors === 'object') {
+              const messages = Object.values(data.errors).flat();
+              errorMsg = messages.join(', ');
+            } else {
+              errorMsg = data.errors;
+            }
+          } else if (typeof data === 'string') {
+            errorMsg = data;
+          } else {
+            // Используем статус для определения сообщения
+            if (status === 400) errorMsg = "Invalid request data";
+            else if (status === 401) errorMsg = "Invalid email or password";
+            else if (status === 403) errorMsg = "Account is blocked";
+            else if (status === 404) errorMsg = "User not found";
+            else if (status === 422) errorMsg = "Validation error";
+            else if (status === 500) errorMsg = "Server error";
+          }
+        } else if (typeof data === 'string') {
+          errorMsg = data;
+        }
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
       
       // Проверка на блокировку
       const lowerMsg = errorMsg.toLowerCase();
@@ -149,12 +111,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         setErrorMessage(errorMsg);
       }
       
-      // Показываем сообщение только если оно не пустое
-      if (errorMsg && errorMsg !== "undefined" && errorMsg !== "null") {
-        message.error(errorMsg);
-      } else {
-        message.error(t("login.loginError"));
-      }
+      message.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -228,9 +185,9 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
         {errorMessage && (
           <Alert
-            message={t("login.loginError")}
-            description={errorMessage}
-            type="warning"
+            message={"Error"}
+            description={"Invalid credentials"}
+            type="error"
             showIcon
             style={{ marginBottom: 16 }}
             closable

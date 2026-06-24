@@ -128,6 +128,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
   };
 
   const handleViewRequest = (record: any) => {
+    console.log("Selected request:", record); // Для отладки
     setSelectedRequest(record);
     setRequestViewModalVisible(true);
   };
@@ -392,7 +393,9 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
       title: t("adminUsers.requestColumns.teacher"),
       key: "user",
       render: (_: any, record: any) => {
-        const avatarUrl = record.avatar || record.avatarUrl || record.avatar_url;
+        // Данные пользователя могут быть в record.User или напрямую в record
+        const userData = record.User || record;
+        const avatarUrl = userData.avatar || userData.avatarUrl || userData.avatar_url;
         const fullAvatarUrl = getFullAvatarUrl(avatarUrl);
         
         return (
@@ -403,18 +406,18 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
               onError={() => false}
             />
             <div>
-              <Text strong>{record.name}</Text>
+              <Text strong>{userData.name || t("common.notSpecified")}</Text>
               <br />
-              <Text type="secondary">{record.email}</Text>
+              <Text type="secondary">{userData.email || t("common.notSpecified")}</Text>
             </div>
           </Space>
         );
       },
     },
     {
-      title: t("adminUsers.requestColumns.requestText"),
-      dataIndex: "requestText",
-      key: "requestText",
+      title: t("adminUsers.requestColumns.reason"),
+      dataIndex: "reason",
+      key: "reason",
       render: (text: string) => (
         <Tooltip title={text}>
           <div style={{ maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -422,6 +425,30 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
           </div>
         </Tooltip>
       ),
+    },
+    {
+      title: t("adminUsers.requestColumns.status"),
+      dataIndex: "status",
+      key: "status",
+      render: (status: string) => {
+        const colors: any = {
+          pending: "gold",
+          approved: "green",
+          rejected: "red",
+        };
+        const labels: any = {
+          pending: t("adminUsers.requestStatuses.pending"),
+          approved: t("adminUsers.requestStatuses.approved"),
+          rejected: t("adminUsers.requestStatuses.rejected"),
+        };
+        return <Tag color={colors[status] || "default"}>{labels[status] || status}</Tag>;
+      },
+      filters: [
+        { text: t("adminUsers.requestStatuses.pending"), value: "pending" },
+        { text: t("adminUsers.requestStatuses.approved"), value: "approved" },
+        { text: t("adminUsers.requestStatuses.rejected"), value: "rejected" },
+      ],
+      onFilter: (value: any, record: any) => record.status === value,
     },
     {
       title: t("adminUsers.requestColumns.actions"),
@@ -504,6 +531,12 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
       ),
     },
   ];
+
+  // Получение имени пользователя из заявки
+  const getRequestUserName = (request: any) => {
+    if (!request) return "";
+    return request.User?.name || request.name || "";
+  };
 
   return (
     <div className={styles.container}>
@@ -779,7 +812,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
         open={teacherRequestsVisible}
         onCancel={() => setTeacherRequestsVisible(false)}
         footer={null}
-        width={800}
+        width={900}
         destroyOnClose
       >
         <Table
@@ -791,7 +824,11 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
       </Modal>
 
       <Modal
-        title={t("adminUsers.modals.viewRequestTitle")}
+        title={
+          selectedRequest 
+            ? `${t("adminUsers.modals.viewRequestTitle")}: ${getRequestUserName(selectedRequest)}`
+            : t("adminUsers.modals.viewRequestTitle")
+        }
         open={requestViewModalVisible}
         onCancel={() => {
           setRequestViewModalVisible(false);
@@ -813,15 +850,9 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
         {selectedRequest && (
           <div style={{ padding: "16px 0" }}>
             <Descriptions column={1} bordered>
-              <Descriptions.Item label={t("adminUsers.fields.name")}>
-                {selectedRequest.name}
-              </Descriptions.Item>
-              <Descriptions.Item label={t("adminUsers.fields.email")}>
-                {selectedRequest.email}
-              </Descriptions.Item>
-              <Descriptions.Item label={t("adminUsers.fields.requestText")}>
+              <Descriptions.Item label={t("adminUsers.requestColumns.reason")}>
                 <div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
-                  {selectedRequest.requestText || t("common.notSpecified")}
+                  {selectedRequest.reason || t("common.notSpecified")}
                 </div>
               </Descriptions.Item>
               <Descriptions.Item label={t("adminUsers.fields.createdAt")}>

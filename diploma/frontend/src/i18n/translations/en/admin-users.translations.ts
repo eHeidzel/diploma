@@ -13,6 +13,10 @@ export interface IAdminUsersTranslations {
     bio: string;
     category: string;
     googleDriveLink: string;
+    avatar: string;
+    createdAt: string;
+    requestText: string;
+    reason: string;
   };
   placeholders: {
     name: string;
@@ -63,6 +67,7 @@ export interface IAdminUsersTranslations {
     registrationDate: string;
     actions: string;
     view: string;
+    viewRequest: string;
     edit: string;
     block: string;
     unblock: string;
@@ -88,6 +93,7 @@ export interface IAdminUsersTranslations {
   };
   modals: {
     viewTitle: string;
+    viewRequestTitle: string;
     createTitle: string;
     editTitle: string;
     grantAccessTitle: string;
@@ -101,8 +107,7 @@ export interface IAdminUsersTranslations {
   };
   requestColumns: {
     teacher: string;
-    specialization: string;
-    experience: string;
+    reason: string;
     status: string;
     actions: string;
     requestText: string;
@@ -124,6 +129,10 @@ export const adminUsers: IAdminUsersTranslations = {
     bio: "Bio",
     category: "Category",
     googleDriveLink: "Google Drive Link",
+    avatar: "Avatar",
+    createdAt: "Created At",
+    requestText: "Request Text",
+    reason: "Reason",
   },
   placeholders: {
     name: "Enter name",
@@ -174,6 +183,7 @@ export const adminUsers: IAdminUsersTranslations = {
     registrationDate: "Registration Date",
     actions: "Actions",
     view: "View",
+    viewRequest: "View Request",
     edit: "Edit",
     block: "Block",
     unblock: "Unblock",
@@ -199,6 +209,7 @@ export const adminUsers: IAdminUsersTranslations = {
   },
   modals: {
     viewTitle: "View User",
+    viewRequestTitle: "View Request",
     createTitle: "Create Teacher",
     editTitle: "Edit User",
     grantAccessTitle: "Grant Access to Materials for: {{name}}",
@@ -212,10 +223,9 @@ export const adminUsers: IAdminUsersTranslations = {
   },
   requestColumns: {
     teacher: "Teacher",
-    specialization: "Specialization",
-    experience: "Experience",
+    reason: "Reason",
     status: "Status",
     actions: "Actions",
-    requestText: "Messsage"
+    requestText: "Message",
   },
 };
