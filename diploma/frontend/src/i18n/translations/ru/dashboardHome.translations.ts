@@ -2,7 +2,7 @@ import { IDashboardHomeTranslations } from "../en/dashboardHome.translations";
 
 export const dashboardHome: IDashboardHomeTranslations = {
   stats: {
-    students: "Студентов",
+    students: "Учеников",
     teachers: "Преподавателей",
     projects: "Проектов",
   },
