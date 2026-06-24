@@ -99,7 +99,7 @@ export const learning: ILearningTranslations = {
     cancel: "Cancel",
   },
   balanceModal: {
-    insufficientFunds: "Insufficient balance. You have {{balance}} BYN. Activity cost is {{price}} BYN.",
+    insufficientFunds: "Insufficient balance",
     topUp: "Top Up",
     cancel: "Cancel",
   },

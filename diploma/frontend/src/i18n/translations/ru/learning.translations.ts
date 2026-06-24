@@ -42,7 +42,7 @@ export const learning: ILearningTranslations = {
     cancel: "Отмена",
   },
   balanceModal: {
-    insufficientFunds: "Недостаточно средств. На вашем балансе {{balance}} BYN. Стоимость занятия {{price}} BYN.",
+    insufficientFunds: "Недостаточно средств",
     topUp: "Пополнить",
     cancel: "Отмена",
   },

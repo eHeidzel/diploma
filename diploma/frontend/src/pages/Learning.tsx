@@ -189,9 +189,6 @@ const Learning: React.FC<LearningProps> = ({ user }) => {
       } else if (userBalance < activity.price) {
         Modal.confirm({
           title: t("learning.balanceModal.insufficientFunds"),
-          content: t("learning.balanceModal.insufficientFunds")
-            .replace("{{balance}}", userBalance.toString())
-            .replace("{{price}}", activity.price.toString()),
           okText: t("learning.balanceModal.topUp"),
           cancelText: t("learning.balanceModal.cancel"),
           centered: true,
