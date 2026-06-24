@@ -45,7 +45,7 @@ interface DashboardHomeProps {
 }
 
 const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [selectedTeacher, setSelectedTeacher] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("projects");
   const [reviews, setReviews] = useState<any[]>([]);
@@ -68,17 +68,40 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
     return `https://diploma-production-f729.up.railway.app${avatar}`;
   };
 
-  // Функция для перевода заголовков статистики
-  const getStatTitle = (title: string) => {
-    const statMap: Record<string, string> = {
-      "Студентов": t("dashboardHome.stats.students"),
-      "Преподавателей": t("dashboardHome.stats.teachers"),
-      "Проектов": t("dashboardHome.stats.projects"),
-      "Students": t("dashboardHome.stats.students"),
-      "Teachers": t("dashboardHome.stats.teachers"),
-      "Projects": t("dashboardHome.stats.projects"),
-    };
-    return statMap[title] || title;
+  // Функция для получения переведенного заголовка статистики
+  const getTranslatedStatTitle = (title: string): string => {
+    if (typeof title !== 'string') return String(title);
+    
+    const lowerTitle = title.toLowerCase();
+    
+    if (lowerTitle.includes('student') || lowerTitle.includes('студент')) {
+      return t('dashboardHome.stats.students');
+    }
+    if (lowerTitle.includes('teacher') || lowerTitle.includes('преподавател')) {
+      return t('dashboardHome.stats.teachers');
+    }
+    if (lowerTitle.includes('project') || lowerTitle.includes('проект')) {
+      return t('dashboardHome.stats.projects');
+    }
+    
+    return title;
+  };
+
+  // Функция для получения иконки статистики
+  const getStatIcon = (title: string) => {
+    if (typeof title !== 'string') return <UserOutlined />;
+    
+    const lowerTitle = title.toLowerCase();
+    if (lowerTitle.includes('student') || lowerTitle.includes('студент')) {
+      return <SmileOutlined />;
+    }
+    if (lowerTitle.includes('teacher') || lowerTitle.includes('преподавател')) {
+      return <TrophyOutlined />;
+    }
+    if (lowerTitle.includes('project') || lowerTitle.includes('проект')) {
+      return <RocketOutlined />;
+    }
+    return <UserOutlined />;
   };
 
   useEffect(() => {
@@ -86,7 +109,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
     if (isAuthenticated && isStudent) {
       checkUserReview();
     }
-  }, []);
+  }, [i18n.language]); // Добавляем зависимость от языка
 
   const fetchData = async () => {
     setLoading(true);
@@ -121,7 +144,13 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
 
       setTeachers(formattedTeachers);
       setProjects(Array.isArray(projectsRes.data) ? projectsRes.data : []);
-      setStatistics(Array.isArray(statsRes.data) ? statsRes.data : []);
+      
+      const statsData = Array.isArray(statsRes.data) ? statsRes.data : [];
+      const formattedStats = statsData.map((stat: any) => ({
+        ...stat,
+        title: getTranslatedStatTitle(stat.title),
+      }));
+      setStatistics(formattedStats);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
       message.error(t("common.error"));
@@ -208,14 +237,6 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
       console.error("Error deleting review:", error);
       message.error(t("dashboardHome.reviews.deleteError"));
     }
-  };
-
-  const getStatIcon = (title: string) => {
-    const translatedTitle = getStatTitle(title);
-    if (translatedTitle === t("dashboardHome.stats.students")) return <SmileOutlined />;
-    if (translatedTitle === t("dashboardHome.stats.teachers")) return <TrophyOutlined />;
-    if (translatedTitle === t("dashboardHome.stats.projects")) return <RocketOutlined />;
-    return <UserOutlined />;
   };
 
   const renderReviews = () => {
@@ -543,6 +564,22 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
     </div>
   );
 
+  // Функция для обновления статистики при смене языка
+  const updateStatisticsLanguage = () => {
+    if (statistics.length > 0) {
+      const updatedStats = statistics.map((stat) => ({
+        ...stat,
+        title: getTranslatedStatTitle(stat.originalTitle || stat.title),
+      }));
+      setStatistics(updatedStats);
+    }
+  };
+
+  // Обновляем статистику при смене языка
+  useEffect(() => {
+    updateStatisticsLanguage();
+  }, [i18n.language]);
+
   if (loading) {
     return (
       <div className={styles.loadingContainer}>
@@ -555,13 +592,13 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
   return (
     <div>
       <Row gutter={[16, 16]} className={styles.statsRow}>
-        {statistics.map((stat) => (
-          <Col xs={24} sm={8} key={stat.id}>
+        {statistics.map((stat, index) => (
+          <Col xs={24} sm={8} key={stat.id || index}>
             <Card className={styles.statCard}>
               <Statistic
                 title={
                   <span>
-                    {getStatIcon(stat.title)} {getStatTitle(stat.title)}
+                    {getStatIcon(stat.title)} {stat.title}
                   </span>
                 }
                 value={stat.value}
