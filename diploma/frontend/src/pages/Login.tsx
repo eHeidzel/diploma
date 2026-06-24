@@ -32,6 +32,61 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     localStorage.removeItem("isGuest");
   }, [location, t]);
 
+  // Функция для извлечения сообщения из ошибки
+  const extractErrorMessage = (error: any): string => {
+    // Если есть response и data
+    if (error.response?.data) {
+      const data = error.response.data;
+      
+      // Если data - это строка
+      if (typeof data === 'string') {
+        try {
+          // Пробуем распарсить как JSON
+          const parsed = JSON.parse(data);
+          if (parsed.message) return parsed.message;
+          if (parsed.error) return parsed.error;
+          return data;
+        } catch {
+          return data;
+        }
+      }
+      
+      // Если data - это объект
+      if (typeof data === 'object') {
+        if (data.message) return data.message;
+        if (data.error) return data.error;
+        if (data.detail) return data.detail;
+        // Если есть description или error_description
+        if (data.description) return data.description;
+        if (data.error_description) return data.error_description;
+        // Если есть validation errors
+        if (data.errors) {
+          const errors = Object.values(data.errors).flat();
+          return errors.join(', ');
+        }
+        // Если есть массив ошибок
+        if (Array.isArray(data)) {
+          return data.map(item => item.message || item).join(', ');
+        }
+        // Возвращаем JSON строку
+        return JSON.stringify(data);
+      }
+    }
+    
+    // Если есть message в самом error
+    if (error.message) {
+      return error.message;
+    }
+    
+    // Если есть error.message
+    if (error.error?.message) {
+      return error.error.message;
+    }
+    
+    // Стандартное сообщение
+    return t("login.loginError");
+  };
+
   const onFinish = async (values: { email: string; password: string }) => {
     setLoading(true);
     setBlockedMessage(null);
@@ -51,45 +106,17 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     } catch (error: any) {
       console.error("Login error:", error);
       
-      // Обработка различных статусов ошибок
-      let errorMsg = t("login.loginError");
+      // Извлекаем сообщение из ошибки
+      const errorMsg = extractErrorMessage(error);
       
-      if (error.response) {
-        // Сервер ответил с ошибкой
-        const status = error.response.status;
-        const data = error.response.data;
-        
-        console.log("Error status:", status);
-        console.log("Error data:", data);
-        
-        if (status === 404) {
-          errorMsg = t("login.userNotFound");
-        } else if (status === 401) {
-          errorMsg = t("login.invalidPassword");
-        } else if (status === 403) {
-          errorMsg = t("login.accountBlocked");
-        } else if (status === 400) {
-          errorMsg = data?.message || t("login.invalidData");
-        } else if (data?.message) {
-          errorMsg = data.message;
-        }
-        
-        // Проверка на блокировку
-        if (
-          errorMsg.toLowerCase().includes("заблокирован") ||
-          errorMsg.toLowerCase().includes("blocked")
-        ) {
-          setBlockedMessage(errorMsg);
-        } else {
-          setErrorMessage(errorMsg);
-        }
-      } else if (error.request) {
-        // Запрос был отправлен, но ответа нет
-        errorMsg = t("login.serverNotResponding");
-        setErrorMessage(errorMsg);
+      // Проверка на блокировку
+      if (
+        errorMsg.toLowerCase().includes("заблокирован") ||
+        errorMsg.toLowerCase().includes("blocked") ||
+        errorMsg.toLowerCase().includes("заблоковано")
+      ) {
+        setBlockedMessage(errorMsg);
       } else {
-        // Ошибка при настройке запроса
-        errorMsg = error.message || t("login.loginError");
         setErrorMessage(errorMsg);
       }
       
