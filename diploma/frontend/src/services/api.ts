@@ -22,6 +22,7 @@ api.interceptors.response.use(
   (error) => {
     const isGuest = localStorage.getItem("isGuest") === "true";
 
+    // Для гостей игнорируем 401 ошибки
     if (error.response?.status === 401 && isGuest) {
       console.warn("Guest: Ignoring 401 error");
       return Promise.resolve({
@@ -33,22 +34,8 @@ api.interceptors.response.use(
       });
     }
 
-    if (error.response?.status === 401) {
-      const message = error.response?.data?.message || "";
-
-      if (
-        message.toLowerCase().includes("заблокирован") ||
-        message.toLowerCase().includes("blocked")
-      ) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        window.location.href = "/login?blocked=true";
-      } else {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        window.location.href = "/login";
-      }
-    }
+    // Для всех остальных - просто пробрасываем ошибку
+    // НЕ делаем автоматический редирект, чтобы компонент мог обработать ошибку
     return Promise.reject(error);
   },
 );
