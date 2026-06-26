@@ -322,8 +322,6 @@ const AdminSchedule: React.FC<AdminScheduleProps> = ({ }) => {
           pagination={{
             pageSize: 10,
             showSizeChanger: false,
-            showTotal: (total, range) =>
-              `${range[0]}-${range[1]} из ${total} записей`,
           }}
           scroll={{ x: 1000 }}
         />

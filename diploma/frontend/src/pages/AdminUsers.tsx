@@ -56,7 +56,7 @@ const CATEGORIES = [
 const getFullAvatarUrl = (avatar: string) => {
   if (!avatar) return null;
   if (avatar.startsWith('http')) return avatar;
-  return `https://diploma-production-f729.up.railway.app${avatar}`;
+  return `http://localhost:8080${avatar}`;
 };
 
 const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
@@ -579,7 +579,7 @@ const AdminUsers: React.FC<AdminUsersProps> = ({ }) => {
           dataSource={filteredUsers}
           rowKey="id"
           loading={loading}
-          pagination={{ pageSize: 10 }}
+          pagination={{ pageSize: 10, showSizeChanger: false, }}
           scroll={{ x: 1000 }}
         />
       </Card>
