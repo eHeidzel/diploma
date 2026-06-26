@@ -47,7 +47,7 @@ interface Student {
   averageRating?: number;
 }
 
-const MyStudents: React.FC<MyStudentsProps> = ({ }) => {
+const MyStudents: React.FC<MyStudentsProps> = ({ user }) => {
   const { t } = useTranslation();
   const { getTitleLevel } = useAdaptiveLevel();
   const [students, setStudents] = useState<Student[]>([]);
@@ -60,39 +60,36 @@ const MyStudents: React.FC<MyStudentsProps> = ({ }) => {
   const getFullAvatarUrl = (avatar: string | null | undefined): string | undefined => {
     if (!avatar) return undefined;
     if (avatar.startsWith("http")) return avatar;
+    // Замените localhost на ваш реальный URL
     return `https://diploma-production-f729.up.railway.app${avatar}`;
   };
 
   useEffect(() => {
     fetchStudents();
-    fetchGroups();
   }, []);
 
   const fetchStudents = async () => {
     setLoading(true);
     try {
       const response = await teacherApi.getStudents();
-      const studentsData = response.data || [];
+      // Проверяем, что данные существуют и это массив
+      const studentsData = Array.isArray(response.data) ? response.data : [];
 
       const formattedStudents = studentsData.map((student: any) => ({
         ...student,
         avatar: getFullAvatarUrl(student.avatar),
         group: student.group || student.course || t("myStudents.profile.individual"),
+        name: student.name || t("common.notSpecified"),
+        email: student.email || t("common.notSpecified"),
       }));
 
       setStudents(formattedStudents);
     } catch (error) {
       console.error("Error fetching students:", error);
       message.error(t("myStudents.loading"));
+      setStudents([]); // Устанавливаем пустой массив при ошибке
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchGroups = async () => {
-    try {
-    } catch (error) {
-      console.error("Error fetching groups:", error);
     }
   };
 
@@ -100,26 +97,47 @@ const MyStudents: React.FC<MyStudentsProps> = ({ }) => {
     setStudentLoading(true);
     try {
       const response = await teacherApi.getStudentProfile(student.id);
-      const profileData = response.data;
-      if (profileData.avatar) {
-        profileData.avatar = getFullAvatarUrl(profileData.avatar);
-      }
-      setSelectedStudent(profileData);
+      const profileData = response.data || {};
+      
+      // Формируем объект студента с безопасными значениями
+      const formattedProfile: Student = {
+        ...student,
+        ...profileData,
+        avatar: getFullAvatarUrl(profileData.avatar || student.avatar),
+        name: profileData.name || student.name || t("common.notSpecified"),
+        email: profileData.email || student.email || t("common.notSpecified"),
+        phone: profileData.phone || student.phone || t("common.notSpecified"),
+        group: profileData.group || student.group || t("myStudents.profile.individual"),
+        progress: profileData.progress ?? student.progress ?? 0,
+        completedLessons: profileData.completedLessons ?? student.completedLessons ?? 0,
+        averageRating: profileData.averageRating ?? student.averageRating ?? 0,
+      };
+      
+      setSelectedStudent(formattedProfile);
     } catch (error) {
       console.error("Error fetching student profile:", error);
       message.error(t("myStudents.loading"));
+      // Показываем базовую информацию даже при ошибке
       setSelectedStudent({
         ...student,
         avatar: getFullAvatarUrl(student.avatar),
+        name: student.name || t("common.notSpecified"),
+        email: student.email || t("common.notSpecified"),
+        phone: student.phone || t("common.notSpecified"),
+        group: student.group || t("myStudents.profile.individual"),
+        progress: student.progress || 0,
+        completedLessons: student.completedLessons || 0,
+        averageRating: student.averageRating || 0,
       });
     } finally {
       setStudentLoading(false);
     }
   };
 
+  // Безопасное получение уникальных групп
   const uniqueGroups = Array.from(
-    new Set(students.map((s) => s.group).filter(Boolean))
-  ) as string[];
+    new Set(students.map((s) => s.group).filter((g): g is string => Boolean(g)))
+  );
 
   const filteredStudents = students.filter((student) => {
     const matchesSearch =
@@ -177,6 +195,9 @@ const MyStudents: React.FC<MyStudentsProps> = ({ }) => {
     },
   ];
 
+  // Проверяем, есть ли студенты для отображения
+  const hasStudents = students && students.length > 0;
+
   return (
     <div className={styles.container}>
       <Title level={getTitleLevel(3)}>{t("myStudents.title")}</Title>
@@ -209,17 +230,27 @@ const MyStudents: React.FC<MyStudentsProps> = ({ }) => {
         </Space>
       </Card>
 
-      <Table
-        columns={columns}
-        dataSource={filteredStudents}
-        rowKey="id"
-        loading={loading}
-        pagination={{ pageSize: 10 }}
-        className={styles.table}
-        locale={{
-          emptyText: <Empty description={t("myStudents.noStudents")} />,
-        }}
-      />
+      {loading ? (
+        <div className={styles.loadingContainer}>
+          <Spin size="large" tip={t("myStudents.loading")} />
+        </div>
+      ) : (
+        <Table
+          columns={columns}
+          dataSource={filteredStudents}
+          rowKey="id"
+          loading={loading}
+          pagination={{
+            pageSize: 10,
+            showSizeChanger: false,
+            showTotal: (total) => `Всего ${total} студентов`,
+          }}
+          className={styles.table}
+          locale={{
+            emptyText: <Empty description={t("myStudents.noStudents")} />,
+          }}
+        />
+      )}
 
       <Modal
         title={t("myStudents.profile.title")}
@@ -295,13 +326,13 @@ const MyStudents: React.FC<MyStudentsProps> = ({ }) => {
                         overflow: 'hidden'
                       }}>
                         <div style={{
-                          width: `${selectedStudent.progress || 0}%`,
+                          width: `${Math.min(selectedStudent.progress || 0, 100)}%`,
                           height: '100%',
                           background: '#52c41a',
                           borderRadius: 4
                         }} />
                       </div>
-                      <Text>{selectedStudent.progress || 0}%</Text>
+                      <Text>{Math.min(selectedStudent.progress || 0, 100)}%</Text>
                     </div>
                   </Descriptions.Item>
                 )}
