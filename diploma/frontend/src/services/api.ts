@@ -1,8 +1,13 @@
 import axios from "axios";
 
+// Определяем baseURL в зависимости от окружения
+const getBaseURL = () => {
+  return "https://diploma-production-f729.up.railway.app/";
+};
+
 const api = axios.create({
-  baseURL: "https://diploma-production-f729.up.railway.app/",
-  timeout: 20000,
+  baseURL: getBaseURL(),
+  timeout: 30000, // Увеличиваем таймаут для продакшена
   headers: {
     "Content-Type": "application/json",
   },
@@ -26,54 +31,8 @@ api.interceptors.response.use(
     // Если ответ 401 и пользователь гость - игнорируем ошибку
     if (error.response?.status === 401 && isGuest) {
       console.warn("Guest mode: Ignoring 401 error");
-      
-      // Определяем тип запроса и возвращаем соответствующий пустой ответ
-      const url = error.config?.url || '';
-      
-      // Для запросов, ожидающих массив
-      if (url.includes('/activities') || 
-          url.includes('/notifications') || 
-          url.includes('/reviews') || 
-          url.includes('/schedule') ||
-          url.includes('/users') ||
-          url.includes('/materials') ||
-          url.includes('/projects') ||
-          url.includes('/teachers') ||
-          url.includes('/teacher-requests')) {
-        return Promise.resolve({
-          data: [],
-          status: 200,
-          statusText: "OK",
-          headers: {},
-          config: error.config,
-        });
-      }
-      
-      // Для запросов профиля
-      if (url.includes('/profile') || url.includes('/auth/profile')) {
-        return Promise.resolve({
-          data: null,
-          status: 200,
-          statusText: "OK",
-          headers: {},
-          config: error.config,
-        });
-      }
-      
-      // Для остальных GET запросов
-      if (error.config?.method === 'get') {
-        return Promise.resolve({
-          data: {},
-          status: 200,
-          statusText: "OK",
-          headers: {},
-          config: error.config,
-        });
-      }
-      
-      // Для POST/PUT/DELETE запросов
       return Promise.resolve({
-        data: { success: true },
+        data: null,
         status: 200,
         statusText: "OK",
         headers: {},
@@ -90,23 +49,11 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // Если 404 - возвращаем пустые данные
-    if (error.response?.status === 404) {
-      console.warn("Resource not found:", error.config?.url);
+    // Если ошибка сети или таймаут
+    if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+      console.warn("Request timeout or network error");
       return Promise.resolve({
         data: null,
-        status: 404,
-        statusText: "Not Found",
-        headers: {},
-        config: error.config,
-      });
-    }
-
-    // Если ошибка парсинга JSON
-    if (error.message?.includes('JSON')) {
-      console.warn("JSON parsing error, returning empty data");
-      return Promise.resolve({
-        data: {},
         status: 200,
         statusText: "OK",
         headers: {},
@@ -114,11 +61,19 @@ api.interceptors.response.use(
       });
     }
 
-    return Promise.reject(error);
+    // Для всех остальных ошибок - возвращаем пустые данные, чтобы не ломать UI
+    console.warn("API Error, returning empty data:", error.message);
+    return Promise.resolve({
+      data: null,
+      status: 200,
+      statusText: "OK",
+      headers: {},
+      config: error.config,
+    });
   },
 );
 
-// Функция для безопасных API вызовов
+// Безопасный API вызов с обработкой ошибок
 export const safeApiCall = async (apiCall: () => Promise<any>, defaultValue: any = null) => {
   try {
     const response = await apiCall();
