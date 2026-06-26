@@ -10,13 +10,11 @@ import {
   Steps,
   Alert,
   Select,
-  DatePicker,
 } from "antd";
 import {
   BookOutlined,
   TeamOutlined,
   ClockCircleOutlined,
-  CalendarOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import styles from "../css/learning.module.css";

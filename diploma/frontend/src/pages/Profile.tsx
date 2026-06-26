@@ -48,7 +48,6 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
   const [form] = Form.useForm();
   const [passwordForm] = Form.useForm();
   const hasRedirected = useRef(false);
-  const isInitialMount = useRef(true);
   const fetchProfileRef = useRef(false);
   const userIdRef = useRef<number | null>(null);
 
