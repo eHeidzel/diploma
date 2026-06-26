@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   Card,
   Form,
@@ -47,31 +47,16 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
   const [changePasswordVisible, setChangePasswordVisible] = useState(false);
   const [form] = Form.useForm();
   const [passwordForm] = Form.useForm();
-  const hasRedirected = useRef(false); // Флаг для предотвращения множественных редиректов
+  const hasRedirected = useRef(false);
+  const isInitialMount = useRef(true);
+  const fetchProfileRef = useRef(false);
+  const userIdRef = useRef<number | null>(null);
 
-  // Проверка на гостя
-  useEffect(() => {
-    // Проверяем, что пользователь существует и не гость
-    if (!user || user.role === "guest") {
-      // Показываем сообщение только один раз
-      if (!hasRedirected.current) {
-        hasRedirected.current = true;
-        message.warning(t("profile.guest.accessDenied"));
-        navigate("/");
-      }
-      return;
-    }
+  const fetchProfile = useCallback(async () => {
+    // Предотвращаем одновременные запросы
+    if (fetchProfileRef.current) return;
+    fetchProfileRef.current = true;
 
-    // Сбрасываем флаг если пользователь авторизован
-    hasRedirected.current = false;
-    
-    fetchProfile();
-    if (user?.role === "student") {
-      fetchBalance();
-    }
-  }, [user]);
-
-  const fetchProfile = async () => {
     try {
       const response = await profileApi.get();
       setProfile(response.data);
@@ -89,23 +74,68 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
       console.error("Error fetching profile:", error);
       message.error(t("profile.loading"));
     } finally {
+      fetchProfileRef.current = false;
     }
-  };
+  }, [form, onUserUpdate, t]);
 
-  const fetchBalance = async () => {
+  const fetchBalance = useCallback(async () => {
     try {
       const response = await profileApi.getBalance();
       setBalance(response.data.balance);
     } catch (error) {
       console.error("Error fetching balance:", error);
     }
-  };
+  }, []);
+
+  // Проверка на гостя и загрузка данных
+  useEffect(() => {
+    // Проверяем, что пользователь существует и не гость
+    if (!user || user.role === "guest") {
+      if (!hasRedirected.current) {
+        hasRedirected.current = true;
+        message.warning(t("profile.guest.accessDenied"));
+        navigate("/");
+      }
+      return;
+    }
+
+    // Сбрасываем флаг если пользователь авторизован
+    hasRedirected.current = false;
+    
+    // Загружаем профиль только при первом монтировании или при смене user.id
+    const currentUserId = user?.id;
+    if (currentUserId !== userIdRef.current) {
+      userIdRef.current = currentUserId;
+      fetchProfile();
+      if (user?.role === "student") {
+        fetchBalance();
+      }
+    }
+  }, [user, fetchProfile, fetchBalance, navigate, t]);
 
   const handleUpdateProfile = async (values: any) => {
     try {
+      // Обновляем профиль через API
+      await profileApi.update({
+        name: values.name,
+        phone: values.phone,
+        city: values.city,
+        bio: values.bio,
+      });
+      
       message.success(t("profile.info.save"));
       setEditMode(false);
 
+      // Обновляем локальный профиль
+      setProfile((prev: any) => ({
+        ...prev,
+        name: values.name,
+        phone: values.phone,
+        city: values.city,
+        bio: values.bio,
+      }));
+
+      // Уведомляем родительский компонент
       if (onUserUpdate) {
         onUserUpdate({
           name: values.name,
@@ -114,8 +144,6 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
           bio: values.bio,
         });
       }
-
-      fetchProfile();
     } catch (error) {
       console.error("Error updating profile:", error);
       message.error(t("profile.loading"));
@@ -210,8 +238,16 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
   const avatarUrl = profile.avatar
     ? profile.avatar.startsWith("http")
       ? profile.avatar
-      : `https://diploma-production-f729.up.railway.app${profile.avatar}`
+      : `http://localhost:8080${profile.avatar}`
     : null;
+
+  // Создаем конфигурацию для Upload один раз
+  const uploadProps: UploadProps = {
+    showUploadList: false,
+    customRequest: handleAvatarUpload,
+    accept: "image/*",
+    disabled: uploading,
+  };
 
   return (
     <div className={styles.container}>
@@ -220,12 +256,7 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
           <Card className={styles.avatarCard}>
             <div className={styles.avatarContainer}>
               <Avatar size={120} src={avatarUrl} icon={<UserOutlined />} />
-              <Upload
-                showUploadList={false}
-                customRequest={handleAvatarUpload}
-                accept="image/*"
-                disabled={uploading}
-              >
+              <Upload {...uploadProps}>
                 <Button
                   icon={<UploadOutlined />}
                   loading={uploading}

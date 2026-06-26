@@ -20,6 +20,7 @@ import {
   Avatar,
   Alert,
   DatePicker,
+  Divider,
 } from "antd";
 import {
   PlusOutlined,
@@ -34,6 +35,7 @@ import {
   PlusCircleOutlined,
   CloseCircleOutlined,
   LinkOutlined,
+  BookOutlined,
 } from "@ant-design/icons";
 import dayjs, { Dayjs } from "dayjs";
 import { adminApi } from "../services/api";
@@ -51,6 +53,13 @@ interface AdminActivitiesProps {
 interface AvailableDate {
   date: string;
   times: string[];
+}
+
+interface LearningPlanItem {
+  order: number;
+  title: string;
+  duration: string;
+  description: string;
 }
 
 const CATEGORIES = [
@@ -76,6 +85,9 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ }) => {
   const [editingActivity, setEditingActivity] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedDates, setSelectedDates] = useState<AvailableDate[]>([]);
+  const [learningPlan, setLearningPlan] = useState<LearningPlanItem[]>([
+    { order: 0, title: "", duration: "", description: "" },
+  ]);
   const [form] = Form.useForm();
 
   const watchType = Form.useWatch("type", form);
@@ -173,6 +185,36 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ }) => {
     setSelectedDates(updated);
   };
 
+  const handleAddLearningPlanItem = (): void => {
+    const newOrder = learningPlan.length;
+    setLearningPlan([
+      ...learningPlan,
+      { order: newOrder, title: "", duration: "", description: "" },
+    ]);
+  };
+
+  const handleRemoveLearningPlanItem = (index: number): void => {
+    if (learningPlan.length > 1) {
+      const updated = learningPlan.filter((_, i) => i !== index);
+      // Обновляем order
+      const reordered = updated.map((item, idx) => ({
+        ...item,
+        order: idx,
+      }));
+      setLearningPlan(reordered);
+    }
+  };
+
+  const handleLearningPlanChange = (
+    index: number,
+    field: keyof LearningPlanItem,
+    value: string,
+  ): void => {
+    const updated = [...learningPlan];
+    updated[index] = { ...updated[index], [field]: value };
+    setLearningPlan(updated);
+  };
+
   const handleSubmit = async (values: any): Promise<void> => {
     setError(null);
     try {
@@ -196,6 +238,22 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ }) => {
         }
       }
 
+      // Формируем learningPlan только для групповых занятий
+      let learningPlanData: LearningPlanItem[] = [];
+      if (values.type === "group") {
+        const validPlan = learningPlan.filter(
+          (item) => item.title.trim() !== "",
+        );
+        if (validPlan.length === 0) {
+          throw new Error(t("adminActivities.messages.learningPlanRequired"));
+        }
+        // Обновляем order перед сохранением
+        learningPlanData = validPlan.map((item, index) => ({
+          ...item,
+          order: index,
+        }));
+      }
+
       const submitData = {
         title: values.title,
         type: values.type,
@@ -217,7 +275,7 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ }) => {
           values.type === "group" ? values.groupPeriod || "6 месяцев" : null,
         groupShift:
           values.type === "group" ? values.groupShift || "утренняя" : null,
-        learningPlan: values.learningPlan || [],
+        learningPlan: learningPlanData,
         meetLink: values.meetLink || null,
         order: activities.length + 1,
       };
@@ -233,6 +291,7 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ }) => {
       form.resetFields();
       setEditingActivity(null);
       setSelectedDates([]);
+      setLearningPlan([{ order: 0, title: "", duration: "", description: "" }]);
       fetchActivities();
     } catch (error: any) {
       console.error("Error saving activity:", error);
@@ -356,6 +415,10 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ }) => {
                 setEditingActivity(record);
                 setError(null);
                 setSelectedDates(record.availableDates || []);
+                setLearningPlan(record.learningPlan?.length > 0 
+                  ? record.learningPlan 
+                  : [{ order: 0, title: "", duration: "", description: "" }]
+                );
                 form.setFieldsValue({
                   ...record,
                   teacherId: record.teacherId,
@@ -389,6 +452,8 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ }) => {
     watchType,
   );
 
+  const showLearningPlan = watchType === "group";
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -400,6 +465,7 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ }) => {
             setEditingActivity(null);
             setError(null);
             setSelectedDates([]);
+            setLearningPlan([{ order: 0, title: "", duration: "", description: "" }]);
             form.resetFields();
             form.setFieldsValue({
               isActive: true,
@@ -440,6 +506,7 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ }) => {
           setEditingActivity(null);
           setError(null);
           setSelectedDates([]);
+          setLearningPlan([{ order: 0, title: "", duration: "", description: "" }]);
           form.resetFields();
         }}
         footer={null}
@@ -768,6 +835,103 @@ const AdminActivities: React.FC<AdminActivitiesProps> = ({ }) => {
                   />
                 </div>
               ))}
+            </div>
+          )}
+
+          {showLearningPlan && (
+            <div className={styles.learningPlanBlock}>
+              <Divider orientation="left">
+                <Space>
+                  <BookOutlined /> {t("adminActivities.fields.learningPlan")}
+                </Space>
+              </Divider>
+
+              <Alert
+                message={t("adminActivities.messages.learningPlanInfo")}
+                type="info"
+                showIcon
+                style={{ marginBottom: 16 }}
+              />
+
+              {learningPlan.map((item, index) => (
+                <div key={index} className={styles.learningPlanItem}>
+                  <Row gutter={16}>
+                    <Col span={8}>
+                      <Form.Item
+                        label={index === 0 ? t("adminActivities.fields.planTitle") : ""}
+                        required={index === 0}
+                        style={{ marginBottom: 8 }}
+                      >
+                        <Input
+                          placeholder={t("adminActivities.placeholders.planTitle")}
+                          value={item.title}
+                          onChange={(e) =>
+                            handleLearningPlanChange(index, "title", e.target.value)
+                          }
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col span={6}>
+                      <Form.Item
+                        label={index === 0 ? t("adminActivities.fields.planDuration") : ""}
+                        required={index === 0}
+                        style={{ marginBottom: 8 }}
+                      >
+                        <Select
+                          placeholder={t("adminActivities.placeholders.planDuration")}
+                          value={item.duration || undefined}
+                          onChange={(value) =>
+                            handleLearningPlanChange(index, "duration", value)
+                          }
+                          style={{ width: "100%" }}
+                        >
+                          <Select.Option value="1 неделя">1 неделя</Select.Option>
+                          <Select.Option value="2 недели">2 недели</Select.Option>
+                          <Select.Option value="1 месяц">1 месяц</Select.Option>
+                          <Select.Option value="2 месяца">2 месяца</Select.Option>
+                          <Select.Option value="3 месяца">3 месяца</Select.Option>
+                          <Select.Option value="6 месяцев">6 месяцев</Select.Option>
+                          <Select.Option value="1 год">1 год</Select.Option>
+                        </Select>
+                      </Form.Item>
+                    </Col>
+                    <Col span={8}>
+                      <Form.Item
+                        label={index === 0 ? t("adminActivities.fields.planDescription") : ""}
+                        required={index === 0}
+                        style={{ marginBottom: 8 }}
+                      >
+                        <Input
+                          placeholder={t("adminActivities.placeholders.planDescription")}
+                          value={item.description}
+                          onChange={(e) =>
+                            handleLearningPlanChange(index, "description", e.target.value)
+                          }
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col span={2}>
+                      <Button
+                        danger
+                        type="text"
+                        icon={<CloseCircleOutlined />}
+                        onClick={() => handleRemoveLearningPlanItem(index)}
+                        disabled={learningPlan.length === 1}
+                        style={{ marginTop: 28 }}
+                      />
+                    </Col>
+                  </Row>
+                </div>
+              ))}
+
+              <Button
+                type="dashed"
+                icon={<PlusCircleOutlined />}
+                onClick={handleAddLearningPlanItem}
+                style={{ width: "100%", marginTop: 8 }}
+              >
+                {t("adminActivities.messages.addLearningPlanItem")}
+              </Button>
             </div>
           )}
 

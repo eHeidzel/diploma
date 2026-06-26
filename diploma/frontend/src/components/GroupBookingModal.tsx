@@ -1,5 +1,4 @@
-
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Modal,
   Form,
@@ -10,6 +9,8 @@ import {
   Tag,
   Steps,
   Alert,
+  Select,
+  DatePicker,
 } from "antd";
 import {
   BookOutlined,
@@ -17,6 +18,7 @@ import {
   ClockCircleOutlined,
   CalendarOutlined,
 } from "@ant-design/icons";
+import dayjs from "dayjs";
 import styles from "../css/learning.module.css";
 
 interface GroupBookingModalProps {
@@ -26,6 +28,11 @@ interface GroupBookingModalProps {
   onSubmit: (values: any) => void;
 }
 
+interface AvailableDate {
+  date: string;
+  times: string[];
+}
+
 const GroupBookingModal: React.FC<GroupBookingModalProps> = ({
   visible,
   selectedActivity,
@@ -33,24 +40,91 @@ const GroupBookingModal: React.FC<GroupBookingModalProps> = ({
   onSubmit,
 }) => {
   const [form] = Form.useForm();
+  const [availableDates, setAvailableDates] = useState<AvailableDate[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (visible && selectedActivity) {
+      const dates = getAvailableDates(selectedActivity);
+      setAvailableDates(dates);
+      
+      if (dates.length > 0) {
+        const firstDate = dates[0].date;
+        setSelectedDate(firstDate);
+        if (dates[0].times.length > 0) {
+          setSelectedTime(dates[0].times[0]);
+          form.setFieldsValue({
+            startDate: firstDate,
+            time: dates[0].times[0],
+          });
+        }
+      }
+    }
+  }, [visible, selectedActivity]);
+
+  const getAvailableDates = (activity: any): AvailableDate[] => {
+    if (activity.availableDates && activity.availableDates.length > 0) {
+      return activity.availableDates
+        .filter((item: any) => item.date && item.times && item.times.length > 0)
+        .map((item: any) => ({
+          date: item.date,
+          times: item.times,
+        }));
+    }
+    return [];
+  };
+
+  const getTimeDisplay = (time: string): string => {
+    // Преобразуем время в читаемый формат
+    return time;
+  };
+
+  const handleDateChange = (date: string) => {
+    setSelectedDate(date);
+    const dateObj = availableDates.find((d) => d.date === date);
+    if (dateObj && dateObj.times.length > 0) {
+      const firstTime = dateObj.times[0];
+      setSelectedTime(firstTime);
+      form.setFieldsValue({
+        time: firstTime,
+      });
+    }
+  };
 
   const handleSubmit = async (values: any) => {
+    setLoading(true);
     try {
       await onSubmit({
         period: values.period,
         shift: values.shift,
+        startDate: values.startDate,
+        time: values.time,
+        ageGroup: values.ageGroup || 'any',
       });
       form.resetFields();
     } catch (error) {
       console.error("Submit error:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   if (!selectedActivity) return null;
 
-  const hasAvailableDates =
-    selectedActivity.availableDates &&
-    selectedActivity.availableDates.length > 0;
+  const hasAvailableDates = availableDates.length > 0;
+  const currentDateObj = availableDates.find((d) => d.date === selectedDate);
+  const availableTimes = currentDateObj?.times || [];
+
+  // Определяем смену на основе времени
+  const getShiftFromTime = (time: string): string => {
+    if (!time) return 'утренняя';
+    const hour = parseInt(time.split(':')[0]);
+    if (hour >= 6 && hour < 12) return 'утренняя';
+    if (hour >= 12 && hour < 17) return 'дневная';
+    return 'вечерняя';
+  };
 
   return (
     <Modal
@@ -67,7 +141,7 @@ const GroupBookingModal: React.FC<GroupBookingModalProps> = ({
       <div className={styles.modalContent}>
         <Alert
           message="Групповые занятия"
-          description="Расписание групповых занятий устанавливается администратором. Выберите период и смену."
+          description="Выберите дату и время занятия из доступных вариантов."
           type="info"
           showIcon
           style={{ marginBottom: 16 }}
@@ -118,27 +192,55 @@ const GroupBookingModal: React.FC<GroupBookingModalProps> = ({
               <TeamOutlined /> Выберите параметры обучения
             </div>
 
-            {hasAvailableDates && (
-              <div style={{ marginBottom: 16 }}>
-                <Alert
-                  message="Доступные даты"
-                  description={
-                    <div>
-                      {selectedActivity.availableDates.map((item: any) => (
-                        <Tag
-                          key={item.date}
-                          color="green"
-                          style={{ margin: "4px" }}
-                        >
-                          <CalendarOutlined /> {item.date}
-                        </Tag>
-                      ))}
-                    </div>
-                  }
-                  type="success"
-                  showIcon
-                />
-              </div>
+            <Form.Item
+              name="startDate"
+              label="Дата начала занятий"
+              rules={[{ required: true, message: "Выберите дату начала занятий" }]}
+            >
+              <Select 
+                placeholder="Выберите дату начала"
+                style={{ width: '100%' }}
+                disabled={!hasAvailableDates}
+                onChange={handleDateChange}
+              >
+                {availableDates.map((item) => (
+                  <Select.Option key={item.date} value={item.date}>
+                    {dayjs(item.date).format('DD MMMM YYYY')}
+                    {item.times.length > 0 && ` (${item.times.length} вариантов времени)`}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+
+            {selectedDate && availableTimes.length > 0 && (
+              <Form.Item
+                name="time"
+                label="Время занятия"
+                rules={[{ required: true, message: "Выберите время занятия" }]}
+              >
+                <Select 
+                  placeholder="Выберите время"
+                  style={{ width: '100%' }}
+                  disabled={!hasAvailableDates}
+                  onChange={(value) => setSelectedTime(value)}
+                >
+                  {availableTimes.map((time) => (
+                    <Select.Option key={time} value={time}>
+                      <ClockCircleOutlined /> {getTimeDisplay(time)}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            )}
+
+            {selectedTime && (
+              <Alert
+                message="Выбранное время"
+                description={`Вы записываетесь на ${selectedTime} (${getShiftFromTime(selectedTime)} смена)`}
+                type="success"
+                showIcon
+                style={{ marginBottom: 16 }}
+              />
             )}
 
             <Form.Item
@@ -158,10 +260,10 @@ const GroupBookingModal: React.FC<GroupBookingModalProps> = ({
             <Form.Item
               name="shift"
               label="Смена"
-              initialValue={selectedActivity.groupShift}
+              initialValue={selectedActivity.groupShift || "утренняя"}
               rules={[{ required: true, message: "Выберите смену" }]}
             >
-              <Radio.Group disabled={!hasAvailableDates}>
+              <Radio.Group disabled>
                 <Space direction="vertical">
                   <Radio value="утренняя">Утренняя (9:00 - 12:00)</Radio>
                   <Radio value="дневная">Дневная (13:00 - 16:00)</Radio>
@@ -181,7 +283,8 @@ const GroupBookingModal: React.FC<GroupBookingModalProps> = ({
                 htmlType="submit"
                 size="middle"
                 className={styles.submitButton}
-                disabled={!hasAvailableDates}
+                disabled={!hasAvailableDates || !selectedTime}
+                loading={loading}
               >
                 Подтвердить запись
               </Button>

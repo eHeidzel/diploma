@@ -1,4 +1,3 @@
-// services/activities.service.ts
 import {
   Injectable,
   NotFoundException,
@@ -57,6 +56,8 @@ interface IGroupScheduleData {
   shift: string;
   startDate: string;
   ageGroup?: string;
+  time?: string;
+  days?: number[];
 }
 
 interface ISingleScheduleData {
@@ -169,8 +170,28 @@ export class ActivitiesService {
   }
 
   private parseDate(dateStr: string): Date {
+    if (!dateStr) {
+      throw new BadRequestException('Дата не указана');
+    }
+    
+    if (typeof dateStr !== 'string') {
+      throw new BadRequestException('Неверный формат даты');
+    }
+    
     const parts = dateStr.split('-');
-    return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    if (parts.length !== 3) {
+      throw new BadRequestException(`Неверный формат даты: ${dateStr}. Ожидается YYYY-MM-DD`);
+    }
+    
+    const year = Number(parts[0]);
+    const month = Number(parts[1]) - 1;
+    const day = Number(parts[2]);
+    
+    if (isNaN(year) || isNaN(month) || isNaN(day)) {
+      throw new BadRequestException(`Неверные значения даты: ${dateStr}`);
+    }
+    
+    return new Date(year, month, day);
   }
 
   private addDays(date: Date, days: number): Date {
@@ -187,6 +208,44 @@ export class ActivitiesService {
 
   private isBeforeOrEqual(date1: Date, date2: Date): boolean {
     return date1.getTime() <= date2.getTime();
+  }
+
+  private getShiftTime(shift: string): string | null {
+    const shiftConfig: Record<string, string> = {
+      'утренняя': '10:00',
+      'дневная': '14:00',
+      'вечерняя': '18:00',
+      'morning': '10:00',
+      'day': '14:00',
+      'evening': '18:00',
+    };
+    return shiftConfig[shift] || null;
+  }
+
+  private getShiftDays(shift: string): number[] {
+    const shiftConfig: Record<string, number[]> = {
+      'утренняя': [1, 3, 5],
+      'дневная': [1, 3, 5],
+      'вечерняя': [2, 4, 6],
+      'morning': [1, 3, 5],
+      'day': [1, 3, 5],
+      'evening': [2, 4, 6],
+    };
+    return shiftConfig[shift] || [1, 3, 5];
+  }
+
+  private parseDaysFromAvailableDates(availableDates: any[]): number[] {
+    const daysSet = new Set<number>();
+    for (const item of availableDates) {
+      if (item.dayOfWeek !== undefined) {
+        daysSet.add(item.dayOfWeek);
+      } else if (item.days) {
+        for (const day of item.days) {
+          daysSet.add(day);
+        }
+      }
+    }
+    return Array.from(daysSet).sort();
   }
 
   private async checkOverlap(
@@ -229,30 +288,40 @@ export class ActivitiesService {
     monthsToAdd: number = 6,
   ): Promise<{ hasConflicts: boolean; conflictDates: string[] }> {
     const conflictDates: string[] = [];
-    const startDate = this.parseDate(startDateStr);
-    const endDate = this.addMonths(startDate, monthsToAdd);
+    
+    if (!startDateStr) {
+      return { hasConflicts: false, conflictDates: [] };
+    }
+    
+    try {
+      const startDate = this.parseDate(startDateStr);
+      const endDate = this.addMonths(startDate, monthsToAdd);
 
-    let currentDate = new Date(startDate);
+      let currentDate = new Date(startDate);
 
-    while (this.isBeforeOrEqual(currentDate, endDate)) {
-      const dayOfWeek = currentDate.getDay();
+      while (this.isBeforeOrEqual(currentDate, endDate)) {
+        const dayOfWeek = currentDate.getDay();
 
-      if (daysOfWeek.includes(dayOfWeek)) {
-        const dateStr = this.formatDate(currentDate);
+        if (daysOfWeek.includes(dayOfWeek)) {
+          const dateStr = this.formatDate(currentDate);
 
-        const hasOverlap = await this.checkOverlap(
-          userId,
-          dateStr,
-          startTime,
-          endTime,
-        );
+          const hasOverlap = await this.checkOverlap(
+            userId,
+            dateStr,
+            startTime,
+            endTime,
+          );
 
-        if (hasOverlap) {
-          conflictDates.push(dateStr);
+          if (hasOverlap) {
+            conflictDates.push(dateStr);
+          }
         }
-      }
 
-      currentDate = this.addDays(currentDate, 1);
+        currentDate = this.addDays(currentDate, 1);
+      }
+    } catch (error) {
+      console.error('Error checking conflicts:', error);
+      return { hasConflicts: false, conflictDates: [] };
     }
 
     return {
@@ -580,33 +649,56 @@ export class ActivitiesService {
     });
     if (!activity) throw new NotFoundException('Активность не найдена');
 
+    if (!data.startDate) {
+      throw new BadRequestException('Не указана дата начала занятий');
+    }
+
     const teacherId: number = activity.teacherId || 0;
     if (!teacherId) {
       throw new BadRequestException('Не указан преподаватель для занятия');
     }
 
-    const shiftConfig: Record<string, { days: number[]; time: string }> = {
-      утренняя: { days: [1, 3, 5], time: '10:00' },
-      дневная: { days: [1, 3, 5], time: '14:00' },
-      вечерняя: { days: [2, 4, 6], time: '18:00' },
-    };
+    // Определяем время занятий
+    let selectedTime: string | null = null;
+    
+    if (data.time) {
+      selectedTime = data.time;
+    } else if (data.shift) {
+      selectedTime = this.getShiftTime(data.shift);
+    } else if (activity.availableTimes && activity.availableTimes.length > 0) {
+      selectedTime = activity.availableTimes[0];
+    }
+    
+    if (!selectedTime) {
+      throw new BadRequestException('Не указано время занятий');
+    }
 
-    const config: { days: number[]; time: string } | undefined =
-      shiftConfig[data.shift];
-    if (!config) throw new BadRequestException('Неверно указана смена');
+    // Определяем дни недели
+    let daysOfWeek: number[];
+    
+    if (data.days && data.days.length > 0) {
+      daysOfWeek = data.days;
+    } else if (data.shift) {
+      daysOfWeek = this.getShiftDays(data.shift);
+    } else if (activity.availableDates && activity.availableDates.length > 0) {
+      daysOfWeek = this.parseDaysFromAvailableDates(activity.availableDates);
+    } else {
+      daysOfWeek = [1, 3, 5];
+    }
 
     const durationMinutes = this.parseDurationToMinutes(activity.duration);
-    const endTime: string = this.calculateEndTime(config.time, durationMinutes);
+    const endTime: string = this.calculateEndTime(selectedTime, durationMinutes);
 
     const monthsToAdd = data.period === 'год' ? 12 : 6;
 
     const meetLink = activity.meetLink || null;
+    const maxStudents = 20;
 
     const conflictCheck = await this.checkAllDatesForConflicts(
       userId,
       data.startDate,
-      config.days,
-      config.time,
+      daysOfWeek,
+      selectedTime,
       endTime,
       monthsToAdd,
     );
@@ -630,12 +722,12 @@ export class ActivitiesService {
       teacherId,
       userId,
       data.startDate,
-      config.days,
-      config.time,
+      daysOfWeek,
+      selectedTime,
       endTime,
       data.period,
       activity.price || 0,
-      15,
+      maxStudents,
       meetLink,
     );
 
@@ -646,7 +738,7 @@ export class ActivitiesService {
     await this.notificationsService.create(
       userId,
       'Запись на занятия',
-      `Вы успешно записаны на "${activity.title}" на ${createdSchedules.length} занятий`,
+      `Вы успешно записаны на групповые занятия "${activity.title}" на ${createdSchedules.length} занятий`,
       NotificationType.BOOKING,
       '/dashboard/schedule',
     );
@@ -737,6 +829,8 @@ export class ActivitiesService {
       );
     }
 
+    console.log('createBooking data:', JSON.stringify(data, null, 2));
+
     const activity: Activity | null = await this.activityRepo.findOne({
       where: { id: activityId, isActive: true },
     });
@@ -749,8 +843,6 @@ export class ActivitiesService {
       if (!balance || balance.balance < activity.price) {
         throw new BadRequestException('Недостаточно средств на балансе');
       }
-      balance.balance -= activity.price;
-      await this.balanceRepo.save(balance);
     }
 
     let result: any;
@@ -765,6 +857,16 @@ export class ActivitiesService {
       default:
         result = await this.createSingleSchedule(activityId, userId, data);
         break;
+    }
+
+    if (activity.price && activity.price > 0 && result.success) {
+      const balance: UserBalance | null = await this.balanceRepo.findOne({
+        where: { userId },
+      });
+      if (balance && balance.balance >= activity.price) {
+        balance.balance -= activity.price;
+        await this.balanceRepo.save(balance);
+      }
     }
 
     return result;
