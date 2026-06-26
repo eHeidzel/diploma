@@ -61,11 +61,65 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
   const isTeacher = user?.role === "teacher";
   const isStudent = user?.role === "student";
 
-  // Эффект для смены локали dayjs при смене языка (БЕЗ СБРОСА ДАТ)
+  // Маппинг дней недели на русском
+  const weekDaysMap: Record<string, string> = {
+    monday: "Пн",
+    tuesday: "Вт",
+    wednesday: "Ср",
+    thursday: "Чт",
+    friday: "Пт",
+    saturday: "Сб",
+    sunday: "Вс",
+  };
+
+  // Маппинг дней недели на английском
+  const weekDaysMapEn: Record<string, string> = {
+    monday: "Mon",
+    tuesday: "Tue",
+    wednesday: "Wed",
+    thursday: "Thu",
+    friday: "Fri",
+    saturday: "Sat",
+    sunday: "Sun",
+  };
+
+  // Полные названия дней недели на русском
+  const weekDaysFullMap: Record<string, string> = {
+    monday: "Понедельник",
+    tuesday: "Вторник",
+    wednesday: "Среда",
+    thursday: "Четверг",
+    friday: "Пятница",
+    saturday: "Суббота",
+    sunday: "Воскресенье",
+  };
+
+  const weekDaysFullMapEn: Record<string, string> = {
+    monday: "Monday",
+    tuesday: "Tuesday",
+    wednesday: "Wednesday",
+    thursday: "Thursday",
+    friday: "Friday",
+    saturday: "Saturday",
+    sunday: "Sunday",
+  };
+
+  // Функция для получения переведенного дня недели
+  const getTranslatedWeekDay = (date: dayjs.Dayjs, format: "short" | "full" = "short") => {
+    const dayKey = date.format("dddd").toLowerCase();
+    const isRussian = i18n.language === "ru";
+    
+    if (format === "full") {
+      return isRussian ? weekDaysFullMap[dayKey] || date.format("dddd") : weekDaysFullMapEn[dayKey] || date.format("dddd");
+    }
+    
+    return isRussian ? weekDaysMap[dayKey] || date.format("ddd") : weekDaysMapEn[dayKey] || date.format("ddd");
+  };
+
+  // Эффект для смены локали dayjs при смене языка
   useEffect(() => {
     const locale = i18n.language === "ru" ? "ru" : "en";
     dayjs.locale(locale);
-    // НЕ сбрасываем даты, просто меняем локаль
   }, [i18n.language]);
 
   useEffect(() => {
@@ -237,21 +291,26 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
       <div className={styles.weekView}>
         <div className={styles.weekHeader}>
           <div className={styles.weekTimeHeader}>{t("scheduleView.table.time")}</div>
-          {weekDays.map((day) => (
-            <div
-              key={day.format("YYYY-MM-DD")}
-              className={`${styles.weekDayHeader} ${
-                day.isSame(dayjs(), "day") ? styles.today : ""
-              }`}
-              onClick={() => {
-                setSelectedDate(day);
-                setViewMode("day");
-              }}
-            >
-              <div className={styles.weekDayName}>{day.format("dddd")}</div>
-              <div className={styles.weekDayDate}>{day.format("DD MMM")}</div>
-            </div>
-          ))}
+          {weekDays.map((day) => {
+            const isToday = day.isSame(dayjs(), "day");
+            const dayName = getTranslatedWeekDay(day, "short");
+            
+            return (
+              <div
+                key={day.format("YYYY-MM-DD")}
+                className={`${styles.weekDayHeader} ${
+                  isToday ? styles.today : ""
+                }`}
+                onClick={() => {
+                  setSelectedDate(day);
+                  setViewMode("day");
+                }}
+              >
+                <div className={styles.weekDayName}>{dayName}</div>
+                <div className={styles.weekDayDate}>{day.format("DD MMM")}</div>
+              </div>
+            );
+          })}
         </div>
 
         <div className={styles.weekBody}>
@@ -343,11 +402,18 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
     const timeSlots = getTimeSlots();
     const occupiedSlots = new Set<number>();
 
+    // Получаем полное название дня недели
+    const fullDayName = getTranslatedWeekDay(selectedDate, "full");
+    const formattedDate = selectedDate.format("DD MMMM YYYY");
+    const dayTitle = i18n.language === "ru" 
+      ? `${fullDayName}, ${formattedDate}` 
+      : `${fullDayName}, ${formattedDate}`;
+
     if (dayLessons.length === 0) {
       return (
         <div className={styles.dayView}>
           <div className={styles.dayHeader}>
-            <Title level={4}>{selectedDate.format("dddd, DD MMMM YYYY")}</Title>
+            <Title level={4}>{dayTitle}</Title>
           </div>
           <div className={styles.dayBodyEmpty}>
             <Empty description={t("scheduleView.noLessons")} />
@@ -359,7 +425,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
     return (
       <div className={styles.dayView}>
         <div className={styles.dayHeader}>
-          <Title level={4}>{selectedDate.format("dddd, DD MMMM YYYY")}</Title>
+          <Title level={4}>{dayTitle}</Title>
         </div>
         <div className={styles.dayGrid}>
           <div className={styles.dayTimeColumn}>
@@ -464,7 +530,11 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ user }) => {
     {
       title: t("scheduleView.table.date"),
       key: "date",
-      render: (_: any, record: any) => dayjs(record.date).format("DD.MM.YYYY"),
+      render: (_: any, record: any) => {
+        const date = dayjs(record.date);
+        const dayName = getTranslatedWeekDay(date, "short");
+        return `${dayName} ${date.format("DD.MM.YYYY")}`;
+      },
       sorter: (a: any, b: any) => dayjs(a.date).unix() - dayjs(b.date).unix(),
     },
     {

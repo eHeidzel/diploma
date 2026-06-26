@@ -55,6 +55,33 @@ export interface ILearningTranslations {
     error: string;
     noReviews: string;
   };
+  groupBooking: {
+    title: string;
+    description: string;
+    noAvailableGroups: string;
+    noAvailableGroupsDescription: string;
+    selectStartDate: string;
+    selectTime: string;
+    selectedTime: string;
+    shiftMorning: string;
+    shiftDay: string;
+    shiftEvening: string;
+    period: string;
+    selectPeriod: string;
+    sixMonths: string;
+    oneYear: string;
+    shift: string;
+    confirm: string;
+    cancel: string;
+    timeVariants: string;
+  };
+  validation: {
+    startDateRequired: string;
+    timeRequired: string;
+    periodRequired: string;
+    shiftRequired: string;
+  };
+  learningPlan: string;
 }
 
 export const learning: ILearningTranslations = {
@@ -114,4 +141,31 @@ export const learning: ILearningTranslations = {
     error: "Error submitting review",
     noReviews: "No reviews yet",
   },
+  groupBooking: {
+    title: "Group classes",
+    description: "Select date and time from available options.",
+    noAvailableGroups: "No available groups",
+    noAvailableGroupsDescription: "There are no available groups at the moment. Please contact the administrator.",
+    selectStartDate: "Select start date",
+    selectTime: "Select time",
+    selectedTime: "Selected time",
+    shiftMorning: "Morning (9:00 - 12:00)",
+    shiftDay: "Day (13:00 - 16:00)",
+    shiftEvening: "Evening (18:00 - 21:00)",
+    period: "Study period",
+    selectPeriod: "Select study period",
+    sixMonths: "6 months",
+    oneYear: "1 year",
+    shift: "Shift",
+    confirm: "Confirm booking",
+    cancel: "Cancel",
+    timeVariants: "time variants",
+  },
+  validation: {
+    startDateRequired: "Please select a start date",
+    timeRequired: "Please select a time",
+    periodRequired: "Please select a study period",
+    shiftRequired: "Please select a shift",
+  },
+  learningPlan: "Curriculum",
 };

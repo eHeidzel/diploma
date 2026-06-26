@@ -21,12 +21,19 @@ export interface IAdminActivitiesTranslations {
     meetLinkPlaceholder: string;
     meetLinkExtra: string;
     isActive: string;
+    learningPlan: string;
+    planTitle: string;
+    planDuration: string;
+    planDescription: string;
   };
   placeholders: {
     title: string;
     description: string;
     price: string;
     meetLink: string;
+    planTitle: string;
+    planDuration: string;
+    planDescription: string;
   };
   validation: {
     titleRequired: string;
@@ -60,6 +67,9 @@ export interface IAdminActivitiesTranslations {
     dateInfoTrial: string;
     addDateButton: string;
     removeDate: string;
+    learningPlanInfo: string;
+    learningPlanRequired: string;
+    addLearningPlanItem: string;
   };
   table: {
     id: string;
@@ -143,12 +153,19 @@ export const adminActivities: IAdminActivitiesTranslations = {
     meetLinkPlaceholder: "https://meet.google.com/xxx-xxxx-xxx",
     meetLinkExtra: "Common link for all sessions of this activity",
     isActive: "Active",
+    learningPlan: "Curriculum",
+    planTitle: "Topic",
+    planDuration: "Duration",
+    planDescription: "Description",
   },
   placeholders: {
     title: "Enter activity title",
     description: "Enter description",
     price: "0 - free",
     meetLink: "https://meet.google.com/xxx-xxxx-xxx",
+    planTitle: "Enter topic name",
+    planDuration: "Select duration",
+    planDescription: "Enter description",
   },
   validation: {
     titleRequired: "Please enter title",
@@ -182,6 +199,9 @@ export const adminActivities: IAdminActivitiesTranslations = {
     dateInfoTrial: "User will choose a date, system will check teacher availability from 8:00 to 20:00",
     addDateButton: "Add Date",
     removeDate: "Remove",
+    learningPlanInfo: "Enter the curriculum for the group course. Each topic should have a title, duration and description.",
+    learningPlanRequired: "Please add at least one topic to the curriculum",
+    addLearningPlanItem: "Add topic",
   },
   table: {
     id: "ID",

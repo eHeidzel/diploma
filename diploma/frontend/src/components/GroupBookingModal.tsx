@@ -17,6 +17,7 @@ import {
   ClockCircleOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
+import { useTranslation } from "react-i18next";
 import styles from "../css/learning.module.css";
 
 interface GroupBookingModalProps {
@@ -37,6 +38,7 @@ const GroupBookingModal: React.FC<GroupBookingModalProps> = ({
   onCancel,
   onSubmit,
 }) => {
+  const { t } = useTranslation();
   const [form] = Form.useForm();
   const [availableDates, setAvailableDates] = useState<AvailableDate[]>([]);
   const [loading, setLoading] = useState(false);
@@ -75,7 +77,6 @@ const GroupBookingModal: React.FC<GroupBookingModalProps> = ({
   };
 
   const getTimeDisplay = (time: string): string => {
-    // Преобразуем время в читаемый формат
     return time;
   };
 
@@ -115,18 +116,17 @@ const GroupBookingModal: React.FC<GroupBookingModalProps> = ({
   const currentDateObj = availableDates.find((d) => d.date === selectedDate);
   const availableTimes = currentDateObj?.times || [];
 
-  // Определяем смену на основе времени
   const getShiftFromTime = (time: string): string => {
-    if (!time) return 'утренняя';
+    if (!time) return t('learning.groupBooking.shiftMorning');
     const hour = parseInt(time.split(':')[0]);
-    if (hour >= 6 && hour < 12) return 'утренняя';
-    if (hour >= 12 && hour < 17) return 'дневная';
-    return 'вечерняя';
+    if (hour >= 6 && hour < 12) return t('learning.groupBooking.shiftMorning');
+    if (hour >= 12 && hour < 17) return t('learning.groupBooking.shiftDay');
+    return t('learning.groupBooking.shiftEvening');
   };
 
   return (
     <Modal
-      title={`Запись на: ${selectedActivity.title}`}
+      title={`${t('learning.groupBooking.title')}: ${selectedActivity.title}`}
       open={visible}
       onCancel={onCancel}
       footer={null}
@@ -138,8 +138,8 @@ const GroupBookingModal: React.FC<GroupBookingModalProps> = ({
     >
       <div className={styles.modalContent}>
         <Alert
-          message="Групповые занятия"
-          description="Выберите дату и время занятия из доступных вариантов."
+          message={t('learning.groupBooking.title')}
+          description={t('learning.groupBooking.description')}
           type="info"
           showIcon
           style={{ marginBottom: 16 }}
@@ -147,8 +147,8 @@ const GroupBookingModal: React.FC<GroupBookingModalProps> = ({
 
         {!hasAvailableDates && (
           <Alert
-            message="Нет доступных групп"
-            description="На данный момент нет доступных групп для записи. Пожалуйста, обратитесь к администратору."
+            message={t('learning.groupBooking.noAvailableGroups')}
+            description={t('learning.groupBooking.noAvailableGroupsDescription')}
             type="warning"
             showIcon
             style={{ marginBottom: 16 }}
@@ -160,7 +160,7 @@ const GroupBookingModal: React.FC<GroupBookingModalProps> = ({
             <>
               <div className={styles.learningPlanModal}>
                 <div className={styles.learningPlanHeader}>
-                  <BookOutlined /> Программа обучения
+                  <BookOutlined /> {t('learning.learningPlan') || "Программа обучения"}
                 </div>
                 <Steps
                   direction="vertical"
@@ -187,16 +187,16 @@ const GroupBookingModal: React.FC<GroupBookingModalProps> = ({
         <Form form={form} layout="vertical" onFinish={handleSubmit}>
           <div className={styles.groupForm}>
             <div className={styles.sectionTitle}>
-              <TeamOutlined /> Выберите параметры обучения
+              <TeamOutlined /> {t('learning.groupBooking.selectPeriod')}
             </div>
 
             <Form.Item
               name="startDate"
-              label="Дата начала занятий"
-              rules={[{ required: true, message: "Выберите дату начала занятий" }]}
+              label={t('learning.groupBooking.selectStartDate')}
+              rules={[{ required: true, message: t('learning.validation.startDateRequired') || "Выберите дату начала занятий" }]}
             >
               <Select 
-                placeholder="Выберите дату начала"
+                placeholder={t('learning.groupBooking.selectStartDate')}
                 style={{ width: '100%' }}
                 disabled={!hasAvailableDates}
                 onChange={handleDateChange}
@@ -204,7 +204,7 @@ const GroupBookingModal: React.FC<GroupBookingModalProps> = ({
                 {availableDates.map((item) => (
                   <Select.Option key={item.date} value={item.date}>
                     {dayjs(item.date).format('DD MMMM YYYY')}
-                    {item.times.length > 0 && ` (${item.times.length} вариантов времени)`}
+                    {item.times.length > 0 && ` (${item.times.length} ${t('learning.groupBooking.timeVariants') || 'вариантов времени'})`}
                   </Select.Option>
                 ))}
               </Select>
@@ -213,11 +213,11 @@ const GroupBookingModal: React.FC<GroupBookingModalProps> = ({
             {selectedDate && availableTimes.length > 0 && (
               <Form.Item
                 name="time"
-                label="Время занятия"
-                rules={[{ required: true, message: "Выберите время занятия" }]}
+                label={t('learning.groupBooking.selectTime')}
+                rules={[{ required: true, message: t('learning.validation.timeRequired') || "Выберите время занятия" }]}
               >
                 <Select 
-                  placeholder="Выберите время"
+                  placeholder={t('learning.groupBooking.selectTime')}
                   style={{ width: '100%' }}
                   disabled={!hasAvailableDates}
                   onChange={(value) => setSelectedTime(value)}
@@ -233,8 +233,8 @@ const GroupBookingModal: React.FC<GroupBookingModalProps> = ({
 
             {selectedTime && (
               <Alert
-                message="Выбранное время"
-                description={`Вы записываетесь на ${selectedTime} (${getShiftFromTime(selectedTime)} смена)`}
+                message={t('learning.groupBooking.selectedTime')}
+                description={`${t('learning.groupBooking.selectedTime')}: ${selectedTime} (${getShiftFromTime(selectedTime)})`}
                 type="success"
                 showIcon
                 style={{ marginBottom: 16 }}
@@ -243,29 +243,29 @@ const GroupBookingModal: React.FC<GroupBookingModalProps> = ({
 
             <Form.Item
               name="period"
-              label="Период обучения"
+              label={t('learning.groupBooking.period')}
               initialValue={selectedActivity.groupPeriod || "6 месяцев"}
-              rules={[{ required: true, message: "Выберите период обучения" }]}
+              rules={[{ required: true, message: t('learning.validation.periodRequired') || "Выберите период обучения" }]}
             >
               <Radio.Group disabled={!hasAvailableDates}>
                 <Space direction="vertical">
-                  <Radio value="6 месяцев">6 месяцев</Radio>
-                  <Radio value="год">1 год</Radio>
+                  <Radio value="6 месяцев">{t('learning.groupBooking.sixMonths')}</Radio>
+                  <Radio value="год">{t('learning.groupBooking.oneYear')}</Radio>
                 </Space>
               </Radio.Group>
             </Form.Item>
 
             <Form.Item
               name="shift"
-              label="Смена"
+              label={t('learning.groupBooking.shift')}
               initialValue={selectedActivity.groupShift || "утренняя"}
-              rules={[{ required: true, message: "Выберите смену" }]}
+              rules={[{ required: true, message: t('learning.validation.shiftRequired') || "Выберите смену" }]}
             >
               <Radio.Group disabled>
                 <Space direction="vertical">
-                  <Radio value="утренняя">Утренняя (9:00 - 12:00)</Radio>
-                  <Radio value="дневная">Дневная (13:00 - 16:00)</Radio>
-                  <Radio value="вечерняя">Вечерняя (18:00 - 21:00)</Radio>
+                  <Radio value="утренняя">{t('learning.groupBooking.shiftMorning')}</Radio>
+                  <Radio value="дневная">{t('learning.groupBooking.shiftDay')}</Radio>
+                  <Radio value="вечерняя">{t('learning.groupBooking.shiftEvening')}</Radio>
                 </Space>
               </Radio.Group>
             </Form.Item>
@@ -274,7 +274,7 @@ const GroupBookingModal: React.FC<GroupBookingModalProps> = ({
           <Form.Item className={styles.modalFooter}>
             <Space className={styles.modalButtons}>
               <Button onClick={onCancel} size="middle">
-                Отмена
+                {t('learning.groupBooking.cancel')}
               </Button>
               <Button
                 type="primary"
@@ -284,7 +284,7 @@ const GroupBookingModal: React.FC<GroupBookingModalProps> = ({
                 disabled={!hasAvailableDates || !selectedTime}
                 loading={loading}
               >
-                Подтвердить запись
+                {t('learning.groupBooking.confirm')}
               </Button>
             </Space>
           </Form.Item>
