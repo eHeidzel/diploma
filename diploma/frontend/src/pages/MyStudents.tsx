@@ -47,7 +47,7 @@ interface Student {
   averageRating?: number;
 }
 
-const MyStudents: React.FC<MyStudentsProps> = ({ user }) => {
+const MyStudents: React.FC<MyStudentsProps> = () => {
   const { t } = useTranslation();
   const { getTitleLevel } = useAdaptiveLevel();
   const [students, setStudents] = useState<Student[]>([]);
@@ -194,9 +194,6 @@ const MyStudents: React.FC<MyStudentsProps> = ({ user }) => {
       ),
     },
   ];
-
-  // Проверяем, есть ли студенты для отображения
-  const hasStudents = students && students.length > 0;
 
   return (
     <div className={styles.container}>

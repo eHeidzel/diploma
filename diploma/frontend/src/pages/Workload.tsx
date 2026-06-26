@@ -53,7 +53,7 @@ interface WorkloadData {
   lessons: Lesson[];
 }
 
-const Workload: React.FC<WorkloadProps> = ({ user }) => {
+const Workload: React.FC<WorkloadProps> = () => {
   const { t } = useTranslation();
   const { getTitleLevel } = useAdaptiveLevel();
   const [workload, setWorkload] = useState<WorkloadData | null>(null);
