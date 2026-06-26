@@ -28,8 +28,47 @@ async function bootstrap() {
   );
 
   // Настройка CORS для Railway
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:5173',
+    'http://localhost:4173',
+    'http://localhost:8080',
+    'https://diploma-production-f729.up.railway.app',
+    process.env.FRONTEND_URL,
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
+    process.env.VERCEL_BRANCH_URL
+      ? `https://${process.env.VERCEL_BRANCH_URL}`
+      : null,
+    /\.railway\.app$/,
+    /\.vercel\.app$/,
+  ].filter(Boolean);
+
   app.enableCors({
-    origin: true, // Разрешаем все запросы
+    origin: (origin, callback) => {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      const isAllowed = allowedOrigins.some((allowed) => {
+        if (typeof allowed === 'string') {
+          return origin === allowed;
+        }
+        if (allowed instanceof RegExp) {
+          return allowed.test(origin);
+        }
+        return false;
+      });
+
+      // В production разрешаем все запросы
+      if (process.env.NODE_ENV === 'production') {
+        callback(null, true);
+        return;
+      }
+
+      callback(null, isAllowed);
+    },
     credentials: true,
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
@@ -41,45 +80,12 @@ async function bootstrap() {
   });
 
   const port = process.env.PORT || 8080;
-  
-  // ВАЖНО: Для продакшена настраиваем SPA роутинг
-  if (process.env.NODE_ENV === 'production') {
-    // Для всех запросов, кроме /api и /uploads, отдаем index.html
-    app.use((req, res, next) => {
-      // Пропускаем API запросы и запросы к статике
-      if (req.path.startsWith('/api') || 
-          req.path.startsWith('/uploads') || 
-          req.path.startsWith('/auth') ||
-          req.path.startsWith('/profile') ||
-          req.path.startsWith('/activities') ||
-          req.path.startsWith('/schedule') ||
-          req.path.startsWith('/admin') ||
-          req.path.startsWith('/teachers') ||
-          req.path.startsWith('/reviews') ||
-          req.path.startsWith('/notifications') ||
-          req.path.startsWith('/settings') ||
-          req.path.startsWith('/balance') ||
-          req.path.startsWith('/materials') ||
-          req.path.startsWith('/projects') ||
-          req.path.startsWith('/statistics') ||
-          req.path.startsWith('/teacher-requests')) {
-        return next();
-      }
-      
-      // Для всех остальных запросов отдаем index.html
-      const indexPath = join(__dirname, '..', '..', 'frontend', 'dist', 'index.html');
-      if (fs.existsSync(indexPath)) {
-        res.sendFile(indexPath);
-      } else {
-        next();
-      }
-    });
-  }
-
   await app.listen(port);
 
   Logger.log(`🚀 Application is running on port ${port}`);
   Logger.log(`📦 Environment: ${process.env.NODE_ENV || 'development'}`);
+  Logger.log(`🔗 Frontend URL: ${process.env.FRONTEND_URL || `http://localhost:${port}`}`);
+  Logger.log(`🔗 API URL: ${process.env.API_URL || `http://localhost:${port}`}`);
 }
 
 bootstrap();

@@ -19,7 +19,6 @@ import {
   UserOutlined,
   PhoneOutlined,
   SearchOutlined,
-  TeamOutlined,
 } from "@ant-design/icons";
 import { teacherApi } from "../services/api";
 import styles from "../css/myStudents.module.css";
@@ -40,11 +39,6 @@ interface Student {
   phone?: string;
   avatar?: string | null;
   group?: string;
-  progress?: number;
-  lastLesson?: string;
-  activeLessons?: string[];
-  completedLessons?: number;
-  averageRating?: number;
 }
 
 const MyStudents: React.FC<MyStudentsProps> = () => {
@@ -60,7 +54,6 @@ const MyStudents: React.FC<MyStudentsProps> = () => {
   const getFullAvatarUrl = (avatar: string | null | undefined): string | undefined => {
     if (!avatar) return undefined;
     if (avatar.startsWith("http")) return avatar;
-    // Замените localhost на ваш реальный URL
     return `https://diploma-production-f729.up.railway.app${avatar}`;
   };
 
@@ -72,22 +65,22 @@ const MyStudents: React.FC<MyStudentsProps> = () => {
     setLoading(true);
     try {
       const response = await teacherApi.getStudents();
-      // Проверяем, что данные существуют и это массив
       const studentsData = Array.isArray(response.data) ? response.data : [];
 
       const formattedStudents = studentsData.map((student: any) => ({
         ...student,
         avatar: getFullAvatarUrl(student.avatar),
-        group: student.group || student.course || t("myStudents.profile.individual"),
         name: student.name || t("common.notSpecified"),
         email: student.email || t("common.notSpecified"),
+        phone: student.phone || t("common.notSpecified"),
+        group: student.group || student.course || t("myStudents.profile.individual"),
       }));
 
       setStudents(formattedStudents);
     } catch (error) {
       console.error("Error fetching students:", error);
       message.error(t("myStudents.loading"));
-      setStudents([]); // Устанавливаем пустой массив при ошибке
+      setStudents([]);
     } finally {
       setLoading(false);
     }
@@ -99,7 +92,6 @@ const MyStudents: React.FC<MyStudentsProps> = () => {
       const response = await teacherApi.getStudentProfile(student.id);
       const profileData = response.data || {};
       
-      // Формируем объект студента с безопасными значениями
       const formattedProfile: Student = {
         ...student,
         ...profileData,
@@ -108,16 +100,12 @@ const MyStudents: React.FC<MyStudentsProps> = () => {
         email: profileData.email || student.email || t("common.notSpecified"),
         phone: profileData.phone || student.phone || t("common.notSpecified"),
         group: profileData.group || student.group || t("myStudents.profile.individual"),
-        progress: profileData.progress ?? student.progress ?? 0,
-        completedLessons: profileData.completedLessons ?? student.completedLessons ?? 0,
-        averageRating: profileData.averageRating ?? student.averageRating ?? 0,
       };
       
       setSelectedStudent(formattedProfile);
     } catch (error) {
       console.error("Error fetching student profile:", error);
       message.error(t("myStudents.loading"));
-      // Показываем базовую информацию даже при ошибке
       setSelectedStudent({
         ...student,
         avatar: getFullAvatarUrl(student.avatar),
@@ -125,16 +113,13 @@ const MyStudents: React.FC<MyStudentsProps> = () => {
         email: student.email || t("common.notSpecified"),
         phone: student.phone || t("common.notSpecified"),
         group: student.group || t("myStudents.profile.individual"),
-        progress: student.progress || 0,
-        completedLessons: student.completedLessons || 0,
-        averageRating: student.averageRating || 0,
       });
     } finally {
       setStudentLoading(false);
     }
   };
 
-  // Безопасное получение уникальных групп
+  // Получаем уникальные группы
   const uniqueGroups = Array.from(
     new Set(students.map((s) => s.group).filter((g): g is string => Boolean(g)))
   );
@@ -142,7 +127,8 @@ const MyStudents: React.FC<MyStudentsProps> = () => {
   const filteredStudents = students.filter((student) => {
     const matchesSearch =
       student.name?.toLowerCase().includes(searchText.toLowerCase()) ||
-      student.email?.toLowerCase().includes(searchText.toLowerCase());
+      student.email?.toLowerCase().includes(searchText.toLowerCase()) ||
+      student.phone?.toLowerCase().includes(searchText.toLowerCase());
     const matchesGroup = filterGroup === "all" || student.group === filterGroup;
     return matchesSearch && matchesGroup;
   });
@@ -170,6 +156,12 @@ const MyStudents: React.FC<MyStudentsProps> = () => {
         (a.name || "").localeCompare(b.name || ""),
     },
     {
+      title: t("myStudents.table.phone"),
+      dataIndex: "phone",
+      key: "phone",
+      render: (phone: string) => phone || t("common.notSpecified"),
+    },
+    {
       title: t("myStudents.table.group"),
       dataIndex: "group",
       key: "group",
@@ -178,11 +170,6 @@ const MyStudents: React.FC<MyStudentsProps> = () => {
           {group || t("myStudents.noGroup")}
         </Tag>
       ),
-      filters: uniqueGroups.map((g) => ({
-        text: g || t("myStudents.noGroup"),
-        value: g,
-      })),
-      onFilter: (value: any, record: Student) => record.group === value,
     },
     {
       title: t("myStudents.table.actions"),
@@ -301,48 +288,12 @@ const MyStudents: React.FC<MyStudentsProps> = () => {
                   {selectedStudent.phone || t("common.notSpecified")}
                 </Descriptions.Item>
                 <Descriptions.Item
-                  label={
-                    <>
-                      <TeamOutlined /> {t("myStudents.profile.group")}
-                    </>
-                  }
+                  label={t("myStudents.profile.group")}
                 >
                   <Tag color={selectedStudent.group && selectedStudent.group !== t("myStudents.profile.individual") ? "blue" : "default"}>
                     {selectedStudent.group || t("myStudents.profile.individual")}
                   </Tag>
                 </Descriptions.Item>
-                {selectedStudent.progress !== undefined && (
-                  <Descriptions.Item label={t("myStudents.profile.progress")}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div style={{
-                        width: '100%',
-                        maxWidth: 150,
-                        height: 8,
-                        background: '#f0f0f0',
-                        borderRadius: 4,
-                        overflow: 'hidden'
-                      }}>
-                        <div style={{
-                          width: `${Math.min(selectedStudent.progress || 0, 100)}%`,
-                          height: '100%',
-                          background: '#52c41a',
-                          borderRadius: 4
-                        }} />
-                      </div>
-                      <Text>{Math.min(selectedStudent.progress || 0, 100)}%</Text>
-                    </div>
-                  </Descriptions.Item>
-                )}
-                {selectedStudent.completedLessons !== undefined && (
-                  <Descriptions.Item label={t("myStudents.profile.completedLessons")}>
-                    {selectedStudent.completedLessons || 0}
-                  </Descriptions.Item>
-                )}
-                {selectedStudent.averageRating !== undefined && (
-                  <Descriptions.Item label={t("myStudents.profile.averageRating")}>
-                    {selectedStudent.averageRating || t("myStudents.profile.noRating")}
-                  </Descriptions.Item>
-                )}
               </Descriptions>
             </div>
           )

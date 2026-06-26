@@ -21,7 +21,7 @@ import {
   CheckCircleOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
-import { teacherApi } from "../services/api";
+import api from "../services/api";
 import styles from "../css/workload.module.css";
 import { useTranslation } from "react-i18next";
 import { useAdaptiveLevel } from "../hooks/useAdaptiveLevel";
@@ -53,7 +53,7 @@ interface WorkloadData {
   lessons: Lesson[];
 }
 
-const Workload: React.FC<WorkloadProps> = () => {
+const Workload: React.FC<WorkloadProps> = ({ user }) => {
   const { t } = useTranslation();
   const { getTitleLevel } = useAdaptiveLevel();
   const [workload, setWorkload] = useState<WorkloadData | null>(null);
@@ -70,10 +70,31 @@ const Workload: React.FC<WorkloadProps> = () => {
   const fetchWorkload = async () => {
     setLoading(true);
     try {
-      const response = await teacherApi.getWorkload(
-        dateRange[0].format("YYYY-MM-DD"),
-        dateRange[1].format("YYYY-MM-DD"),
-      );
+      const token = localStorage.getItem("token");
+      
+      // Проверяем, есть ли токен
+      if (!token) {
+        console.warn("No token found, redirecting to login");
+        message.error("Сессия истекла, войдите заново");
+        window.location.href = "/login";
+        return;
+      }
+
+      const startDate = dateRange[0].format("YYYY-MM-DD");
+      const endDate = dateRange[1].format("YYYY-MM-DD");
+      
+      console.log("📅 Requesting workload for:", startDate, "to", endDate);
+      console.log("👤 User:", user);
+      
+      // Прямой вызов с явными заголовками
+      const response = await api.get("/teacher/workload", {
+        params: { startDate, endDate },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
       // Проверяем, что данные существуют
       const data = response.data || {};
       setWorkload({
@@ -84,7 +105,6 @@ const Workload: React.FC<WorkloadProps> = () => {
         lessons: data.lessons || [],
       });
     } catch (error: any) {
-      console.error("Error fetching workload:", error);
       message.error(
         error.response?.data?.message || t("workload.loading"),
       );
