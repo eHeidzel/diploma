@@ -237,7 +237,7 @@ const Profile: React.FC<ProfilePageProps> = ({ user, onUserUpdate }) => {
   const avatarUrl = profile.avatar
     ? profile.avatar.startsWith("http")
       ? profile.avatar
-      : `http://localhost:8080${profile.avatar}`
+      : `https://diploma-production-f729.up.railway.app${profile.avatar}`
     : null;
 
   // Создаем конфигурацию для Upload один раз
