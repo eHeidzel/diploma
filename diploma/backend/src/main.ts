@@ -63,7 +63,8 @@ async function bootstrap() {
           req.path.startsWith('/projects') ||
           req.path.startsWith('/statistics') ||
           req.path.startsWith('/teacher-requests') ||
-          req.path.startsWith('/teacher')) {  // <-- ДОБАВЛЕНО /teacher
+          req.path.startsWith('/teacher') ||
+          req.path.startsWith('/questions')) {  // <-- ДОБАВЛЕНО /questions
         return next();
       }
       
